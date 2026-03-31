@@ -1,3 +1,11 @@
+## Badges
+
+![License](https://img.shields.io/badge/License-Proprietary-red)
+![React](https://img.shields.io/badge/React-18.0-blue)
+![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue)
+![Status](https://img.shields.io/badge/Status-Active-success)
+![Platform](https://img.shields.io/badge/Platform-React%20Apps-purple)
+
 # Compass Ultra
 
 **Enterprise-grade developer HUD for React applications.**
