@@ -1,16 +1,23 @@
-COMMERCIAL PROPRIETARY LICENSE
+# License
+
+**Compass Ultra** is proprietary commercial software.
+
 Copyright (c) 2026 Angela Hudson. All rights reserved.
 
-1. OWNERSHIP: The "Compass Ultra" software and all associated source code 
-   remain the exclusive property of Angela Hudson.
+### Usage Rights
+- This repository is made public for **demonstration and evaluation purposes only**.
+- The source code is **not open source**.
+- You may view the code and use it for **personal evaluation and learning**.
+- Any commercial use, modification, integration into a product, or distribution requires a paid Commercial License Agreement.
 
-2. RESTRICTIONS: This software is NOT open-source. Unauthorized copying, 
-   distribution, or modification of this code is strictly prohibited. 
+### Commercial Licensing & Inquiries
+Interested in using Compass Ultra inside your company or product?
 
-3. COMMERCIAL USE: Use of this software by any corporation or entity 
-   requires a signed Commercial Purchase Agreement. 
+Please contact:  
+**Angela Hudson**  
+Email: angela.hudson.data@gmail.com
 
-4. NO PERMISSION: No rights are granted to any person obtaining a copy of 
-   this software to "deal in the Software without restriction." 
+---
 
-All inquiries for acquisition or licensing should be directed to the author.
+**No rights are granted under MIT, Apache, or any open-source license.**  
+All rights reserved.
