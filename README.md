@@ -6,6 +6,18 @@
 ![Status](https://img.shields.io/badge/Status-Active-success)
 ![Platform](https://img.shields.io/badge/Platform-React%20Apps-purple)
 
+## License Summary
+
+Compass Ultra is **proprietary commercial software**.  
+This repository is public for **demonstration and evaluation only** — not for production use, redistribution, or integration.
+
+- ❌ Not open source  
+- ❌ No modification or redistribution  
+- ❌ No commercial use without a paid license  
+- ✔️ Viewing and learning are allowed  
+
+See the full `LICENSE` file for complete terms.
+
 # Compass Ultra
 
 **Enterprise-grade developer HUD for React applications.**
@@ -79,6 +91,53 @@ Production Safety
 Always guard the component:
 tsx{process.env.NODE_ENV !== 'production' && <CompassUltra adapter={myAdapter} />}
 No network calls. No side effects.
+
+## Demo
+
+> 🎥 **Demo GIF Coming Soon**  
+> A short preview showing Compass Ultra in action — toggling gates, forcing experiments, simulating failures, and exporting snapshots.
+
+Once your GIF is ready, replace this block with:
+
+```markdown
+![Compass Ultra Demo](./demo/compass-ultra-demo.gif)
+
+---
+
+# ⭐ **4. Marketing Intro (premium, enterprise‑grade)**
+
+```markdown
+## Why Compass Ultra?
+
+Modern frontend teams move fast — but testing edge cases still slows them down.  
+Compass Ultra removes the friction by giving developers a **real‑time, in‑app control panel** for feature gates, config overrides, experiments, and failure simulation.
+
+No redeploys.  
+No backend coordination.  
+No waiting.
+
+Just instant control, full auditability, and a smoother path from development → QA → production.
+
+## Product Hunt Launch Description
+
+🚀 **Introducing Compass Ultra — the developer HUD your React app has been missing.**
+
+Testing edge cases shouldn’t require staging environments, backend toggles, or 30 minutes of setup.  
+Compass Ultra gives developers a **fixed-position, in-app control panel** for:
+
+- Feature gate overrides  
+- Runtime config editing  
+- A/B experiment forcing  
+- Failure simulation (timeouts, 500s, etc.)  
+- Snapshot exporting for QA + handoffs  
+
+All without redeploying.  
+All without touching the backend.
+
+Built for enterprise teams that need **speed, traceability, and compliance** — Compass Ultra turns painful testing workflows into a smooth, instant experience.
+
+If you’re building React apps with feature flags, experiments, or complex config…  
+**Compass Ultra will change your workflow forever.**
 
 Licensing
 Compass Ultra is proprietary commercial software.
