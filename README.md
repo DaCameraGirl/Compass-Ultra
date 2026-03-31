@@ -20,7 +20,7 @@ See the full `LICENSE` file for complete terms.
 
 ---
 
-The The Problem
+## The Problem
 
 Testing complex edge cases (API 500 errors, slow responses, specific A/B variants, or config changes) usually requires 30+ minutes of backend setup, staging coordination, or code modifications.
 
@@ -45,7 +45,7 @@ Built for enterprise frontend teams that need speed, auditability, and complianc
 ## Features
 
 | Feature                  | Description                                                | Benefit                                       |
-|--------------------------|------------------------------------------------------------|-----------------------------------------------|                                      
+|--------------------------|------------------------------------------------------------|--------------------------------------------|
 | **Gates Tab**            | Real-time feature flag toggles with smart categorization   | Eliminate code commenting                     |
 | **Config Tab**           | Live editable runtime configuration                        | Test limits and timeouts instantly            |
 | **Experiments Tab**      | Force any A/B test variant on demand                       | Validate changes without backend changes      |
@@ -59,7 +59,10 @@ Built for enterprise frontend teams that need speed, auditability, and complianc
 
 ```bash
 npm install lucide-react
-tsx// App.tsx
+```
+
+```tsx
+// App.tsx
 import { CompassUltra } from './components/CompassUltra';
 import { myAdapter } from './lib/overrideAdapter';
 
@@ -72,21 +75,31 @@ export default function App() {
     </>
   );
 }
+```
+
 Full adapter examples are available in the /examples folder.
 
-Adapter Interface
-TypeScriptinterface EnterpriseOverrideAdapter {
+## Adapter Interface
+
+```typescript
+interface EnterpriseOverrideAdapter {
   getAllOverrides(): { gates: Record<string, boolean>; config?: Record<string, string> };
   getGateOverride(name: string): boolean;
   setGateOverride(name: string, value: boolean): void;
   resetAllOverrides?(): void;
 }
+```
+
 Supports in-memory (included), LaunchDarkly, Statsig, Unleash, and custom adapters.
 
-Production Safety
+## Production Safety
+
 Always guard the component:
-tsx
+
+```tsx
 {process.env.NODE_ENV !== 'production' && <CompassUltra adapter={myAdapter} />}
+```
+
 No network calls. No side effects.
 
 ## Demo
@@ -99,8 +112,6 @@ Once your GIF is ready, replace this block with:
 ![Compass Ultra Demo](./demo/compass-ultra-demo.gif)
 
 ---
-
-# ⭐ **4. Marketing Intro (premium, enterprise‑grade)**
 
 ## Why Compass Ultra?
 
@@ -117,7 +128,7 @@ Just instant control, full auditability, and a smoother path from development �
 
 🚀 **Introducing Compass Ultra — the developer HUD your React app has been missing.**
 
-Testing edge cases shouldn’t require staging environments, backend toggles, or 30 minutes of setup.  
+Testing edge cases shouldn't require staging environments, backend toggles, or 30 minutes of setup.  
 Compass Ultra gives developers a **fixed-position, in-app control panel** for:
 
 - Feature gate overrides  
@@ -131,41 +142,18 @@ All without touching the backend.
 
 Built for enterprise teams that need **speed, traceability, and compliance** — Compass Ultra turns painful testing workflows into a smooth, instant experience.
 
-If you’re building React apps with feature flags, experiments, or complex config…  
+If you're building React apps with feature flags, experiments, or complex config…  
 **Compass Ultra will change your workflow forever.**
 
-Licensing
+## Licensing
+
 Compass Ultra is proprietary commercial software.
 See LICENSE for full licensing terms and commercial inquiry details.
 
-Contact for Commercial Licensing
+## Contact for Commercial Licensing
+
 Angela Hudson
 angela.hudson.data@gmail.com
 404-422-9575
 
 Built for enterprise teams that want to move fast while staying compliant.
-
-
-# Compass Ultra  
-Enterprise‑grade developer HUD for React applications.
-
-![License](https://img.shields.io/badge/License-Proprietary-red)
-![React](https://img.shields.io/badge/React-18.0-blue)
-![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue)
-![Status](https://img.shields.io/badge/Status-Active-success)
-![Platform](https://img.shields.io/badge/Platform-React%20Apps-purple)
-
----
-
-## License Summary
-
-Compass Ultra is **proprietary commercial software**.  
-This repository is public for **demonstration and evaluation only** — not for production use, redistribution, or integration.
-
-- ❌ Not open source  
-- ❌ No modification or redistribution  
-- ❌ No commercial use without a paid license  
-- ✔️ Viewing and learning are allowed  
-
-See the full `LICENSE` file for complete terms.
-
