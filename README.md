@@ -18,17 +18,13 @@ This repository is public for **demonstration and evaluation only** — not for 
 
 See the full `LICENSE` file for complete terms.
 
-# Compass Ultra
-
-**Enterprise-grade developer HUD for React applications.**
-
-Instant runtime overrides for feature gates, configuration, experiments, and failure simulation — without redeploying or touching the backend.
-
 ---
 
-## The Problem
+The The Problem
 
 Testing complex edge cases (API 500 errors, slow responses, specific A/B variants, or config changes) usually requires 30+ minutes of backend setup, staging coordination, or code modifications.
+
+---
 
 ## The Solution
 
@@ -89,7 +85,8 @@ Supports in-memory (included), LaunchDarkly, Statsig, Unleash, and custom adapte
 
 Production Safety
 Always guard the component:
-tsx{process.env.NODE_ENV !== 'production' && <CompassUltra adapter={myAdapter} />}
+tsx
+{process.env.NODE_ENV !== 'production' && <CompassUltra adapter={myAdapter} />}
 No network calls. No side effects.
 
 ## Demo
@@ -99,14 +96,12 @@ No network calls. No side effects.
 
 Once your GIF is ready, replace this block with:
 
-```markdown
 ![Compass Ultra Demo](./demo/compass-ultra-demo.gif)
 
 ---
 
 # ⭐ **4. Marketing Intro (premium, enterprise‑grade)**
 
-```markdown
 ## Why Compass Ultra?
 
 Modern frontend teams move fast — but testing edge cases still slows them down.  
@@ -149,3 +144,28 @@ angela.hudson.data@gmail.com
 404-422-9575
 
 Built for enterprise teams that want to move fast while staying compliant.
+
+
+# Compass Ultra  
+Enterprise‑grade developer HUD for React applications.
+
+![License](https://img.shields.io/badge/License-Proprietary-red)
+![React](https://img.shields.io/badge/React-18.0-blue)
+![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue)
+![Status](https://img.shields.io/badge/Status-Active-success)
+![Platform](https://img.shields.io/badge/Platform-React%20Apps-purple)
+
+---
+
+## License Summary
+
+Compass Ultra is **proprietary commercial software**.  
+This repository is public for **demonstration and evaluation only** — not for production use, redistribution, or integration.
+
+- ❌ Not open source  
+- ❌ No modification or redistribution  
+- ❌ No commercial use without a paid license  
+- ✔️ Viewing and learning are allowed  
+
+See the full `LICENSE` file for complete terms.
+
