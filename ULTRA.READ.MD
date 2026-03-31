@@ -1,5 +1,3 @@
-<div align="center">
-
 # 🛡️🧭 COMPASS DEV HUD 🧭🛡️
 
 ### *The Last Developer Overlay You Will Ever Need™*
@@ -13,9 +11,7 @@
 [![Audit Safe](https://img.shields.io/badge/Audit-Safe%20%E2%9C%85-22c55e?style=for-the-badge)]()
 [![License](https://img.shields.io/badge/License-MIT-a78bfa?style=for-the-badge)]()
 
----
 
-```
   ██████╗ ██████╗ ███╗   ███╗██████╗  █████╗ ███████╗███████╗
  ██╔════╝██╔═══██╗████╗ ████║██╔══██╗██╔══██╗██╔════╝██╔════╝
  ██║     ██║   ██║██╔████╔██║██████╔╝███████║███████╗███████╗
@@ -26,10 +22,6 @@
 ```
 
 **🌑 Dark. 🔐 Secure. ⚡ Instant. 🧪 Experimental. 📋 Audit-Ready.**
-
-</div>
-
----
 
 ## 📖 Table of Contents
 
@@ -53,8 +45,6 @@
 - [🤝 Contributing](#-contributing)
 - [📜 License](#-license)
 
----
-
 ## 🤔 What Even Is This?
 
 **Compass Dev HUD** is a fixed-position, slide-in developer overlay panel for React applications. It lives in the bottom-right corner of your screen as an unassuming little ⚙️ gear icon, waiting patiently and silently — like a very disciplined intern — until you need it.
@@ -70,9 +60,6 @@ When you pop it open (either by clicking it or hammering `Ctrl+Shift+D` like a p
 It is **not** a feature flag management system. It is **not** a replacement for LaunchDarkly, Statsig, or whatever SaaS your company pays too much for. It is a **developer experience tool** — a local override layer that sits on top of your real system and lets you move fast without breaking (more) things.
 
 Think of it as the cheat code console for your own app. 🎮
-
----
-
 ## ✨ Features That Will Make You Feel Like a Hacker
 
 | Feature | What It Does | Why You'll Love It |
@@ -91,22 +78,19 @@ Think of it as the cheat code console for your own app. 🎮
 | ⌨️ **Keyboard Shortcut** | `Ctrl+Shift+D` (or `Cmd+Shift+D` on Mac) | Because clicking is for people who haven't suffered enough |
 | 🔒 **Audit-Safe Categories** | No gate accidentally labeled "Machine Learning" | Your compliance team will thank you. Eventually. |
 
----
-
 ## 🚀 Getting Started (It's Genuinely Easy)
 
 ### 1️⃣ Install Dependencies
 
 Compass HUD uses only what you almost certainly already have:
 
-```bash
+bash
 npm install react lucide-react
 # tailwindcss is assumed — if you don't have it, we need to talk
-```
 
 ### 2️⃣ Drop It Into Your App Root
 
-```tsx
+tsx
 // App.tsx
 import { CompassDevHUD } from './components/CompassDevHUD';
 import { myAdapter } from './lib/overrideAdapter';
@@ -123,7 +107,6 @@ export default function App() {
     </>
   );
 }
-```
 
 ### 3️⃣ Wire Up Your Adapter
 
@@ -132,8 +115,6 @@ See the [🔌 Wiring Up Your Adapter](#-wiring-up-your-adapter) section below. I
 ### 4️⃣ Open Your App, Look Bottom-Right
 
 See that little ⚙️ gear? That's your new best friend. Click it. Welcome to the HUD. You're home now.
-
----
 
 ## 🧩 The Five Holy Tabs
 
@@ -156,8 +137,6 @@ Each gate row shows:
 
 There is also a **search bar** at the top. Type in it. Your 47 gates will filter down. You're welcome.
 
----
-
 ### ⚙️ Config Tab
 
 Sometimes you don't need to toggle a boolean. Sometimes you need to change `SESSION_TTL_SECONDS` from `3600` to `60` because you're testing token expiry behavior and you don't want to wait an actual hour. This is that tab.
@@ -171,8 +150,6 @@ There's also an `+ ADD KEY` button at the bottom styled with a dashed border bec
 
 > ⚠️ **Important:** These config values are **local overrides only**. They do not phone home. They do not persist across sessions. They do not write to your database. They are vibes.
 
----
-
 ### 🧪 Experiments Tab
 
 Your app probably runs A/B experiments. Your product manager definitely has opinions about which variant is performing better. This tab lets you **manually force yourself into any variant** without going through the experiment assignment pipeline.
@@ -184,8 +161,6 @@ Each experiment shows:
 The active variant is highlighted in purple. Clicking a different one switches you immediately and logs the change to audit. It's genuinely that simple.
 
 > 🧠 **Pro tip:** This is extremely useful for QA. Instead of asking your QA engineer to "somehow get assigned to the `social_proof` variant," just open this tab and click the button. You're done. Go home.
-
----
 
 ### 📋 Audit Tab
 
@@ -200,8 +175,6 @@ Each entry shows:
 The log is **capped at 50 entries** (oldest entries are dropped) because we are not going to let this thing eat your memory just because you spent 45 minutes toggling `REALTIME_COLLAB` on and off.
 
 > 📋 **Audit-ready:** If your compliance team asks "who changed what and when during this testing session," you can screenshot this tab. It is genuinely useful. This was not an accident.
-
----
 
 ### 🏗️ Build Tab
 
@@ -223,13 +196,10 @@ Two sections:
 
 > 🔧 **To wire these up to real data:** replace the hardcoded arrays with values fetched from your health check endpoint. The structure is simple — `label`, `status` (`'ok' | 'warn' | 'err'`), `val` (human-readable string).
 
----
-
 ## 🏷️ The Category System (And Why It Matters)
 
 Gates are automatically categorized by `inferCategory()`, which runs a series of regex checks against the gate name:
-
-```typescript
+typescript
 function inferCategory(name: string): GateCategory {
   const n = name.toUpperCase();
   if (/DASHBOARD|UI|LAYOUT|THEME|VIEW|MODAL/.test(n))                 return 'ui';
@@ -238,7 +208,6 @@ function inferCategory(name: string): GateCategory {
   if (/MODEL|INFERENCE|CANARY|SHADOW|EVAL|EMBEDDING|ML|AI/.test(n))   return 'ml';
   return 'core'; // ← the important one
 }
-```
 
 ### 🔒 Why `core` and Not `ml` as the Default?
 
@@ -257,32 +226,29 @@ Great question. The previous version of this component defaulted unknown gates t
 You can add new categories by:
 
 1. Adding the string literal to `GateCategory`:
-   ```typescript
+   typescript
    type GateCategory = 'ui' | 'security' | 'api' | 'ml' | 'core' | 'billing' | 'infra';
-   ```
 
 2. Adding a color to `CATEGORY_COLORS`:
-   ```typescript
+   typescript
    billing: 'text-pink-400',
    infra:   'text-orange-400',
-   ```
-
+   
 3. Adding regex patterns to `inferCategory`:
-   ```typescript
+   typescript
    if (/BILLING|PAYMENT|INVOICE|STRIPE|SUBSCRIPTION/.test(n)) return 'billing';
    if (/INFRA|K8S|KUBERNETES|POD|NODE|CLUSTER/.test(n))       return 'infra';
-   ```
-
+  
 4. Adding the new categories to the `.map()` in the Gates tab:
-   ```typescript
+   typescript
    {(['ui', 'security', 'api', 'ml', 'core', 'billing', 'infra'] as GateCategory[]).map(cat => {
-   ```
+  
 
 ### 🏭 CI Lint Rule (Advanced, Optional, Recommended)
 
 If you want to enforce zero `'core'` gates in your codebase — meaning every gate **must** have an explicit category — you can add this to your CI pipeline:
 
-```bash
+bash
 # Fail if any gate name doesn't match a known category pattern
 node -e "
 const gates = require('./src/config/gates.json');
@@ -292,11 +258,8 @@ if (uncat.length > 0) {
   process.exit(1);
 }
 "
-```
 
 This forces categorization to happen at **authorship time** (when the engineer adds the gate) rather than at **audit time** (when someone is asking uncomfortable questions). Much better.
-
----
 
 ## 🌍 Environment Switcher
 
@@ -312,26 +275,20 @@ Switching environments logs an audit entry with `severity: 'warn'` if you switch
 
 > ⚠️ **Note:** The environment selector changes the **context label and snapshot metadata** only. It does not actually connect to different backends or change your API endpoints. For that, you need environment variables, which are a different and older problem.
 
----
-
 ## ⌨️ Keyboard Shortcut
 
-```
 Ctrl + Shift + D      (Windows / Linux)
 Cmd  + Shift + D      (macOS)
-```
 
 This toggles the HUD open and closed from anywhere in the app. The shortcut hint is displayed in tiny, extremely subtle text below the trigger button when the panel is closed, in case you forget.
 
 The handler is registered via `useEffect` on mount and properly cleaned up on unmount. It will not leak. We checked.
 
----
-
 ## 📤 Export Config
 
 The **Export Config** button in the footer downloads a JSON file named `compass-snapshot-{timestamp}.json` containing the complete state of every override you have active:
 
-```json
+json
 {
   "env": "staging",
   "timestamp": "2026-03-29T14:23:01.000Z",
@@ -351,7 +308,6 @@ The **Export Config** button in the footer downloads a JSON file named `compass-
     "ml_model_routing": "ensemble"
   }
 }
-```
 
 Use cases for this file:
 
@@ -360,8 +316,6 @@ Use cases for this file:
 - 🐛 **Attach to a bug report** so the person reproducing it knows exactly what state you were in
 - 🗂️ **Archive alongside a release** for compliance documentation
 - 🔁 **Eventually feed back into the adapter** to restore a previous state (future feature, see roadmap)
-
----
 
 ## 🔌 Wiring Up Your Adapter
 
@@ -405,13 +359,12 @@ class InMemoryOverrideAdapter implements EnterpriseOverrideAdapter<any> {
 }
 
 export const myAdapter = new InMemoryOverrideAdapter();
-```
 
 ### 🔗 Connecting to a Real Feature Flag System
 
 If you're using **LaunchDarkly**, **Statsig**, **Growthbook**, **Unleash**, or any other flag system, you can wrap their SDK in an adapter:
 
-```typescript
+typescript
 // Example: wrapping a LaunchDarkly client
 import { LDClient } from 'launchdarkly-js-client-sdk';
 
@@ -443,13 +396,9 @@ class LaunchDarklyAdapter implements EnterpriseOverrideAdapter<any> {
     this.overrides = {};
   }
 }
-```
-
----
 
 ## 🧱 Architecture Deep Dive
 
-```
 CompassDevHUD
 ├── 🔌 EnterpriseOverrideAdapter (your system, injected via prop)
 ├── 🎛️ State
@@ -474,11 +423,9 @@ CompassDevHUD
 └── 🦶 Footer
     ├── Reset All    → adapter.resetAllOverrides() + state reset + audit log
     └── Export Config → JSON blob → Blob URL → anchor click → download
-```
 
 ### 🔁 Data Flow
 
-```
 User clicks toggle
        ↓
 toggleGate(name) called
@@ -490,31 +437,23 @@ setGates(prev → updated array) ← React state updates
 addAudit(msg, key, severity) ← audit log updated
        ↓
 Re-render → UI reflects new state
-```
 
 Everything is **unidirectional**. No Context API, no Redux, no Zustand, no Jotai, no Recoil, no ceremonies. Just props and `useState`. It works. Don't overthink it.
-
----
 
 ## 🚨 Production Safety Warning
 
 Please, for the love of your on-call rotation, wrap this component in an environment check:
 
-```tsx
+tsx
 {process.env.NODE_ENV !== 'production' && <CompassDevHUD adapter={myAdapter} />}
-```
-
 Or if you use a custom env variable:
 
-```tsx
+tsx
 {process.env.NEXT_PUBLIC_SHOW_DEV_HUD === 'true' && <CompassDevHUD adapter={myAdapter} />}
-```
 
 The HUD itself will not spontaneously combust in production — it has no server-side effects, no API calls, no telemetry of its own. But it **will** expose your gate names, experiment names, config keys, build metadata, and internal branch names to anyone who opens DevTools and pokes around the React component tree.
 
 That is a **information disclosure risk**. Your security team has opinions about this. Listen to them.
-
----
 
 ## 🛣️ Roadmap
 
@@ -532,8 +471,6 @@ Things that would make this even better and might get built someday:
 - [ ] 📱 **Mobile-friendly mode** — bottom sheet instead of side panel, for testing on small viewports
 
 PRs welcome. Opinions welcome. Unsolicited rewrites in Vue: kindly keep to yourself.
-
----
 
 ## 🤝 Contributing
 
@@ -560,25 +497,12 @@ Open an issue with:
 - Your Node version, React version, and browser
 - Optionally: an exported config JSON from the panel at the time of the bug
 
----
-
-## 📜 License
-
-MIT — do whatever you want with it. Use it in your startup. Use it in your enterprise monolith. Use it in a side project you'll abandon in six weeks. We don't mind.
-
-If it saves you time, that's enough.
-
----
-
-<div align="center">
-
 **Built with 🖤 for developers who are tired of editing source code to test edge cases**
 
 *Compass Dev HUD — Because `console.log('GATE ENABLED:', true)` is not a feature flag system*
 
-```
-ctrl + shift + D
-```
+cttl + shift + D
+
 
 🛡️
 
