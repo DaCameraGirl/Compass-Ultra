@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   Activity,
   BadgeCheck,
@@ -6,17 +6,22 @@ import {
   CheckCircle2,
   Clipboard,
   Database,
+  Download,
   Flag,
   GitBranch,
+  Link,
   LockKeyhole,
   Radio,
   RefreshCw,
+  Save,
   ShieldCheck,
   SlidersHorizontal,
+  Upload,
   Users,
   Zap,
 } from 'lucide-react';
 
+const storageKey = 'compass-ultra-workspace-v1';
 const environments = ['Production mirror', 'Staging', 'QA branch'];
 const segments = ['Enterprise admin', 'Trial workspace', 'EU customer'];
 
@@ -27,6 +32,45 @@ const initialFlags = [
   { id: 'ai_support_summary', name: 'AI support summary', owner: 'Support', enabled: false, risk: 'Medium', exposure: 9 },
 ];
 
+const scenarios = [
+  {
+    name: 'Billing rollback',
+    detail: 'High-risk checkout path with new billing disabled for a release review.',
+    environment: 'Production mirror',
+    segment: 'Enterprise admin',
+    overrides: {
+      checkout_redesign: 'on',
+      usage_based_billing: 'off',
+      realtime_audit_log: 'on',
+      ai_support_summary: 'off',
+    },
+  },
+  {
+    name: 'EU support pilot',
+    detail: 'Regional privacy check with support summaries and audit trail enabled.',
+    environment: 'Staging',
+    segment: 'EU customer',
+    overrides: {
+      checkout_redesign: 'off',
+      usage_based_billing: 'off',
+      realtime_audit_log: 'on',
+      ai_support_summary: 'on',
+    },
+  },
+  {
+    name: 'Trial conversion',
+    detail: 'Trial workspace sees checkout, billing, and support experiments together.',
+    environment: 'QA branch',
+    segment: 'Trial workspace',
+    overrides: {
+      checkout_redesign: 'on',
+      usage_based_billing: 'on',
+      realtime_audit_log: 'on',
+      ai_support_summary: 'on',
+    },
+  },
+];
+
 const integrations = [
   ['LaunchDarkly', 'Read flag state and simulate variations with local overrides.'],
   ['Statsig', 'Inspect gates, configs, layers, and experiment assignments.'],
@@ -34,21 +78,56 @@ const integrations = [
   ['Generic JSON', 'Drop in a simple adapter for homegrown flag platforms.'],
 ];
 
+const getInitialState = () => {
+  if (typeof window === 'undefined') {
+    return { environment: environments[0], segment: segments[0], flags: initialFlags };
+  }
+
+  const fromUrl = readSnapshotFromUrl();
+  if (fromUrl) return hydrateSnapshot(fromUrl);
+
+  try {
+    const saved = JSON.parse(window.localStorage.getItem(storageKey));
+    if (saved) return hydrateSnapshot(saved);
+  } catch {
+    return { environment: environments[0], segment: segments[0], flags: initialFlags };
+  }
+
+  return { environment: environments[0], segment: segments[0], flags: initialFlags };
+};
+
 export default function App() {
-  const [environment, setEnvironment] = useState(environments[0]);
-  const [segment, setSegment] = useState(segments[0]);
-  const [flags, setFlags] = useState(initialFlags);
-  const [copied, setCopied] = useState(false);
+  const importedFileRef = useRef(null);
+  const initialState = useMemo(getInitialState, []);
+  const [environment, setEnvironment] = useState(initialState.environment);
+  const [segment, setSegment] = useState(initialState.segment);
+  const [flags, setFlags] = useState(initialState.flags);
+  const [copied, setCopied] = useState('');
+  const [notice, setNotice] = useState('Workspace saves locally');
+  const [auditLog, setAuditLog] = useState(() => [
+    {
+      id: 'boot',
+      time: new Date().toLocaleTimeString('en-US', { hour12: false }),
+      action: readSnapshotFromUrl() ? 'Restored snapshot from URL' : 'Workspace ready',
+    },
+  ]);
 
   const enabledCount = flags.filter((flag) => flag.enabled).length;
   const highRiskCount = flags.filter((flag) => flag.enabled && flag.risk === 'High').length;
+  const changedCount = flags.filter((flag) => {
+    const baseline = initialFlags.find((item) => item.id === flag.id);
+    return baseline?.enabled !== flag.enabled;
+  }).length;
+  const driftScore =
+    changedCount + (environment !== environments[0] ? 1 : 0) + (segment !== segments[0] ? 1 : 0);
 
   const snapshot = useMemo(
     () => ({
       product: 'Compass-Ultra',
+      version: 1,
       environment,
       segment,
-      createdAt: 'local-preview',
+      createdAt: new Date().toISOString(),
       overrides: flags.reduce((acc, flag) => {
         acc[flag.id] = flag.enabled ? 'on' : 'off';
         return acc;
@@ -59,26 +138,119 @@ export default function App() {
 
   const snapshotText = JSON.stringify(snapshot, null, 2);
 
+  useEffect(() => {
+    window.localStorage.setItem(
+      storageKey,
+      JSON.stringify({ environment, segment, overrides: snapshot.overrides })
+    );
+  }, [environment, segment, snapshot.overrides]);
+
+  const record = (action) => {
+    setAuditLog((current) => [
+      {
+        id: `${Date.now()}-${Math.random()}`,
+        time: new Date().toLocaleTimeString('en-US', { hour12: false }),
+        action,
+      },
+      ...current,
+    ].slice(0, 8));
+  };
+
+  const updateEnvironment = (value) => {
+    setEnvironment(value);
+    setNotice(`Environment set to ${value}`);
+    record(`Environment changed to ${value}`);
+  };
+
+  const updateSegment = (value) => {
+    setSegment(value);
+    setNotice(`Segment set to ${value}`);
+    record(`Segment changed to ${value}`);
+  };
+
   const toggleFlag = (id) => {
+    const target = flags.find((flag) => flag.id === id);
+    if (target) {
+      const next = !target.enabled;
+      setNotice(`${target.name} ${next ? 'enabled' : 'disabled'}`);
+      record(`${target.name} ${next ? 'enabled' : 'disabled'}`);
+    }
     setFlags((current) =>
       current.map((flag) => (flag.id === id ? { ...flag, enabled: !flag.enabled } : flag))
     );
   };
 
+  const applySnapshot = (nextSnapshot, action = 'Snapshot restored') => {
+    const hydrated = hydrateSnapshot(nextSnapshot);
+    setEnvironment(hydrated.environment);
+    setSegment(hydrated.segment);
+    setFlags(hydrated.flags);
+    setNotice(action);
+    record(action);
+  };
+
+  const applyScenario = (scenario) => {
+    applySnapshot(scenario, `${scenario.name} scenario applied`);
+  };
+
   const resetDemo = () => {
-    setEnvironment(environments[0]);
-    setSegment(segments[0]);
-    setFlags(initialFlags);
-    setCopied(false);
+    applySnapshot(
+      { environment: environments[0], segment: segments[0], overrides: flagsToOverrides(initialFlags) },
+      'Workspace reset to baseline'
+    );
+    setCopied('');
+    const url = new URL(window.location.href);
+    url.searchParams.delete('snapshot');
+    window.history.replaceState({}, '', `${url.pathname}${url.hash || '#demo'}`);
   };
 
   const copySnapshot = async () => {
+    await copyText(snapshotText, 'JSON copied');
+  };
+
+  const copyShareLink = async () => {
+    const url = new URL(window.location.href);
+    url.searchParams.set('snapshot', encodeSnapshot(snapshot));
+    url.hash = 'demo';
+    await copyText(url.toString(), 'Share link copied');
+  };
+
+  const copyText = async (text, label) => {
     try {
-      await navigator.clipboard.writeText(snapshotText);
-      setCopied(true);
-      window.setTimeout(() => setCopied(false), 1800);
+      await navigator.clipboard.writeText(text);
+      setCopied(label);
+      setNotice(label);
+      record(label);
+      window.setTimeout(() => setCopied(''), 1800);
     } catch {
-      setCopied(false);
+      setNotice('Clipboard unavailable');
+    }
+  };
+
+  const downloadSnapshot = () => {
+    const blob = new Blob([snapshotText], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `compass-ultra-${Date.now()}.json`;
+    link.click();
+    URL.revokeObjectURL(url);
+    setNotice('Snapshot downloaded');
+    record('Snapshot downloaded');
+  };
+
+  const importSnapshot = async (event) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    try {
+      const imported = JSON.parse(await file.text());
+      applySnapshot(imported, `Imported ${file.name}`);
+    } catch {
+      setNotice('Import failed: invalid snapshot JSON');
+      record('Import failed');
+    } finally {
+      event.target.value = '';
     }
   };
 
@@ -116,10 +288,10 @@ export default function App() {
               <Zap size={18} aria-hidden="true" />
               Try the simulator
             </a>
-            <a className="secondary-action" href="#integrations">
-              <GitBranch size={18} aria-hidden="true" />
-              View adapters
-            </a>
+            <button className="secondary-action" type="button" onClick={copyShareLink}>
+              <Link size={18} aria-hidden="true" />
+              Copy state link
+            </button>
           </div>
           <div className="trust-row" aria-label="Product guarantees">
             <span>No production writes</span>
@@ -132,17 +304,17 @@ export default function App() {
           <div className="panel-header">
             <div>
               <p>Release simulation</p>
-              <h2>Billing rollout</h2>
+              <h2>{segment}</h2>
             </div>
             <span className="status-pill live">
               <Radio size={14} aria-hidden="true" />
-              Live mirror
+              {environment}
             </span>
           </div>
           <div className="metric-grid">
             <Metric label="Flags enabled" value={`${enabledCount}/4`} tone="green" />
             <Metric label="High risk active" value={highRiskCount} tone="red" />
-            <Metric label="Snapshot drift" value="0.8%" tone="blue" />
+            <Metric label="Snapshot drift" value={`${driftScore} changes`} tone="blue" />
           </div>
           <div className="release-path">
             <span>Dev</span>
@@ -150,6 +322,10 @@ export default function App() {
             <span>Staging</span>
             <strong>Prod mirror</strong>
           </div>
+          <p className="state-note">
+            <Save size={15} aria-hidden="true" />
+            {notice}
+          </p>
         </section>
       </section>
 
@@ -159,11 +335,20 @@ export default function App() {
             <Bug size={16} aria-hidden="true" />
             Working demo
           </p>
-          <h2>Simulate the exact state QA needs to reproduce.</h2>
+          <h2>Simulate, save, share, restore.</h2>
           <p>
-            Toggle flags, change the audience, copy the snapshot, and hand the same
-            state to another teammate without touching the flag provider.
+            Apply a QA scenario, change the flag state, export it as JSON, or copy a
+            link that restores the exact same workspace for another teammate.
           </p>
+        </div>
+
+        <div className="scenario-grid" aria-label="QA scenario presets">
+          {scenarios.map((scenario) => (
+            <button className="scenario-button" type="button" key={scenario.name} onClick={() => applyScenario(scenario)}>
+              <strong>{scenario.name}</strong>
+              <span>{scenario.detail}</span>
+            </button>
+          ))}
         </div>
 
         <div className="workspace-grid">
@@ -171,7 +356,7 @@ export default function App() {
             <div className="toolbar">
               <label>
                 Environment
-                <select value={environment} onChange={(event) => setEnvironment(event.target.value)}>
+                <select value={environment} onChange={(event) => updateEnvironment(event.target.value)}>
                   {environments.map((item) => (
                     <option key={item}>{item}</option>
                   ))}
@@ -179,13 +364,13 @@ export default function App() {
               </label>
               <label>
                 User segment
-                <select value={segment} onChange={(event) => setSegment(event.target.value)}>
+                <select value={segment} onChange={(event) => updateSegment(event.target.value)}>
                   {segments.map((item) => (
                     <option key={item}>{item}</option>
                   ))}
                 </select>
               </label>
-              <button className="icon-button" type="button" onClick={resetDemo} aria-label="Reset demo">
+              <button className="icon-button" type="button" onClick={resetDemo} aria-label="Reset workspace">
                 <RefreshCw size={18} aria-hidden="true" />
               </button>
             </div>
@@ -199,7 +384,7 @@ export default function App() {
                       <h3>{flag.name}</h3>
                     </div>
                     <p>
-                      {flag.owner} owner · {flag.exposure}% exposure · {flag.risk} risk
+                      {flag.owner} owner - {flag.exposure}% exposure - {flag.risk} risk
                     </p>
                   </div>
                   <button
@@ -221,14 +406,53 @@ export default function App() {
                 <p>Shareable QA snapshot</p>
                 <h2>State bundle</h2>
               </div>
-              <button className="copy-button" type="button" onClick={copySnapshot}>
-                <Clipboard size={16} aria-hidden="true" />
-                {copied ? 'Copied' : 'Copy'}
-              </button>
+              <div className="snapshot-actions">
+                <button className="copy-button" type="button" onClick={copySnapshot}>
+                  <Clipboard size={16} aria-hidden="true" />
+                  {copied === 'JSON copied' ? 'Copied' : 'JSON'}
+                </button>
+                <button className="copy-button" type="button" onClick={copyShareLink}>
+                  <Link size={16} aria-hidden="true" />
+                  Link
+                </button>
+                <button className="copy-button" type="button" onClick={downloadSnapshot}>
+                  <Download size={16} aria-hidden="true" />
+                  File
+                </button>
+                <button className="copy-button" type="button" onClick={() => importedFileRef.current?.click()}>
+                  <Upload size={16} aria-hidden="true" />
+                  Import
+                </button>
+              </div>
             </div>
+            <input
+              ref={importedFileRef}
+              className="hidden-file"
+              type="file"
+              accept="application/json,.json"
+              onChange={importSnapshot}
+            />
             <pre>{snapshotText}</pre>
           </section>
         </div>
+
+        <section className="audit-panel" aria-label="Audit log">
+          <div className="panel-header">
+            <div>
+              <p>Local audit trail</p>
+              <h2>What changed</h2>
+            </div>
+            <span className="status-pill live">{auditLog.length} events</span>
+          </div>
+          <div className="audit-list">
+            {auditLog.map((event) => (
+              <article className="audit-item" key={event.id}>
+                <span>{event.time}</span>
+                <strong>{event.action}</strong>
+              </article>
+            ))}
+          </div>
+        </section>
       </section>
 
       <section id="integrations" className="integrations-section">
@@ -293,4 +517,38 @@ function SecurityItem({ icon, title, text }) {
       </div>
     </article>
   );
+}
+
+function flagsToOverrides(flags) {
+  return flags.reduce((acc, flag) => {
+    acc[flag.id] = flag.enabled ? 'on' : 'off';
+    return acc;
+  }, {});
+}
+
+function hydrateSnapshot(snapshot) {
+  const overrides = snapshot?.overrides || {};
+  return {
+    environment: environments.includes(snapshot?.environment) ? snapshot.environment : environments[0],
+    segment: segments.includes(snapshot?.segment) ? snapshot.segment : segments[0],
+    flags: initialFlags.map((flag) => ({
+      ...flag,
+      enabled: overrides[flag.id] ? overrides[flag.id] === 'on' : flag.enabled,
+    })),
+  };
+}
+
+function encodeSnapshot(snapshot) {
+  return btoa(JSON.stringify(snapshot)).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/g, '');
+}
+
+function readSnapshotFromUrl() {
+  try {
+    const encoded = new URLSearchParams(window.location.search).get('snapshot');
+    if (!encoded) return null;
+    const padded = encoded.replace(/-/g, '+').replace(/_/g, '/').padEnd(Math.ceil(encoded.length / 4) * 4, '=');
+    return JSON.parse(atob(padded));
+  } catch {
+    return null;
+  }
 }

@@ -350,6 +350,16 @@ h1 {
   color: #fff;
 }
 
+.state-note {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin: 18px 0 0;
+  color: var(--brand-strong);
+  font-size: 13px;
+  font-weight: 800;
+}
+
 .section-heading {
   max-width: 760px;
   margin-bottom: 28px;
@@ -373,6 +383,45 @@ h1 {
   display: grid;
   grid-template-columns: minmax(0, 1.08fr) minmax(340px, 0.92fr);
   gap: 20px;
+}
+
+.scenario-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+  margin-bottom: 20px;
+}
+
+.scenario-button {
+  min-height: 132px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fff;
+  color: var(--ink);
+  cursor: pointer;
+  padding: 18px;
+  text-align: left;
+  box-shadow: none;
+}
+
+.scenario-button:hover {
+  border-color: rgba(15, 107, 255, 0.45);
+  box-shadow: 0 14px 38px rgba(16, 24, 39, 0.09);
+}
+
+.scenario-button strong,
+.scenario-button span {
+  display: block;
+}
+
+.scenario-button strong {
+  margin-bottom: 8px;
+  font-size: 17px;
+}
+
+.scenario-button span {
+  color: var(--muted);
+  line-height: 1.5;
 }
 
 .control-panel,
@@ -487,6 +536,55 @@ select {
   padding: 18px;
 }
 
+.snapshot-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.copy-button {
+  min-height: 38px;
+  padding: 0 11px;
+}
+
+.hidden-file {
+  display: none;
+}
+
+.audit-panel {
+  margin-top: 20px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fff;
+  padding: 18px;
+}
+
+.audit-list {
+  display: grid;
+  gap: 8px;
+}
+
+.audit-item {
+  display: grid;
+  grid-template-columns: 96px minmax(0, 1fr);
+  gap: 12px;
+  align-items: center;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 10px 12px;
+}
+
+.audit-item span {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.audit-item strong {
+  font-size: 14px;
+}
+
 .integrations-section {
   background: #fff;
 }
@@ -564,7 +662,8 @@ select {
 @media (max-width: 1040px) {
   .hero-section,
   .workspace-grid,
-  .security-section {
+  .security-section,
+  .scenario-grid {
     grid-template-columns: 1fr;
   }
 
@@ -578,7 +677,8 @@ select {
   .nav-links,
   .toolbar,
   .flag-row,
-  .panel-header {
+  .panel-header,
+  .snapshot-actions {
     align-items: stretch;
   }
 
@@ -608,7 +708,8 @@ select {
 
   .toolbar,
   .flag-row,
-  .panel-header {
+  .panel-header,
+  .snapshot-actions {
     flex-direction: column;
   }
 
@@ -618,5 +719,9 @@ select {
 
   .toggle {
     align-self: flex-start;
+  }
+
+  .audit-item {
+    grid-template-columns: 1fr;
   }
 }

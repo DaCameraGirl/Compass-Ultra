@@ -24,7 +24,11 @@ The repo now includes a deployable Vite demo app with:
 
 - interactive flag toggle simulator
 - environment and user-segment controls
-- shareable JSON state bundle
+- local workspace persistence
+- shareable URL snapshot restore
+- JSON snapshot copy, download, and import
+- QA scenario presets
+- local audit trail for state changes
 - adapter cards for LaunchDarkly, Statsig, Firebase Remote Config, and generic JSON
 - enterprise posture section covering local overrides and read-only adapters
 
@@ -66,8 +70,6 @@ to the repo root before publishing a new visual update.
 ## Roadmap
 
 - Provider adapter examples for LaunchDarkly and Statsig
-- URL-encoded share snapshots
-- Import/export snapshot files
 - SSO-ready team workspace design
 - Optional hosted version for team snapshot history
 
