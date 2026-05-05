@@ -27,11 +27,17 @@ The repo now includes a deployable Vite workspace with:
 - boolean, variant, and JSON flag values
 - manual overrides and rollout percentage controls
 - single-rule targeting per flag
+- release train, change ticket, approver, captain, window, and incident-channel controls
+- enterprise policy checks for approvals, expired flags, canary limits, dependencies, and production overrides
+- sample packs for DaCameraGirl Enterprise, LaunchDarkly, Statsig, and Firebase Remote Config shapes
+- sample user contexts for production admins, EU customers, and mobile trial users
+- criticality, Jira/change IDs, approvers, expiration dates, dependencies, and rollback notes per flag
+- generated release runbook with active evaluations and rollback steps
 - local workspace persistence
 - provider JSON import for common LaunchDarkly, Statsig, Firebase Remote Config, and generic shapes
 - shareable URL snapshot restore
 - workspace JSON copy, download, and import
-- generated SDK payload for app integration
+- generated SDK payload with values, reasons, owners, tickets, and criticality
 - local audit trail for state changes
 
 ## Ideal Buyers
@@ -63,7 +69,7 @@ to the repo root before publishing a new visual update.
 ## Market-Ready Checklist
 
 - Add GitHub topics: `react`, `feature-flags`, `developer-tools`, `qa-tools`, `experimentation`, `debugging`.
-- Record a 30-60 second product GIF showing flag evaluation, provider import, and snapshot copy.
+- Record a 30-60 second product GIF showing release gate checks, provider sample imports, context switching, and runbook copy.
 - Write a technical launch post: "How to debug React feature flags without changing staging."
 - Launch to Hacker News Show HN after the live workspace is deployed.
 - Post a short LinkedIn demo aimed at frontend and QA leads.

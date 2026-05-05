@@ -1,36 +1,67 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   Activity,
+  AlertTriangle,
   BadgeCheck,
+  BookOpenCheck,
   Braces,
-  Check,
+  CheckCircle2,
   Clipboard,
+  CloudCog,
   Download,
   FileJson,
   Gauge,
   GitBranch,
   Link,
+  ListChecks,
   ListFilter,
+  LockKeyhole,
   Plus,
   RefreshCw,
-  Save,
+  Rocket,
   Search,
   ShieldCheck,
   SlidersHorizontal,
   Trash2,
   Upload,
   UserRound,
+  XCircle,
 } from 'lucide-react';
 
-const storageKey = 'compass-ultra-workspace-v2';
+const storageKey = 'compass-ultra-workspace-v3';
 
 const defaultContext = {
   key: 'user_2941',
-  email: 'admin@acme.test',
+  email: 'ops.admin@dacameragirl.dev',
+  tenant: 'dcg-enterprise',
   plan: 'enterprise',
-  region: 'us',
+  role: 'admin',
+  region: 'us-east',
+  country: 'US',
+  device: 'desktop',
   environment: 'production',
 };
+
+const defaultRelease = {
+  train: 'DCG-prod-2026.05',
+  changeTicket: 'CHG-24051',
+  incidentChannel: '#dcg-war-room',
+  releaseCaptain: 'DaCameraGirl DevOps',
+  approver: 'Platform SRE',
+  window: 'Tue 22:00-23:00 ET',
+};
+
+const sampleContexts = [
+  { name: 'Prod admin', context: defaultContext },
+  {
+    name: 'EU customer',
+    context: { ...defaultContext, key: 'user_8842', email: 'buyer@eu-client.test', tenant: 'eu-bank', role: 'billing_admin', region: 'eu-west', country: 'DE' },
+  },
+  {
+    name: 'Mobile trial',
+    context: { ...defaultContext, key: 'trial_701', email: 'trial@creator.test', tenant: 'trial-lab', plan: 'trial', role: 'owner', region: 'us-west', device: 'mobile', environment: 'staging' },
+  },
+];
 
 const seedFlags = [
   {
@@ -42,20 +73,36 @@ const seedFlags = [
     defaultValue: false,
     overrideValue: null,
     rollout: 35,
+    criticality: 'high',
+    jira: 'DCG-4211',
+    approver: 'Growth Lead',
+    expiresAt: '2026-06-30',
+    rollback: 'Set checkout.redesign off and flush edge cache.',
+    canaryRequired: true,
+    dependencies: ['billing.usage_v2'],
+    tags: ['revenue', 'frontend'],
     rules: [{ attribute: 'plan', operator: 'equals', value: 'enterprise', valueWhenMatched: true }],
-    source: 'Local',
+    source: 'LaunchDarkly',
   },
   {
     key: 'billing.usage_v2',
     name: 'Usage billing v2',
     owner: 'Billing',
     type: 'boolean',
-    enabled: false,
+    enabled: true,
     defaultValue: false,
     overrideValue: null,
-    rollout: 10,
-    rules: [{ attribute: 'region', operator: 'notEquals', value: 'eu', valueWhenMatched: true }],
-    source: 'Local',
+    rollout: 18,
+    criticality: 'critical',
+    jira: 'DCG-4209',
+    approver: 'Finance Ops',
+    expiresAt: '2026-07-15',
+    rollback: 'Disable usage billing and replay invoices from billing.v1.',
+    canaryRequired: true,
+    dependencies: [],
+    tags: ['billing', 'sox'],
+    rules: [{ attribute: 'country', operator: 'notEquals', value: 'DE', valueWhenMatched: true }],
+    source: 'Statsig',
   },
   {
     key: 'support.ai_summary',
@@ -66,9 +113,17 @@ const seedFlags = [
     defaultValue: 'control',
     overrideValue: null,
     rollout: 100,
-    variants: ['control', 'concise', 'detailed'],
-    rules: [{ attribute: 'plan', operator: 'equals', value: 'enterprise', valueWhenMatched: 'detailed' }],
-    source: 'Local',
+    criticality: 'medium',
+    jira: 'DCG-4180',
+    approver: 'Support Ops',
+    expiresAt: '2026-08-01',
+    rollback: 'Force variant to control.',
+    canaryRequired: false,
+    dependencies: [],
+    tags: ['ai', 'support'],
+    variants: ['control', 'concise', 'detailed', 'redacted'],
+    rules: [{ attribute: 'plan', operator: 'equals', value: 'enterprise', valueWhenMatched: 'redacted' }],
+    source: 'Firebase',
   },
   {
     key: 'audit.realtime',
@@ -76,13 +131,142 @@ const seedFlags = [
     owner: 'Platform',
     type: 'json',
     enabled: true,
-    defaultValue: { stream: false, retentionDays: 30 },
+    defaultValue: { stream: false, retentionDays: 30, piiMode: 'hash' },
     overrideValue: null,
     rollout: 100,
-    rules: [{ attribute: 'environment', operator: 'equals', value: 'production', valueWhenMatched: { stream: true, retentionDays: 90 } }],
+    criticality: 'critical',
+    jira: 'DCG-4174',
+    approver: 'Security',
+    expiresAt: '2026-12-31',
+    rollback: 'Set stream false and keep retention at 30 days.',
+    canaryRequired: false,
+    dependencies: [],
+    tags: ['audit', 'security'],
+    rules: [{ attribute: 'environment', operator: 'equals', value: 'production', valueWhenMatched: { stream: true, retentionDays: 90, piiMode: 'hash' } }],
+    source: 'LaunchDarkly',
+  },
+  {
+    key: 'risk.step_up_auth',
+    name: 'Risk step-up auth',
+    owner: 'Identity',
+    type: 'boolean',
+    enabled: true,
+    defaultValue: true,
+    overrideValue: null,
+    rollout: 100,
+    criticality: 'critical',
+    jira: 'DCG-4160',
+    approver: 'Security',
+    expiresAt: '2026-09-01',
+    rollback: 'Keep enabled. Roll back only with Security approval.',
+    canaryRequired: false,
+    dependencies: ['audit.realtime'],
+    tags: ['identity', 'security'],
+    rules: [{ attribute: 'role', operator: 'contains', value: 'admin', valueWhenMatched: true }],
+    source: 'Generic JSON',
+  },
+  {
+    key: 'ops.kill_switch',
+    name: 'Global kill switch',
+    owner: 'SRE',
+    type: 'boolean',
+    enabled: true,
+    defaultValue: false,
+    overrideValue: null,
+    rollout: 0,
+    criticality: 'critical',
+    jira: 'DCG-4000',
+    approver: 'Release Captain',
+    expiresAt: '2026-12-31',
+    rollback: 'Turn on to force legacy paths and pause async workers.',
+    canaryRequired: false,
+    dependencies: [],
+    tags: ['sre', 'rollback'],
+    rules: [],
     source: 'Local',
   },
+  {
+    key: 'mobile.fast_lane',
+    name: 'Mobile fast lane',
+    owner: 'Mobile',
+    type: 'boolean',
+    enabled: true,
+    defaultValue: false,
+    overrideValue: null,
+    rollout: 45,
+    criticality: 'medium',
+    jira: 'DCG-4152',
+    approver: 'Mobile Lead',
+    expiresAt: '2026-07-01',
+    rollback: 'Disable mobile fast lane.',
+    canaryRequired: true,
+    dependencies: [],
+    tags: ['mobile'],
+    rules: [{ attribute: 'device', operator: 'equals', value: 'mobile', valueWhenMatched: true }],
+    source: 'Firebase',
+  },
+  {
+    key: 'data.residency_guard',
+    name: 'EU residency guard',
+    owner: 'Data Platform',
+    type: 'json',
+    enabled: true,
+    defaultValue: { route: 'global', encrypt: true },
+    overrideValue: null,
+    rollout: 100,
+    criticality: 'critical',
+    jira: 'DCG-4191',
+    approver: 'Privacy',
+    expiresAt: '2026-12-31',
+    rollback: 'Route all EU traffic to legacy eu-west pipeline.',
+    canaryRequired: false,
+    dependencies: ['audit.realtime'],
+    tags: ['privacy', 'eu'],
+    rules: [{ attribute: 'region', operator: 'contains', value: 'eu', valueWhenMatched: { route: 'eu-west', encrypt: true } }],
+    source: 'LaunchDarkly',
+  },
 ];
+
+const samplePacks = {
+  dcg: {
+    label: 'DaCameraGirl Enterprise',
+    workspaceName: 'DaCameraGirl production command center',
+    flags: seedFlags,
+  },
+  launchdarkly: {
+    label: 'LaunchDarkly import',
+    workspaceName: 'LaunchDarkly production mirror',
+    payload: {
+      items: [
+        { key: 'ld.checkout.holdback', name: 'Checkout holdback', on: true, tags: ['Growth'], fallthrough: { rollout: { variations: [{ weight: 25000 }] } } },
+        { key: 'ld.search.pipeline', name: 'Search pipeline v4', on: true, tags: ['Search'], fallthrough: { rollout: { variations: [{ weight: 50000 }] } } },
+        { key: 'ld.eu.privacy_banner', name: 'EU privacy banner', on: true, tags: ['Privacy'], fallthrough: { rollout: { variations: [{ weight: 100000 }] } } },
+      ],
+    },
+  },
+  statsig: {
+    label: 'Statsig gates',
+    workspaceName: 'Statsig experiment gate review',
+    payload: {
+      feature_gates: [
+        { name: 'statsig_ai_triage', description: 'AI triage queue', isEnabled: true, rollout: 30 },
+        { name: 'statsig_enterprise_sso', description: 'Enterprise SSO hardening', isEnabled: true, rollout: 100 },
+        { name: 'statsig_invoice_pdf_v2', description: 'Invoice PDF v2', isEnabled: false, rollout: 5 },
+      ],
+    },
+  },
+  firebase: {
+    label: 'Firebase config',
+    workspaceName: 'Firebase mobile config review',
+    payload: {
+      parameters: {
+        firebase_mobile_paywall: { defaultValue: { value: 'variant_b' } },
+        firebase_review_prompt: { defaultValue: { value: 'true' } },
+        firebase_cache_ttl: { defaultValue: { value: '900' } },
+      },
+    },
+  },
+};
 
 const emptyDraft = {
   key: '',
@@ -97,6 +281,7 @@ export default function App() {
   const initial = useMemo(loadWorkspace, []);
   const [workspaceName, setWorkspaceName] = useState(initial.workspaceName);
   const [context, setContext] = useState(initial.context);
+  const [release, setRelease] = useState(initial.release);
   const [flags, setFlags] = useState(initial.flags);
   const [query, setQuery] = useState('');
   const [selectedKey, setSelectedKey] = useState(initial.flags[0]?.key || '');
@@ -114,46 +299,57 @@ export default function App() {
     [context, flags]
   );
 
+  const policyChecks = useMemo(() => makePolicyChecks(flags, evaluations, context, release), [context, evaluations, flags, release]);
+  const releaseState = getReleaseState(policyChecks);
+
   const visibleEvaluations = evaluations.filter(({ flag }) => {
-    const text = `${flag.key} ${flag.name} ${flag.owner} ${flag.source}`.toLowerCase();
+    const text = `${flag.key} ${flag.name} ${flag.owner} ${flag.source} ${flag.criticality} ${flag.jira} ${flag.tags?.join(' ')}`.toLowerCase();
     return text.includes(query.trim().toLowerCase());
   });
 
   const activeOverrides = flags.filter((flag) => flag.overrideValue !== null).length;
   const enabledFlags = flags.filter((flag) => flag.enabled).length;
   const matchedRules = evaluations.filter(({ result }) => result.reason === 'rule').length;
+  const criticalActive = evaluations.filter(({ flag, result }) => flag.criticality === 'critical' && Boolean(result.value)).length;
 
   const workspace = useMemo(
     () => ({
       product: 'Compass-Ultra',
-      version: 2,
+      version: 3,
       workspaceName,
+      release,
       context,
       flags,
       exportedAt: new Date().toISOString(),
     }),
-    [context, flags, workspaceName]
+    [context, flags, release, workspaceName]
   );
 
   const workspaceText = JSON.stringify(workspace, null, 2);
   const selectedEvaluation = selectedFlag ? evaluateFlag(selectedFlag, context) : null;
   const sdkSnippet = selectedFlag ? makeSdkSnippet(workspaceName, context, flags) : '';
+  const runbook = makeRunbook(workspaceName, release, context, evaluations, policyChecks);
 
   useEffect(() => {
-    window.localStorage.setItem(storageKey, JSON.stringify({ workspaceName, context, flags, audit }));
-  }, [audit, context, flags, workspaceName]);
+    window.localStorage.setItem(storageKey, JSON.stringify({ workspaceName, release, context, flags, audit }));
+  }, [audit, context, flags, release, workspaceName]);
 
   const record = (action) => {
     setAudit((current) => [
       { id: `${Date.now()}-${Math.random()}`, time: timeNow(), action },
       ...current,
-    ].slice(0, 12));
+    ].slice(0, 16));
     setNotice(action);
   };
 
   const updateContext = (field, value) => {
     setContext((current) => ({ ...current, [field]: value }));
     record(`Context ${field} changed`);
+  };
+
+  const updateRelease = (field, value) => {
+    setRelease((current) => ({ ...current, [field]: value }));
+    record(`Release ${field} changed`);
   };
 
   const updateFlag = (key, patch) => {
@@ -182,7 +378,15 @@ export default function App() {
       enabled: true,
       defaultValue: parseTypedValue(draft.defaultValue, draft.type),
       overrideValue: null,
-      rollout: draft.type === 'boolean' ? 100 : 100,
+      rollout: 100,
+      criticality: 'medium',
+      jira: release.changeTicket,
+      approver: release.approver,
+      expiresAt: '2026-12-31',
+      rollback: `Disable ${key}.`,
+      canaryRequired: false,
+      dependencies: [],
+      tags: ['local'],
       rules: [],
       source: 'Local',
     });
@@ -201,9 +405,32 @@ export default function App() {
   };
 
   const updateRule = (flag, patch) => {
-    const rule = { attribute: 'plan', operator: 'equals', value: '', valueWhenMatched: true, ...(flag.rules?.[0] || {}), ...patch };
+    const rule = { attribute: 'plan', operator: 'equals', value: '', valueWhenMatched: defaultRuleValue(flag), ...(flag.rules?.[0] || {}), ...patch };
     updateFlag(flag.key, { rules: [rule] });
     record(`${flag.name} rule updated`);
+  };
+
+  const applySamplePack = (packKey) => {
+    const pack = samplePacks[packKey];
+    if (!pack) return;
+    const hydrated = hydrateWorkspace({
+      workspaceName: pack.workspaceName,
+      release: defaultRelease,
+      context: defaultContext,
+      flags: pack.flags,
+      ...pack.payload,
+    });
+    setWorkspaceName(hydrated.workspaceName);
+    setRelease(hydrated.release);
+    setContext(hydrated.context);
+    setFlags(hydrated.flags);
+    setSelectedKey(hydrated.flags[0]?.key || '');
+    record(`${pack.label} loaded`);
+  };
+
+  const applySampleContext = (nextContext) => {
+    setContext(nextContext);
+    record('Sample context loaded');
   };
 
   const importWorkspace = async (event) => {
@@ -214,6 +441,7 @@ export default function App() {
       const imported = JSON.parse(await file.text());
       const hydrated = hydrateWorkspace(imported, file.name);
       setWorkspaceName(hydrated.workspaceName);
+      setRelease(hydrated.release);
       setContext(hydrated.context);
       setFlags(hydrated.flags);
       setSelectedKey(hydrated.flags[0]?.key || '');
@@ -254,6 +482,7 @@ export default function App() {
   const resetWorkspace = () => {
     const baseline = hydrateWorkspace({});
     setWorkspaceName(baseline.workspaceName);
+    setRelease(baseline.release);
     setContext(baseline.context);
     setFlags(baseline.flags);
     setSelectedKey(baseline.flags[0]?.key || '');
@@ -267,16 +496,17 @@ export default function App() {
           <span className="brand-mark">CU</span>
           <span>
             <strong>Compass-Ultra</strong>
-            <small>Feature flag control room</small>
+            <small>DaCameraGirl DevOps control room</small>
           </span>
         </a>
         <div className="workspace-title">
-          <input
-            value={workspaceName}
-            onChange={(event) => setWorkspaceName(event.target.value)}
-            aria-label="Workspace name"
-          />
+          <input value={workspaceName} onChange={(event) => setWorkspaceName(event.target.value)} aria-label="Workspace name" />
           <span>{notice}</span>
+        </div>
+        <div className="release-badge" data-state={releaseState.state}>
+          {releaseState.icon}
+          <strong>{releaseState.label}</strong>
+          <span>{releaseState.score}% ready</span>
         </div>
         <div className="top-actions">
           <button type="button" onClick={() => importRef.current?.click()} title="Import JSON" aria-label="Import JSON">
@@ -299,8 +529,45 @@ export default function App() {
         <aside className="sidebar">
           <section className="panel">
             <div className="panel-heading">
+              <Rocket size={18} aria-hidden="true" />
+              <h2>Release Control</h2>
+            </div>
+            <div className="field-grid">
+              {Object.entries(release).map(([key, value]) => (
+                <label key={key}>
+                  {key}
+                  <input value={value} onChange={(event) => updateRelease(key, event.target.value)} />
+                </label>
+              ))}
+            </div>
+          </section>
+
+          <section className="panel">
+            <div className="panel-heading">
+              <CloudCog size={18} aria-hidden="true" />
+              <h2>Sample Packs</h2>
+            </div>
+            <div className="sample-grid">
+              {Object.entries(samplePacks).map(([key, pack]) => (
+                <button type="button" key={key} onClick={() => applySamplePack(key)}>
+                  <strong>{pack.label}</strong>
+                  <span>{pack.workspaceName}</span>
+                </button>
+              ))}
+            </div>
+          </section>
+
+          <section className="panel">
+            <div className="panel-heading">
               <UserRound size={18} aria-hidden="true" />
               <h2>Evaluation Context</h2>
+            </div>
+            <div className="context-pills">
+              {sampleContexts.map((item) => (
+                <button type="button" key={item.name} onClick={() => applySampleContext(item.context)}>
+                  {item.name}
+                </button>
+              ))}
             </div>
             <div className="field-grid">
               {Object.entries(context).map(([key, value]) => (
@@ -355,14 +622,38 @@ export default function App() {
             <Metric icon={<ShieldCheck />} label="Enabled" value={`${enabledFlags}/${flags.length}`} />
             <Metric icon={<SlidersHorizontal />} label="Overrides" value={activeOverrides} />
             <Metric icon={<GitBranch />} label="Rule matches" value={matchedRules} />
+            <Metric icon={<LockKeyhole />} label="Critical active" value={criticalActive} />
             <Metric icon={<Gauge />} label="Provider flags" value={flags.filter((flag) => flag.source !== 'Local').length} />
           </div>
 
-          <div className="table-panel">
+          <section className="release-board">
+            <div className="board-column">
+              <span>Dev</span>
+              <strong>{flags.length}</strong>
+              <small>editable flags</small>
+            </div>
+            <div className="board-column">
+              <span>QA</span>
+              <strong>{policyChecks.filter((check) => check.status !== 'block').length}/{policyChecks.length}</strong>
+              <small>checks passable</small>
+            </div>
+            <div className="board-column">
+              <span>Stage</span>
+              <strong>{evaluations.filter(({ result }) => result.reason === 'rollout').length}</strong>
+              <small>rollout evaluated</small>
+            </div>
+            <div className={`board-column ${releaseState.state}`}>
+              <span>Prod Gate</span>
+              <strong>{releaseState.label}</strong>
+              <small>{release.changeTicket}</small>
+            </div>
+          </section>
+
+          <section className="table-panel">
             <div className="table-toolbar">
               <div className="search-box">
                 <Search size={16} aria-hidden="true" />
-                <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search flags" />
+                <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search flags, owners, tickets, tags" />
               </div>
               <span>
                 <ListFilter size={15} aria-hidden="true" />
@@ -390,6 +681,7 @@ export default function App() {
                       <p>{flag.key}</p>
                     </div>
                   </div>
+                  <span className={`criticality ${flag.criticality}`}>{flag.criticality}</span>
                   <span className="source-pill">{flag.source}</span>
                   <span className={`value-pill ${String(result.value) === 'true' ? 'yes' : String(result.value) === 'false' ? 'no' : ''}`}>
                     {formatValue(result.value)}
@@ -409,7 +701,25 @@ export default function App() {
                 </article>
               ))}
             </div>
-          </div>
+          </section>
+
+          <section className="policy-panel">
+            <div className="panel-heading">
+              <ListChecks size={18} aria-hidden="true" />
+              <h2>Enterprise Policy Checks</h2>
+            </div>
+            <div className="policy-list">
+              {policyChecks.map((check) => (
+                <article className={`policy-item ${check.status}`} key={check.id}>
+                  {check.status === 'pass' ? <CheckCircle2 size={18} /> : check.status === 'warn' ? <AlertTriangle size={18} /> : <XCircle size={18} />}
+                  <div>
+                    <strong>{check.title}</strong>
+                    <p>{check.detail}</p>
+                  </div>
+                </article>
+              ))}
+            </div>
+          </section>
         </section>
 
         <aside className="inspector">
@@ -428,14 +738,29 @@ export default function App() {
                 <input value={selectedFlag.owner} onChange={(event) => updateFlag(selectedFlag.key, { owner: event.target.value })} />
               </label>
               <label>
+                jira/change
+                <input value={selectedFlag.jira} onChange={(event) => updateFlag(selectedFlag.key, { jira: event.target.value })} />
+              </label>
+              <label>
+                approver
+                <input value={selectedFlag.approver} onChange={(event) => updateFlag(selectedFlag.key, { approver: event.target.value })} />
+              </label>
+              <label>
+                criticality
+                <select value={selectedFlag.criticality} onChange={(event) => updateFlag(selectedFlag.key, { criticality: event.target.value })}>
+                  <option value="low">low</option>
+                  <option value="medium">medium</option>
+                  <option value="high">high</option>
+                  <option value="critical">critical</option>
+                </select>
+              </label>
+              <label>
+                expires
+                <input value={selectedFlag.expiresAt} onChange={(event) => updateFlag(selectedFlag.key, { expiresAt: event.target.value })} />
+              </label>
+              <label>
                 rollout
-                <input
-                  type="range"
-                  min="0"
-                  max="100"
-                  value={selectedFlag.rollout}
-                  onChange={(event) => updateFlag(selectedFlag.key, { rollout: Number(event.target.value) })}
-                />
+                <input type="range" min="0" max="100" value={selectedFlag.rollout} onChange={(event) => updateFlag(selectedFlag.key, { rollout: Number(event.target.value) })} />
                 <span className="range-readout">{selectedFlag.rollout}%</span>
               </label>
               <label>
@@ -467,6 +792,11 @@ export default function App() {
                 </div>
               </div>
 
+              <label>
+                rollback
+                <input value={selectedFlag.rollback} onChange={(event) => updateFlag(selectedFlag.key, { rollback: event.target.value })} />
+              </label>
+
               <div className="evaluation-card">
                 <span>current value</span>
                 <strong>{formatValue(selectedEvaluation?.value)}</strong>
@@ -474,6 +804,17 @@ export default function App() {
               </div>
             </section>
           )}
+
+          <section className="panel code-panel">
+            <div className="panel-heading">
+              <BookOpenCheck size={18} aria-hidden="true" />
+              <h2>Release Runbook</h2>
+              <button type="button" onClick={() => copyText(runbook, 'Runbook copied')} aria-label="Copy release runbook">
+                <Clipboard size={15} aria-hidden="true" />
+              </button>
+            </div>
+            <pre>{runbook}</pre>
+          </section>
 
           <section className="panel code-panel">
             <div className="panel-heading">
@@ -540,10 +881,11 @@ function loadWorkspace() {
   }
 }
 
-function hydrateWorkspace(input, fallbackName = 'Production rollout workspace') {
+function hydrateWorkspace(input, fallbackName = 'DaCameraGirl production command center') {
   const importedFlags = normalizeImportedFlags(input);
   return {
     workspaceName: input?.workspaceName || input?.name || fallbackName,
+    release: { ...defaultRelease, ...(input?.release || {}) },
     context: { ...defaultContext, ...(input?.context || {}) },
     flags: (importedFlags.length ? importedFlags : seedFlags).map(normalizeFlag),
     audit: Array.isArray(input?.audit) && input.audit.length ? input.audit : [{ id: 'boot', time: timeNow(), action: 'Workspace ready' }],
@@ -570,6 +912,14 @@ function fromLaunchDarkly(item) {
     enabled: item.on ?? true,
     defaultValue: Boolean(item.offVariation),
     rollout: item.fallthrough?.rollout?.variations?.[0]?.weight ? Math.round(item.fallthrough.rollout.variations[0].weight / 1000) : 100,
+    criticality: item.key?.includes('checkout') || item.key?.includes('privacy') ? 'high' : 'medium',
+    jira: 'DCG-import',
+    approver: 'Provider Owner',
+    expiresAt: '2026-12-31',
+    rollback: `Disable ${item.key}.`,
+    canaryRequired: true,
+    dependencies: [],
+    tags: item.tags || ['launchdarkly'],
     source: 'LaunchDarkly',
   };
 }
@@ -583,6 +933,14 @@ function fromStatsig(item) {
     enabled: item.isEnabled ?? item.enabled ?? true,
     defaultValue: false,
     rollout: item.rollout || 100,
+    criticality: item.name?.includes('sso') ? 'critical' : 'medium',
+    jira: 'DCG-import',
+    approver: 'Experiment Owner',
+    expiresAt: '2026-12-31',
+    rollback: `Disable ${item.name || item.id}.`,
+    canaryRequired: true,
+    dependencies: [],
+    tags: ['statsig'],
     source: 'Statsig',
   };
 }
@@ -597,6 +955,14 @@ function fromFirebase([key, value]) {
     enabled: true,
     defaultValue: raw === 'true' ? true : raw === 'false' ? false : raw,
     rollout: 100,
+    criticality: key.includes('paywall') ? 'high' : 'low',
+    jira: 'DCG-import',
+    approver: 'Mobile Owner',
+    expiresAt: '2026-12-31',
+    rollback: `Restore Firebase default for ${key}.`,
+    canaryRequired: key.includes('paywall'),
+    dependencies: [],
+    tags: ['firebase', 'mobile'],
     source: 'Firebase',
   };
 }
@@ -612,6 +978,14 @@ function normalizeFlag(flag) {
     defaultValue: normalizeValue(flag.defaultValue ?? false, type),
     overrideValue: flag.overrideValue === undefined ? null : normalizeValue(flag.overrideValue, type),
     rollout: clamp(Number(flag.rollout ?? flag.exposure ?? 100), 0, 100),
+    criticality: flag.criticality || 'medium',
+    jira: flag.jira || 'DCG-untracked',
+    approver: flag.approver || 'Release Captain',
+    expiresAt: flag.expiresAt || '2026-12-31',
+    rollback: flag.rollback || `Disable ${flag.key || flag.name}.`,
+    canaryRequired: Boolean(flag.canaryRequired),
+    dependencies: Array.isArray(flag.dependencies) ? flag.dependencies : [],
+    tags: Array.isArray(flag.tags) ? flag.tags : [],
     rules: Array.isArray(flag.rules) ? flag.rules : [],
     variants: Array.isArray(flag.variants) ? flag.variants : undefined,
     source: flag.source || 'Imported',
@@ -631,7 +1005,7 @@ function evaluateFlag(flag, context) {
   const matchedRule = flag.rules?.find((rule) => matchesRule(rule, context));
   if (matchedRule) {
     return {
-      value: normalizeValue(matchedRule.valueWhenMatched ?? true, flag.type),
+      value: normalizeValue(matchedRule.valueWhenMatched ?? defaultRuleValue(flag), flag.type),
       reason: 'rule',
       detail: `${matchedRule.attribute} ${matchedRule.operator} ${matchedRule.value}`,
     };
@@ -644,6 +1018,104 @@ function evaluateFlag(flag, context) {
   }
 
   return { value: flag.defaultValue, reason: 'default', detail: 'Default variation' };
+}
+
+function makePolicyChecks(flags, evaluations, context, release) {
+  const today = new Date('2026-05-05T00:00:00');
+  const activeCritical = evaluations.filter(({ flag, result }) => ['critical', 'high'].includes(flag.criticality) && Boolean(result.value));
+  const missingChange = flags.filter((flag) => !flag.jira || flag.jira === 'DCG-untracked');
+  const expired = flags.filter((flag) => flag.enabled && new Date(`${flag.expiresAt}T00:00:00`) < today);
+  const prodOverrides = context.environment === 'production' ? flags.filter((flag) => flag.overrideValue !== null) : [];
+  const canaryBreaches = flags.filter((flag) => flag.canaryRequired && flag.rollout > 50 && context.environment === 'production');
+  const brokenDeps = flags.filter((flag) =>
+    flag.enabled && flag.dependencies.some((dependency) => !flags.find((item) => item.key === dependency && item.enabled))
+  );
+
+  return [
+    {
+      id: 'change-ticket',
+      status: release.changeTicket ? 'pass' : 'block',
+      title: 'Change ticket attached',
+      detail: release.changeTicket ? `${release.changeTicket} controls this rollout.` : 'Add a CHG or Jira ticket before production.',
+    },
+    {
+      id: 'critical-approvals',
+      status: activeCritical.every(({ flag }) => flag.approver) ? 'pass' : 'block',
+      title: 'Critical flags have approvers',
+      detail: `${activeCritical.length} high or critical active evaluation paths checked.`,
+    },
+    {
+      id: 'missing-change',
+      status: missingChange.length ? 'warn' : 'pass',
+      title: 'Every flag has traceability',
+      detail: missingChange.length ? `${missingChange.length} flags need Jira/change IDs.` : 'All flags have traceable IDs.',
+    },
+    {
+      id: 'expires',
+      status: expired.length ? 'block' : 'pass',
+      title: 'No expired flags enabled',
+      detail: expired.length ? `${expired.length} enabled flags are past expiration.` : 'Flag expiration dates are clean.',
+    },
+    {
+      id: 'prod-overrides',
+      status: prodOverrides.length ? 'warn' : 'pass',
+      title: 'Production override discipline',
+      detail: prodOverrides.length ? `${prodOverrides.length} manual overrides active in production.` : 'No manual prod overrides.',
+    },
+    {
+      id: 'canary',
+      status: canaryBreaches.length ? 'block' : 'pass',
+      title: 'Canary rollout limit',
+      detail: canaryBreaches.length ? `${canaryBreaches.length} canary-required flags exceed 50%.` : 'Canary-required flags stay within policy.',
+    },
+    {
+      id: 'dependencies',
+      status: brokenDeps.length ? 'block' : 'pass',
+      title: 'Dependencies enabled',
+      detail: brokenDeps.length ? `${brokenDeps.length} enabled flags have disabled dependencies.` : 'Flag dependency graph is satisfied.',
+    },
+  ];
+}
+
+function getReleaseState(checks) {
+  const blocked = checks.filter((check) => check.status === 'block').length;
+  const warnings = checks.filter((check) => check.status === 'warn').length;
+  const passed = checks.filter((check) => check.status === 'pass').length;
+  const score = Math.round((passed / checks.length) * 100);
+
+  if (blocked) return { state: 'blocked', label: 'Blocked', score, icon: <XCircle size={16} aria-hidden="true" /> };
+  if (warnings) return { state: 'warn', label: 'Needs review', score, icon: <AlertTriangle size={16} aria-hidden="true" /> };
+  return { state: 'ready', label: 'Ready', score, icon: <CheckCircle2 size={16} aria-hidden="true" /> };
+}
+
+function makeRunbook(workspaceName, release, context, evaluations, checks) {
+  const active = evaluations.filter(({ result }) => Boolean(result.value)).slice(0, 12);
+  const failed = checks.filter((check) => check.status !== 'pass');
+
+  return [
+    `# ${workspaceName}`,
+    '',
+    `Change: ${release.changeTicket}`,
+    `Train: ${release.train}`,
+    `Captain: ${release.releaseCaptain}`,
+    `Approver: ${release.approver}`,
+    `Window: ${release.window}`,
+    `Incident channel: ${release.incidentChannel}`,
+    '',
+    '## Context',
+    ...Object.entries(context).map(([key, value]) => `- ${key}: ${value}`),
+    '',
+    '## Gate Status',
+    ...(failed.length
+      ? failed.map((check) => `- ${check.status.toUpperCase()}: ${check.title} - ${check.detail}`)
+      : ['- PASS: all enterprise checks passed']),
+    '',
+    '## Active Evaluations',
+    ...active.map(({ flag, result }) => `- ${flag.key}: ${formatValue(result.value)} (${result.reason}) owner=${flag.owner} ticket=${flag.jira}`),
+    '',
+    '## Rollback',
+    ...active.map(({ flag }) => `- ${flag.key}: ${flag.rollback}`),
+  ].join('\n');
 }
 
 function matchesRule(rule, context) {
@@ -660,7 +1132,13 @@ function makeSdkSnippet(workspaceName, context, flags) {
     context,
     evaluations: flags.reduce((acc, flag) => {
       const result = evaluateFlag(flag, context);
-      acc[flag.key] = result.value;
+      acc[flag.key] = {
+        value: result.value,
+        reason: result.reason,
+        owner: flag.owner,
+        ticket: flag.jira,
+        criticality: flag.criticality,
+      };
       return acc;
     }, {}),
   };
@@ -722,6 +1200,12 @@ function normalizeValue(value, type) {
     }
   }
   return String(value);
+}
+
+function defaultRuleValue(flag) {
+  if (flag.type === 'boolean') return true;
+  if (flag.type === 'json') return flag.defaultValue;
+  return flag.variants?.[1] || 'treatment';
 }
 
 function inferType(value) {
