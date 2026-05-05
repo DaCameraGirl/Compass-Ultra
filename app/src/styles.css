@@ -180,6 +180,112 @@ code {
   padding: 16px;
 }
 
+.workspace-guide {
+  grid-column: 1 / -1;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fff;
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+
+.guide-intro {
+  display: grid;
+  gap: 8px;
+  border-bottom: 1px solid var(--line);
+  background: linear-gradient(180deg, #ffffff 0%, #f7fbff 100%);
+  padding: 18px;
+}
+
+.guide-kicker {
+  display: inline-block;
+  margin-bottom: 6px;
+  color: var(--brand);
+  font-size: 12px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.guide-intro h1 {
+  margin: 0 0 8px;
+  font-size: clamp(24px, 3vw, 36px);
+  line-height: 1.05;
+}
+
+.guide-intro p {
+  max-width: 980px;
+  margin: 0;
+  color: var(--muted);
+  font-size: 15px;
+  line-height: 1.55;
+}
+
+.guide-tabs {
+  display: grid;
+}
+
+.guide-tabs details {
+  border-bottom: 1px solid var(--line);
+}
+
+.guide-tabs details:last-child {
+  border-bottom: 0;
+}
+
+.guide-tabs summary {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 48px;
+  padding: 0 18px;
+  color: var(--ink);
+  cursor: pointer;
+  list-style: none;
+}
+
+.guide-tabs summary::-webkit-details-marker {
+  display: none;
+}
+
+.guide-tabs summary::after {
+  content: "+";
+  margin-left: auto;
+  color: var(--brand);
+  font-size: 20px;
+  font-weight: 900;
+}
+
+.guide-tabs details[open] summary::after {
+  content: "-";
+}
+
+.guide-tabs summary span {
+  display: grid;
+  width: 30px;
+  height: 30px;
+  place-items: center;
+  border-radius: 8px;
+  background: var(--brand-soft);
+  color: var(--brand);
+}
+
+.guide-tabs summary strong {
+  font-size: 14px;
+}
+
+.guide-body {
+  display: grid;
+  gap: 8px;
+  padding: 0 18px 16px 58px;
+}
+
+.guide-body p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.55;
+}
+
 .sidebar,
 .inspector {
   display: grid;
@@ -931,6 +1037,16 @@ input[type="range"] {
 @media (max-width: 720px) {
   .workspace-layout {
     padding: 10px;
+  }
+
+  .guide-intro,
+  .guide-tabs summary {
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+
+  .guide-body {
+    padding: 0 12px 14px;
   }
 
   .summary-grid,

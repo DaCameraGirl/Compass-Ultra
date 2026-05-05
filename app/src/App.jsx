@@ -691,6 +691,8 @@ export default function App() {
       </header>
 
       <section id="workspace" className="workspace-layout">
+        <WorkspaceGuide />
+
         <aside className="sidebar">
           <section className="panel">
             <div className="panel-heading">
@@ -1122,6 +1124,104 @@ function Metric({ icon, label, value }) {
         <strong>{value}</strong>
       </div>
     </article>
+  );
+}
+
+function WorkspaceGuide() {
+  const sections = [
+    {
+      title: '1. Start Here',
+      icon: <BookOpenCheck size={17} aria-hidden="true" />,
+      body: [
+        'Compass-Ultra is a release control room for feature flags, rollout risk, team approvals, provider imports, and DevOps handoff payloads.',
+        'Start on the left side with Release Control, then choose the active Team Auth user, then review the main flag table and policy checks.',
+        'Everything saves locally in this browser. Use the top-right share link or export button when you need to hand the exact workspace to another person.',
+      ],
+    },
+    {
+      title: '2. Pick The Person Using It',
+      icon: <Users size={17} aria-hidden="true" />,
+      body: [
+        'Open Team Auth and choose the active actor. Admin can configure team roles and integrations. Operator can edit release and flag state. Viewer is read-only.',
+        'If a viewer tries to edit a flag, Compass records the blocked action in the audit trail instead of silently allowing it.',
+        'Use this to show who changed what during a release review.',
+      ],
+    },
+    {
+      title: '3. Load Realistic Data',
+      icon: <CloudCog size={17} aria-hidden="true" />,
+      body: [
+        'Use Sample Packs for the built-in DaCameraGirl Enterprise workspace or provider-shaped LaunchDarkly, Statsig, and Firebase examples.',
+        'Use the import button in the top bar for a JSON file export. Compass recognizes workspace JSON, LaunchDarkly items, Statsig gates, and Firebase Remote Config parameters.',
+        'Use Live Integrations when you have a read-only proxy/export URL that returns provider JSON.',
+      ],
+    },
+    {
+      title: '4. Check A User Or Customer',
+      icon: <UserRound size={17} aria-hidden="true" />,
+      body: [
+        'Evaluation Context is the user, tenant, region, role, device, and environment Compass evaluates against.',
+        'Click Prod admin, EU customer, or Mobile trial to quickly see how the same flags behave for different audiences.',
+        'Edit any context field directly when QA needs to reproduce a specific customer or rollout path.',
+      ],
+    },
+    {
+      title: '5. Review Flags And Risk',
+      icon: <ShieldCheck size={17} aria-hidden="true" />,
+      body: [
+        'The main table shows every flag, criticality, provider source, current evaluated value, and why that value happened.',
+        'Click a flag row to inspect it on the right. You can update owner, ticket, approver, criticality, expiration, rollout, override, targeting rule, and rollback note.',
+        'The release board and Enterprise Policy Checks tell you whether the release is ready, risky, or blocked.',
+      ],
+    },
+    {
+      title: '6. Use GitHub, Jira, Slack',
+      icon: <Webhook size={17} aria-hidden="true" />,
+      body: [
+        'Live Integrations can copy or POST generated payloads for GitHub Issues, Jira Changes, and Slack workflow webhooks.',
+        'On GitHub Pages, do not paste secret tokens directly into the page. Put secrets in a backend/proxy/webhook tool, then paste the safe endpoint URL into Compass.',
+        'If no endpoint is configured, the Copy button still gives you the exact JSON payload to paste into another tool.',
+      ],
+    },
+    {
+      title: '7. Ship The Handoff',
+      icon: <Rocket size={17} aria-hidden="true" />,
+      body: [
+        'Use Release Runbook to copy a human-readable release note with context, failed checks, active evaluations, and rollback steps.',
+        'Use SDK Payload when another app needs machine-readable evaluated values plus owners, tickets, reasons, and criticality.',
+        'Use Workspace JSON to export the entire control room state for audit, QA, or another browser.',
+      ],
+    },
+  ];
+
+  return (
+    <section className="workspace-guide" aria-label="How to use Compass-Ultra">
+      <div className="guide-intro">
+        <div>
+          <span className="guide-kicker">How to use Compass-Ultra</span>
+          <h1>Run the workspace like a release command center.</h1>
+          <p>
+            Open the dropdowns below in order the first time. After that, use them as quick
+            reference while you review flags, approvals, integrations, and rollout readiness.
+          </p>
+        </div>
+      </div>
+      <div className="guide-tabs">
+        {sections.map((section, index) => (
+          <details key={section.title} open={index === 0}>
+            <summary>
+              <span>{section.icon}</span>
+              <strong>{section.title}</strong>
+            </summary>
+            <div className="guide-body">
+              {section.body.map((item) => (
+                <p key={item}>{item}</p>
+              ))}
+            </div>
+          </details>
+        ))}
+      </div>
+    </section>
   );
 }
 
