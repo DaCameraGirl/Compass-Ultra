@@ -20,17 +20,19 @@ Teams use Compass-Ultra to:
 
 ## Live Product Surface
 
-The repo now includes a deployable Vite demo app with:
+The repo now includes a deployable Vite workspace with:
 
-- interactive flag toggle simulator
-- environment and user-segment controls
+- editable feature flags
+- deterministic flag evaluation against user context
+- boolean, variant, and JSON flag values
+- manual overrides and rollout percentage controls
+- single-rule targeting per flag
 - local workspace persistence
+- provider JSON import for common LaunchDarkly, Statsig, Firebase Remote Config, and generic shapes
 - shareable URL snapshot restore
-- JSON snapshot copy, download, and import
-- QA scenario presets
+- workspace JSON copy, download, and import
+- generated SDK payload for app integration
 - local audit trail for state changes
-- adapter cards for LaunchDarkly, Statsig, Firebase Remote Config, and generic JSON
-- enterprise posture section covering local overrides and read-only adapters
 
 ## Ideal Buyers
 
@@ -61,9 +63,9 @@ to the repo root before publishing a new visual update.
 ## Market-Ready Checklist
 
 - Add GitHub topics: `react`, `feature-flags`, `developer-tools`, `qa-tools`, `experimentation`, `debugging`.
-- Record a 30-60 second demo GIF showing flag toggles, segment simulation, and snapshot copy.
+- Record a 30-60 second product GIF showing flag evaluation, provider import, and snapshot copy.
 - Write a technical launch post: "How to debug React feature flags without changing staging."
-- Launch to Hacker News Show HN after the live demo is deployed.
+- Launch to Hacker News Show HN after the live workspace is deployed.
 - Post a short LinkedIn demo aimed at frontend and QA leads.
 - Add a contact link or waitlist for teams that want provider adapters.
 
