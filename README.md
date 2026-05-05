@@ -1,159 +1,85 @@
-## Badges
+# Compass-Ultra
 
-![License](https://img.shields.io/badge/License-Proprietary-red)
-![React](https://img.shields.io/badge/React-18.0-blue)
-![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue)
-![Status](https://img.shields.io/badge/Status-Active-success)
-![Platform](https://img.shields.io/badge/Platform-React%20Apps-purple)
+React feature flag debugging before production rollout.
 
-## License Summary
+Compass-Ultra is an enterprise developer HUD for frontend, QA, and platform
+teams that need to preview feature gates, config overrides, experiments, and
+user segments without writing changes back to production flag providers.
 
-Compass Ultra is **proprietary commercial software**.  
-This repository is public for **demonstration and evaluation only** — not for production use, redistribution, or integration.
+## Product Positioning
 
-- ❌ Not open source  
-- ❌ No modification or redistribution  
-- ❌ No commercial use without a paid license  
-- ✔️ Viewing and learning are allowed  
+**Debug React feature flags before they break production.**
 
-See the full `LICENSE` file for complete terms.
+Teams use Compass-Ultra to:
 
----
+- simulate feature flag combinations across environments
+- preview enterprise, trial, regional, and custom user segments
+- create shareable QA snapshots for bug reports and release reviews
+- validate rollout behavior without mutating provider-side flag state
+- connect existing providers through read-only adapters
 
-## The Problem
+## Live Product Surface
 
-Testing complex edge cases (API 500 errors, slow responses, specific A/B variants, or config changes) usually requires 30+ minutes of backend setup, staging coordination, or code modifications.
+The repo now includes a deployable Vite demo app with:
 
----
+- interactive flag toggle simulator
+- environment and user-segment controls
+- shareable JSON state bundle
+- adapter cards for LaunchDarkly, Statsig, Firebase Remote Config, and generic JSON
+- enterprise posture section covering local overrides and read-only adapters
 
-## The Solution
+## Ideal Buyers
 
-Compass Ultra is a sleek, fixed-position control panel that lives inside your running React app.
+- frontend platform teams
+- QA automation teams
+- product engineering teams
+- companies using LaunchDarkly, Statsig, Optimizely, Firebase Remote Config, or homegrown flag systems
 
-Press `Ctrl + Shift + D` (or click the gear icon in the bottom-right) to open a professional overlay where you can instantly:
-
-- Toggle feature gates
-- Override runtime config values
-- Force A/B experiment variants
-- Simulate failures and edge cases
-- Export a complete shareable state snapshot
-
-Built for enterprise frontend teams that need speed, auditability, and compliance.
-
----
-
-## Features
-
-| Feature                  | Description                                                | Benefit                                       |
-|--------------------------|------------------------------------------------------------|--------------------------------------------|
-| **Gates Tab**            | Real-time feature flag toggles with smart categorization   | Eliminate code commenting                     |
-| **Config Tab**           | Live editable runtime configuration                        | Test limits and timeouts instantly            |
-| **Experiments Tab**      | Force any A/B test variant on demand                       | Validate changes without backend changes      |
-| **Audit Tab**            | Timestamped, severity-coded action log                     | Full traceability for handoffs and compliance |
-| **Build Tab**            | Commit SHA, branch, version, telemetry health              | Know exactly what you're running              |
-| **Snapshot Export**      | One-click JSON export with deep link support               | Share exact testing state via Slack or PR     |
-
----
-
-## Quick Start
+## Run Locally
 
 ```bash
-npm install lucide-react
+npm install
+npm run dev
 ```
 
-```tsx
-// App.tsx
-import { CompassUltra } from './components/CompassUltra';
-import { myAdapter } from './lib/overrideAdapter';
+## Build
 
-export default function App() {
-  return (
-    <>
-      {process.env.NODE_ENV !== 'production' && (
-        <CompassUltra adapter={myAdapter} />
-      )}
-    </>
-  );
-}
+```bash
+npm run build
 ```
 
-Full adapter examples are available in the /examples folder.
+## GitHub Pages
 
-## Adapter Interface
+The included `.github/workflows/deploy.yml` workflow builds the Vite app and
+deploys the `dist` folder to GitHub Pages on pushes to `main`.
 
-```typescript
-interface EnterpriseOverrideAdapter {
-  getAllOverrides(): { gates: Record<string, boolean>; config?: Record<string, string> };
-  getGateOverride(name: string): boolean;
-  setGateOverride(name: string, value: boolean): void;
-  resetAllOverrides?(): void;
-}
-```
+## Market-Ready Checklist
 
-Supports in-memory (included), LaunchDarkly, Statsig, Unleash, and custom adapters.
+- Add GitHub topics: `react`, `feature-flags`, `developer-tools`, `qa-tools`, `experimentation`, `debugging`.
+- Record a 30-60 second demo GIF showing flag toggles, segment simulation, and snapshot copy.
+- Write a technical launch post: "How to debug React feature flags without changing staging."
+- Launch to Hacker News Show HN after the live demo is deployed.
+- Post a short LinkedIn demo aimed at frontend and QA leads.
+- Add a contact link or waitlist for teams that want provider adapters.
 
-## Production Safety
+## Roadmap
 
-Always guard the component:
+- Provider adapter examples for LaunchDarkly and Statsig
+- URL-encoded share snapshots
+- Import/export snapshot files
+- SSO-ready team workspace design
+- Optional hosted version for team snapshot history
 
-```tsx
-{process.env.NODE_ENV !== 'production' && <CompassUltra adapter={myAdapter} />}
-```
+## Security Model
 
-No network calls. No side effects.
+Compass-Ultra should remain read-only by default:
 
-## Demo
-
-> 🎥 **Demo GIF Coming Soon**  
-> A short preview showing Compass Ultra in action — toggling gates, forcing experiments, simulating failures, and exporting snapshots.
-
-Once your GIF is ready, replace this block with:
-
-![Compass Ultra Demo](./demo/compass-ultra-demo.gif)
-
----
-
-## Why Compass Ultra?
-
-Modern frontend teams move fast — but testing edge cases still slows them down.  
-Compass Ultra removes the friction by giving developers a **real‑time, in‑app control panel** for feature gates, config overrides, experiments, and failure simulation.
-
-No redeploys.  
-No backend coordination.  
-No waiting.
-
-Just instant control, full auditability, and a smoother path from development → QA → production.
-
-## Product Hunt Launch Description
-
-🚀 **Introducing Compass Ultra — the developer HUD your React app has been missing.**
-
-Testing edge cases shouldn't require staging environments, backend toggles, or 30 minutes of setup.  
-Compass Ultra gives developers a **fixed-position, in-app control panel** for:
-
-- Feature gate overrides  
-- Runtime config editing  
-- A/B experiment forcing  
-- Failure simulation (timeouts, 500s, etc.)  
-- Snapshot exporting for QA + handoffs  
-
-All without redeploying.  
-All without touching the backend.
-
-Built for enterprise teams that need **speed, traceability, and compliance** — Compass Ultra turns painful testing workflows into a smooth, instant experience.
-
-If you're building React apps with feature flags, experiments, or complex config…  
-**Compass Ultra will change your workflow forever.**
+- no production writes from the HUD
+- local-only override state
+- explicit share snapshots
+- provider credentials kept outside committed code
+- adapters designed to inspect state before they mutate anything
 
 ## Licensing
 
-Compass Ultra is proprietary commercial software.
-See LICENSE for full licensing terms and commercial inquiry details.
-
-## Contact for Commercial Licensing
-
-Angela Hudson
-angela.hudson.data@gmail.com
-404-422-9575
-
-Built for enterprise teams that want to move fast while staying compliant.
+Compass-Ultra is proprietary commercial software. See `LICENSE` for terms.
