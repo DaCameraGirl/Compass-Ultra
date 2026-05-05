@@ -12,6 +12,7 @@ import {
   FileJson,
   Gauge,
   GitBranch,
+  KeyRound,
   Link,
   ListChecks,
   ListFilter,
@@ -20,15 +21,18 @@ import {
   RefreshCw,
   Rocket,
   Search,
+  Send,
   ShieldCheck,
   SlidersHorizontal,
   Trash2,
   Upload,
   UserRound,
+  Users,
+  Webhook,
   XCircle,
 } from 'lucide-react';
 
-const storageKey = 'compass-ultra-workspace-v3';
+const storageKey = 'compass-ultra-workspace-v4';
 
 const defaultContext = {
   key: 'user_2941',
@@ -50,6 +54,27 @@ const defaultRelease = {
   approver: 'Platform SRE',
   window: 'Tue 22:00-23:00 ET',
 };
+
+const defaultTeam = {
+  workspaceId: 'dcg-prod-command',
+  authMode: 'Local RBAC session',
+  members: [
+    { id: 'dcg', name: 'DaCameraGirl', email: 'ops.admin@dacameragirl.dev', role: 'admin' },
+    { id: 'sre', name: 'Platform SRE', email: 'sre@dacameragirl.dev', role: 'approver' },
+    { id: 'qa', name: 'QA Release', email: 'qa@dacameragirl.dev', role: 'operator' },
+    { id: 'viewer', name: 'Audit Viewer', email: 'audit@dacameragirl.dev', role: 'viewer' },
+  ],
+  activeMemberId: 'dcg',
+};
+
+const defaultIntegrations = [
+  { id: 'launchdarkly', name: 'LaunchDarkly', kind: 'provider', status: 'ready', endpoint: '', secretHint: 'read-only proxy endpoint', lastSync: 'sample loaded' },
+  { id: 'statsig', name: 'Statsig', kind: 'provider', status: 'ready', endpoint: '', secretHint: 'server SDK proxy endpoint', lastSync: 'sample loaded' },
+  { id: 'firebase', name: 'Firebase Remote Config', kind: 'provider', status: 'ready', endpoint: '', secretHint: 'template export endpoint', lastSync: 'sample loaded' },
+  { id: 'github', name: 'GitHub Issues', kind: 'outbound', status: 'not configured', endpoint: '', secretHint: 'repo issue proxy or GitHub app endpoint', lastSync: 'payload ready' },
+  { id: 'jira', name: 'Jira Change', kind: 'outbound', status: 'not configured', endpoint: '', secretHint: 'Jira automation webhook', lastSync: 'payload ready' },
+  { id: 'slack', name: 'Slack War Room', kind: 'outbound', status: 'not configured', endpoint: '', secretHint: 'Slack workflow webhook', lastSync: 'payload ready' },
+];
 
 const sampleContexts = [
   { name: 'Prod admin', context: defaultContext },
@@ -282,6 +307,8 @@ export default function App() {
   const [workspaceName, setWorkspaceName] = useState(initial.workspaceName);
   const [context, setContext] = useState(initial.context);
   const [release, setRelease] = useState(initial.release);
+  const [team, setTeam] = useState(initial.team);
+  const [integrations, setIntegrations] = useState(initial.integrations);
   const [flags, setFlags] = useState(initial.flags);
   const [query, setQuery] = useState('');
   const [selectedKey, setSelectedKey] = useState(initial.flags[0]?.key || '');
@@ -289,6 +316,9 @@ export default function App() {
   const [notice, setNotice] = useState('Saved locally');
   const [audit, setAudit] = useState(initial.audit);
   const selectedFlag = flags.find((flag) => flag.key === selectedKey) || flags[0];
+  const activeMember = team.members.find((member) => member.id === team.activeMemberId) || team.members[0];
+  const canEdit = ['admin', 'operator'].includes(activeMember?.role);
+  const canAdmin = activeMember?.role === 'admin';
 
   const evaluations = useMemo(
     () =>
@@ -299,7 +329,7 @@ export default function App() {
     [context, flags]
   );
 
-  const policyChecks = useMemo(() => makePolicyChecks(flags, evaluations, context, release), [context, evaluations, flags, release]);
+  const policyChecks = useMemo(() => makePolicyChecks(flags, evaluations, context, release, integrations), [context, evaluations, flags, integrations, release]);
   const releaseState = getReleaseState(policyChecks);
 
   const visibleEvaluations = evaluations.filter(({ flag }) => {
@@ -315,30 +345,44 @@ export default function App() {
   const workspace = useMemo(
     () => ({
       product: 'Compass-Ultra',
-      version: 3,
+      version: 4,
       workspaceName,
       release,
+      team,
+      integrations,
       context,
       flags,
       exportedAt: new Date().toISOString(),
     }),
-    [context, flags, release, workspaceName]
+    [context, flags, integrations, release, team, workspaceName]
   );
 
   const workspaceText = JSON.stringify(workspace, null, 2);
   const selectedEvaluation = selectedFlag ? evaluateFlag(selectedFlag, context) : null;
   const sdkSnippet = selectedFlag ? makeSdkSnippet(workspaceName, context, flags) : '';
   const runbook = makeRunbook(workspaceName, release, context, evaluations, policyChecks);
+  const integrationPayloads = useMemo(
+    () => makeIntegrationPayloads(workspaceName, release, context, evaluations, policyChecks, runbook),
+    [context, evaluations, policyChecks, release, runbook, workspaceName]
+  );
 
   useEffect(() => {
-    window.localStorage.setItem(storageKey, JSON.stringify({ workspaceName, release, context, flags, audit }));
-  }, [audit, context, flags, release, workspaceName]);
+    window.localStorage.setItem(storageKey, JSON.stringify({ workspaceName, release, team, integrations, context, flags, audit }));
+  }, [audit, context, flags, integrations, release, team, workspaceName]);
 
-  const record = (action) => {
+  const record = (action, detail = '', level = 'info') => {
     setAudit((current) => [
-      { id: `${Date.now()}-${Math.random()}`, time: timeNow(), action },
+      {
+        id: `${Date.now()}-${Math.random()}`,
+        time: timeNow(),
+        actor: activeMember?.name || 'System',
+        role: activeMember?.role || 'system',
+        level,
+        action,
+        detail,
+      },
       ...current,
-    ].slice(0, 16));
+    ].slice(0, 60));
     setNotice(action);
   };
 
@@ -348,11 +392,19 @@ export default function App() {
   };
 
   const updateRelease = (field, value) => {
+    if (!canEdit) {
+      record('Release edit blocked', `${activeMember?.name} is ${activeMember?.role}`, 'warn');
+      return;
+    }
     setRelease((current) => ({ ...current, [field]: value }));
     record(`Release ${field} changed`);
   };
 
   const updateFlag = (key, patch) => {
+    if (!canEdit) {
+      record('Flag edit blocked', `${activeMember?.name} is ${activeMember?.role}`, 'warn');
+      return;
+    }
     setFlags((current) =>
       current.map((flag) => (flag.key === key ? normalizeFlag({ ...flag, ...patch }) : flag))
     );
@@ -364,6 +416,11 @@ export default function App() {
   };
 
   const addFlag = () => {
+    if (!canEdit) {
+      record('Add flag blocked', `${activeMember?.name} is ${activeMember?.role}`, 'warn');
+      return;
+    }
+
     const key = slugKey(draft.key || draft.name);
     if (!key || flags.some((flag) => flag.key === key)) {
       record('Flag key must be unique');
@@ -398,6 +455,11 @@ export default function App() {
   };
 
   const removeFlag = (key) => {
+    if (!canEdit) {
+      record('Remove flag blocked', `${activeMember?.name} is ${activeMember?.role}`, 'warn');
+      return;
+    }
+
     const target = flags.find((flag) => flag.key === key);
     setFlags((current) => current.filter((flag) => flag.key !== key));
     if (selectedKey === key) setSelectedKey(flags.find((flag) => flag.key !== key)?.key || '');
@@ -433,6 +495,105 @@ export default function App() {
     record('Sample context loaded');
   };
 
+  const updateTeamMember = (id, patch) => {
+    if (!canAdmin) {
+      record('Team edit blocked', `${activeMember?.name} is ${activeMember?.role}`, 'warn');
+      return;
+    }
+    setTeam((current) => ({
+      ...current,
+      members: current.members.map((member) => (member.id === id ? { ...member, ...patch } : member)),
+    }));
+    record('Team member updated', id);
+  };
+
+  const updateIntegration = (id, patch) => {
+    if (!canAdmin) {
+      record('Integration edit blocked', `${activeMember?.name} is ${activeMember?.role}`, 'warn');
+      return;
+    }
+    setIntegrations((current) =>
+      current.map((integration) => (integration.id === id ? { ...integration, ...patch } : integration))
+    );
+  };
+
+  const syncProvider = async (integration) => {
+    if (!canEdit) {
+      record('Provider sync blocked', `${activeMember?.name} is ${activeMember?.role}`, 'warn');
+      return;
+    }
+
+    if (!integration.endpoint) {
+      record(`${integration.name} needs endpoint`, 'Configure a read-only proxy/export URL first', 'warn');
+      return;
+    }
+
+    setIntegrations((current) =>
+      current.map((item) => (item.id === integration.id ? { ...item, status: 'syncing' } : item))
+    );
+    try {
+      const response = await fetch(integration.endpoint, { headers: { Accept: 'application/json' } });
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      const payload = await response.json();
+      const hydrated = hydrateWorkspace({ flags: normalizeImportedFlags(payload), context, release });
+      setFlags(hydrated.flags);
+      setSelectedKey(hydrated.flags[0]?.key || '');
+      setIntegrations((current) =>
+        current.map((item) =>
+          item.id === integration.id ? { ...item, status: 'connected', lastSync: new Date().toLocaleString() } : item
+        )
+      );
+      record(`${integration.name} synced`, `${hydrated.flags.length} flags imported`);
+    } catch (error) {
+      setIntegrations((current) =>
+        current.map((item) =>
+          item.id === integration.id ? { ...item, status: 'error', lastSync: error.message } : item
+        )
+      );
+      record(`${integration.name} sync failed`, error.message, 'warn');
+    }
+  };
+
+  const sendIntegrationPayload = async (integration) => {
+    const payload = integrationPayloads[integration.id] || integrationPayloads.generic;
+    const text = JSON.stringify(payload, null, 2);
+
+    if (!integration.endpoint) {
+      await copyText(text, `${integration.name} payload copied`);
+      return;
+    }
+
+    if (!canEdit) {
+      record('Outbound send blocked', `${activeMember?.name} is ${activeMember?.role}`, 'warn');
+      return;
+    }
+
+    setIntegrations((current) =>
+      current.map((item) => (item.id === integration.id ? { ...item, status: 'posting' } : item))
+    );
+    try {
+      const response = await fetch(integration.endpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: text,
+      });
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      setIntegrations((current) =>
+        current.map((item) =>
+          item.id === integration.id ? { ...item, status: 'posted', lastSync: new Date().toLocaleString() } : item
+        )
+      );
+      record(`${integration.name} payload posted`, release.changeTicket);
+    } catch (error) {
+      setIntegrations((current) =>
+        current.map((item) =>
+          item.id === integration.id ? { ...item, status: 'error', lastSync: error.message } : item
+        )
+      );
+      record(`${integration.name} post failed`, error.message, 'warn');
+    }
+  };
+
   const importWorkspace = async (event) => {
     const file = event.target.files?.[0];
     if (!file) return;
@@ -442,6 +603,8 @@ export default function App() {
       const hydrated = hydrateWorkspace(imported, file.name);
       setWorkspaceName(hydrated.workspaceName);
       setRelease(hydrated.release);
+      setTeam(hydrated.team);
+      setIntegrations(hydrated.integrations);
       setContext(hydrated.context);
       setFlags(hydrated.flags);
       setSelectedKey(hydrated.flags[0]?.key || '');
@@ -483,6 +646,8 @@ export default function App() {
     const baseline = hydrateWorkspace({});
     setWorkspaceName(baseline.workspaceName);
     setRelease(baseline.release);
+    setTeam(baseline.team);
+    setIntegrations(baseline.integrations);
     setContext(baseline.context);
     setFlags(baseline.flags);
     setSelectedKey(baseline.flags[0]?.key || '');
@@ -538,6 +703,46 @@ export default function App() {
                   {key}
                   <input value={value} onChange={(event) => updateRelease(key, event.target.value)} />
                 </label>
+              ))}
+            </div>
+          </section>
+
+          <section className="panel">
+            <div className="panel-heading">
+              <Users size={18} aria-hidden="true" />
+              <h2>Team Auth</h2>
+            </div>
+            <label>
+              active actor
+              <select value={team.activeMemberId} onChange={(event) => setTeam((current) => ({ ...current, activeMemberId: event.target.value }))}>
+                {team.members.map((member) => (
+                  <option key={member.id} value={member.id}>
+                    {member.name} - {member.role}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <div className="auth-card">
+              <KeyRound size={17} aria-hidden="true" />
+              <div>
+                <strong>{team.authMode}</strong>
+                <span>{canEdit ? 'Write controls enabled for this role' : 'Read-only role active'}</span>
+              </div>
+            </div>
+            <div className="team-list">
+              {team.members.map((member) => (
+                <article className="team-member" key={member.id}>
+                  <div>
+                    <strong>{member.name}</strong>
+                    <span>{member.email}</span>
+                  </div>
+                  <select value={member.role} disabled={!canAdmin} onChange={(event) => updateTeamMember(member.id, { role: event.target.value })}>
+                    <option value="admin">admin</option>
+                    <option value="approver">approver</option>
+                    <option value="operator">operator</option>
+                    <option value="viewer">viewer</option>
+                  </select>
+                </article>
               ))}
             </div>
           </section>
@@ -624,6 +829,7 @@ export default function App() {
             <Metric icon={<GitBranch />} label="Rule matches" value={matchedRules} />
             <Metric icon={<LockKeyhole />} label="Critical active" value={criticalActive} />
             <Metric icon={<Gauge />} label="Provider flags" value={flags.filter((flag) => flag.source !== 'Local').length} />
+            <Metric icon={<Webhook />} label="Connected" value={integrations.filter((item) => item.endpoint).length} />
           </div>
 
           <section className="release-board">
@@ -715,6 +921,51 @@ export default function App() {
                   <div>
                     <strong>{check.title}</strong>
                     <p>{check.detail}</p>
+                  </div>
+                </article>
+              ))}
+            </div>
+          </section>
+
+          <section className="policy-panel">
+            <div className="panel-heading">
+              <Webhook size={18} aria-hidden="true" />
+              <h2>Live Integrations</h2>
+            </div>
+            <div className="integration-console">
+              {integrations.map((integration) => (
+                <article className="integration-row" key={integration.id}>
+                  <div>
+                    <strong>{integration.name}</strong>
+                    <span>{integration.kind === 'provider' ? 'Read provider JSON through a secure proxy/export URL' : 'Copy or post the generated release payload'}</span>
+                  </div>
+                  <label>
+                    endpoint
+                    <input
+                      value={integration.endpoint}
+                      disabled={!canAdmin}
+                      onChange={(event) => updateIntegration(integration.id, { endpoint: event.target.value, status: event.target.value ? 'configured' : 'not configured' })}
+                      placeholder={integration.secretHint}
+                    />
+                  </label>
+                  <span className={`connector-status ${slugKey(integration.status)}`}>{integration.status}</span>
+                  <small>{integration.lastSync}</small>
+                  <div className="connector-actions">
+                    {integration.kind === 'provider' ? (
+                      <button type="button" onClick={() => syncProvider(integration)}>
+                        <RefreshCw size={15} aria-hidden="true" />
+                        Pull
+                      </button>
+                    ) : (
+                      <button type="button" onClick={() => sendIntegrationPayload(integration)}>
+                        <Send size={15} aria-hidden="true" />
+                        Send
+                      </button>
+                    )}
+                    <button type="button" onClick={() => copyText(JSON.stringify(integrationPayloads[integration.id] || integrationPayloads.generic, null, 2), `${integration.name} payload copied`)}>
+                      <Clipboard size={15} aria-hidden="true" />
+                      Copy
+                    </button>
                   </div>
                 </article>
               ))}
@@ -842,11 +1093,17 @@ export default function App() {
             <div className="panel-heading">
               <Activity size={18} aria-hidden="true" />
               <h2>Audit</h2>
+              <button type="button" onClick={() => copyText(JSON.stringify(audit, null, 2), 'Audit copied')} aria-label="Copy structured audit history">
+                <Clipboard size={15} aria-hidden="true" />
+              </button>
             </div>
             {audit.map((event) => (
               <article className="audit-item" key={event.id}>
                 <span>{event.time}</span>
-                <strong>{event.action}</strong>
+                <div>
+                  <strong>{event.action}</strong>
+                  <small>{formatAuditMeta(event)}</small>
+                </div>
               </article>
             ))}
           </section>
@@ -886,10 +1143,46 @@ function hydrateWorkspace(input, fallbackName = 'DaCameraGirl production command
   return {
     workspaceName: input?.workspaceName || input?.name || fallbackName,
     release: { ...defaultRelease, ...(input?.release || {}) },
+    team: normalizeTeam(input?.team),
+    integrations: normalizeIntegrations(input?.integrations),
     context: { ...defaultContext, ...(input?.context || {}) },
     flags: (importedFlags.length ? importedFlags : seedFlags).map(normalizeFlag),
-    audit: Array.isArray(input?.audit) && input.audit.length ? input.audit : [{ id: 'boot', time: timeNow(), action: 'Workspace ready' }],
+    audit: normalizeAudit(input?.audit),
   };
+}
+
+function normalizeTeam(team) {
+  const nextTeam = { ...defaultTeam, ...(team || {}) };
+  const members = Array.isArray(team?.members) && team.members.length ? team.members : defaultTeam.members;
+  const activeMemberId = members.some((member) => member.id === nextTeam.activeMemberId)
+    ? nextTeam.activeMemberId
+    : members[0]?.id || defaultTeam.activeMemberId;
+
+  return { ...nextTeam, members, activeMemberId };
+}
+
+function normalizeIntegrations(integrations) {
+  if (!Array.isArray(integrations)) return defaultIntegrations;
+  return defaultIntegrations.map((defaultIntegration) => ({
+    ...defaultIntegration,
+    ...(integrations.find((item) => item.id === defaultIntegration.id) || {}),
+  }));
+}
+
+function normalizeAudit(audit) {
+  if (!Array.isArray(audit) || !audit.length) {
+    return [{ id: 'boot', time: timeNow(), actor: 'System', role: 'system', level: 'info', action: 'Workspace ready', detail: 'Local audit initialized' }];
+  }
+
+  return audit.map((event) => ({
+    id: event.id || `${Date.now()}-${Math.random()}`,
+    time: event.time || timeNow(),
+    actor: event.actor || 'System',
+    role: event.role || 'system',
+    level: event.level || 'info',
+    action: event.action || 'Event',
+    detail: event.detail || '',
+  }));
 }
 
 function normalizeImportedFlags(input) {
@@ -1020,7 +1313,7 @@ function evaluateFlag(flag, context) {
   return { value: flag.defaultValue, reason: 'default', detail: 'Default variation' };
 }
 
-function makePolicyChecks(flags, evaluations, context, release) {
+function makePolicyChecks(flags, evaluations, context, release, integrations = defaultIntegrations) {
   const today = new Date('2026-05-05T00:00:00');
   const activeCritical = evaluations.filter(({ flag, result }) => ['critical', 'high'].includes(flag.criticality) && Boolean(result.value));
   const missingChange = flags.filter((flag) => !flag.jira || flag.jira === 'DCG-untracked');
@@ -1030,6 +1323,8 @@ function makePolicyChecks(flags, evaluations, context, release) {
   const brokenDeps = flags.filter((flag) =>
     flag.enabled && flag.dependencies.some((dependency) => !flags.find((item) => item.key === dependency && item.enabled))
   );
+  const configuredProviders = integrations.filter((integration) => integration.kind === 'provider' && integration.endpoint).length;
+  const configuredOutbound = integrations.filter((integration) => integration.kind === 'outbound' && integration.endpoint).length;
 
   return [
     {
@@ -1074,6 +1369,18 @@ function makePolicyChecks(flags, evaluations, context, release) {
       title: 'Dependencies enabled',
       detail: brokenDeps.length ? `${brokenDeps.length} enabled flags have disabled dependencies.` : 'Flag dependency graph is satisfied.',
     },
+    {
+      id: 'provider-adapters',
+      status: configuredProviders ? 'pass' : 'warn',
+      title: 'Live provider adapters configured',
+      detail: configuredProviders ? `${configuredProviders} read-only provider endpoints configured.` : 'Add proxy/export URLs for live LaunchDarkly, Statsig, or Firebase sync.',
+    },
+    {
+      id: 'outbound-hooks',
+      status: configuredOutbound ? 'pass' : 'warn',
+      title: 'Outbound DevOps hooks configured',
+      detail: configuredOutbound ? `${configuredOutbound} GitHub/Jira/Slack endpoints configured.` : 'Payload copy works now; configure webhooks for one-click posting.',
+    },
   ];
 }
 
@@ -1116,6 +1423,64 @@ function makeRunbook(workspaceName, release, context, evaluations, checks) {
     '## Rollback',
     ...active.map(({ flag }) => `- ${flag.key}: ${flag.rollback}`),
   ].join('\n');
+}
+
+function makeIntegrationPayloads(workspaceName, release, context, evaluations, checks, runbook) {
+  const failed = checks.filter((check) => check.status !== 'pass');
+  const summary = {
+    workspaceName,
+    changeTicket: release.changeTicket,
+    releaseTrain: release.train,
+    environment: context.environment,
+    gateStatus: failed.length ? 'needs-review' : 'ready',
+    failedChecks: failed.map((check) => ({ id: check.id, status: check.status, title: check.title, detail: check.detail })),
+    activeFlags: evaluations
+      .filter(({ result }) => Boolean(result.value))
+      .map(({ flag, result }) => ({
+        key: flag.key,
+        value: result.value,
+        reason: result.reason,
+        owner: flag.owner,
+        ticket: flag.jira,
+        criticality: flag.criticality,
+      })),
+  };
+
+  return {
+    generic: summary,
+    github: {
+      title: `${release.changeTicket}: ${workspaceName} release gate`,
+      labels: ['compass-ultra', 'release-readiness', summary.gateStatus],
+      body: runbook,
+    },
+    jira: {
+      fields: {
+        project: { key: 'DCG' },
+        summary: `${workspaceName} release gate - ${summary.gateStatus}`,
+        issuetype: { name: 'Change' },
+        description: runbook,
+        labels: ['compass-ultra', release.train],
+      },
+    },
+    slack: {
+      text: `${workspaceName} is ${summary.gateStatus} for ${release.changeTicket}`,
+      blocks: [
+        { type: 'header', text: { type: 'plain_text', text: 'Compass-Ultra release gate' } },
+        { type: 'section', text: { type: 'mrkdwn', text: `*${workspaceName}*\nChange: ${release.changeTicket}\nStatus: ${summary.gateStatus}` } },
+        { type: 'section', text: { type: 'mrkdwn', text: failed.length ? failed.map((check) => `*${check.status}* ${check.title}`).join('\n') : 'All enterprise checks passed.' } },
+      ],
+    },
+    launchdarkly: summary,
+    statsig: summary,
+    firebase: summary,
+  };
+}
+
+function formatAuditMeta(event) {
+  const actor = event.actor || 'System';
+  const role = event.role || 'system';
+  const detail = event.detail ? ` - ${event.detail}` : '';
+  return `${actor} (${role})${detail}`;
 }
 
 function matchesRule(rule, context) {

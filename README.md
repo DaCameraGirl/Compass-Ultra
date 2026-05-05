@@ -31,6 +31,10 @@ The repo now includes a deployable Vite workspace with:
 - enterprise policy checks for approvals, expired flags, canary limits, dependencies, and production overrides
 - sample packs for DaCameraGirl Enterprise, LaunchDarkly, Statsig, and Firebase Remote Config shapes
 - sample user contexts for production admins, EU customers, and mobile trial users
+- local team/RBAC sessions with admin, approver, operator, and viewer roles
+- structured audit history with actor, role, level, action, and detail fields
+- live adapter cards for provider pulls through read-only proxy/export URLs
+- GitHub, Jira, and Slack payload generation with copy or webhook POST actions
 - criticality, Jira/change IDs, approvers, expiration dates, dependencies, and rollback notes per flag
 - generated release runbook with active evaluations and rollback steps
 - local workspace persistence
@@ -39,6 +43,13 @@ The repo now includes a deployable Vite workspace with:
 - workspace JSON copy, download, and import
 - generated SDK payload with values, reasons, owners, tickets, and criticality
 - local audit trail for state changes
+
+## Integration Model
+
+The GitHub Pages build is static, so it does not store OAuth credentials or
+provider secrets. Live provider sync is designed to use read-only proxy/export
+URLs that return JSON. GitHub, Jira, and Slack actions can copy payloads locally
+or POST to user-configured webhook/proxy endpoints.
 
 ## Ideal Buyers
 
