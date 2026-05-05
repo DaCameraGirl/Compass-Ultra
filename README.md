@@ -50,8 +50,9 @@ npm run build
 
 ## GitHub Pages
 
-The included `.github/workflows/deploy.yml` workflow builds the Vite app and
-deploys the `dist` folder to GitHub Pages on pushes to `main`.
+GitHub Pages serves the built static files from the repo root. Source files live
+under `app/`; run `npm run build` and copy `dist/index.html` plus `dist/assets/`
+to the repo root before publishing a new visual update.
 
 ## Market-Ready Checklist
 
