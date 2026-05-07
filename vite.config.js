@@ -2,10 +2,10 @@ import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import basicSsl from '@vitejs/plugin-basic-ssl';
 
-export default defineConfig({
-  base: '/Compass-Ultra/',
+export default defineConfig(({ command }) => ({
+  base: '/',
   root: 'app',
-  plugins: [react(), basicSsl()],
+  plugins: command === 'serve' ? [react(), basicSsl()] : [react()],
   server: {
     https: true,
   },
@@ -13,4 +13,4 @@ export default defineConfig({
     outDir: '../dist',
     emptyOutDir: true,
   },
-});
+}));
