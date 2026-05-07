@@ -924,8 +924,8 @@ export default function App() {
         <a className="brand" href="#workspace" aria-label="Compass-Ultra">
           <span className="brand-mark">CU</span>
           <span>
-            <strong>Compass-Ultra</strong>
-            <small>DaCameraGirl DevOps control room</small>
+            <strong>Compass Ultra</strong>
+            <small>Release Intelligence Platform</small>
           </span>
         </a>
         <div className="workspace-title">
@@ -1583,79 +1583,69 @@ function Metric({ icon, label, value }) {
 function WorkspaceGuide() {
   const sections = [
     {
-      title: '1. Start Here',
+      title: '1. Connect Your Flag Data',
       icon: <BookOpenCheck size={17} aria-hidden="true" />,
       body: [
-        'Compass-Ultra is a release control room for feature flags, rollout risk, team approvals, provider imports, and DevOps handoff payloads.',
-        'Start on the left side with Release Control, then choose the active Team Auth user, then review the main flag table and policy checks.',
-        'Everything saves locally in this browser. Use the top-right share link or export button when you need to hand the exact workspace to another person.',
+        'Compass Ultra works with LaunchDarkly, Statsig, Firebase Remote Config, or any JSON-based flag provider. Use the Sample Packs to load a realistic workspace instantly, or import your own JSON export from your provider.',
+        'Once your flags are loaded, set the Release Control fields on the left — change ticket, release train, captain, and deployment window. These appear in every generated artifact.',
+        'Your workspace auto-saves to the cloud. Use the cloud icon to save a named snapshot at any point in your review.',
       ],
     },
     {
-      title: '2. Pick The Person Using It',
+      title: '2. Set Your Team and Permissions',
       icon: <Users size={17} aria-hidden="true" />,
       body: [
-        'Open Team Auth and choose the active actor. Admin can configure team roles and integrations. Operator can edit release and flag state. Viewer is read-only.',
-        'If a viewer tries to edit a flag, Compass records the blocked action in the audit trail instead of silently allowing it.',
-        'Use this to show who changed what during a release review.',
+        'Open Team Auth to set the active reviewer. Admins can configure integrations and team roles. Operators can edit flags and release state. Viewers get a read-only view with a full audit trail.',
+        'Every blocked action is recorded — if a viewer attempts to edit a flag, Compass logs it with the actor name, role, and timestamp. No silent permission bypasses.',
+        'Use role switching during a release review to walk stakeholders through what each team member can and cannot change.',
       ],
     },
     {
-      title: '3. Load Realistic Data',
-      icon: <CloudCog size={17} aria-hidden="true" />,
-      body: [
-        'Use Sample Packs for the built-in DaCameraGirl Enterprise workspace or provider-shaped LaunchDarkly, Statsig, and Firebase examples.',
-        'Use the import button in the top bar for a JSON file export. Compass recognizes workspace JSON, LaunchDarkly items, Statsig gates, and Firebase Remote Config parameters.',
-        'Use Live Integrations when you have a read-only proxy/export URL that returns provider JSON.',
-      ],
-    },
-    {
-      title: '4. Check A User Or Customer',
+      title: '3. Evaluate Flags Against Real User Segments',
       icon: <UserRound size={17} aria-hidden="true" />,
       body: [
-        'Evaluation Context is the user, tenant, region, role, device, and environment Compass evaluates against.',
-        'Click Prod admin, EU customer, or Mobile trial to quickly see how the same flags behave for different audiences.',
-        'Edit any context field directly when QA needs to reproduce a specific customer or rollout path.',
+        'The Evaluation Context defines the user Compass evaluates all flags against — environment, plan, role, region, device, and custom attributes.',
+        'Switch between saved context presets to instantly see how your flag configuration behaves for enterprise users, EU customers, mobile trial users, or any segment you define.',
+        'This is the fastest way to reproduce a customer-specific flag state without touching production or writing code.',
       ],
     },
     {
-      title: '5. Review Flags And Risk',
+      title: '4. Review Risk Before You Ship',
       icon: <ShieldCheck size={17} aria-hidden="true" />,
       body: [
-        'The main table shows every flag, criticality, provider source, current evaluated value, and why that value happened.',
-        'Click a flag row to inspect it on the right. You can update owner, ticket, approver, criticality, expiration, rollout, override, targeting rule, and rollback note.',
-        'The release board and Enterprise Policy Checks tell you whether the release is ready, risky, or blocked.',
+        'The flag table shows every flag with its evaluated value, criticality, source provider, rollout percentage, and the reason for the current value — rule, override, rollout, or default.',
+        'Enterprise Policy Checks automatically validate change ticket coverage, approver assignments, expiration dates, canary rollout limits, dependency integrity, and provider connectivity.',
+        'Use the AI Risk Analyzer (brain icon) to get a Claude-powered assessment of your full release — it identifies dependency gaps, rollout mismatches, compliance risks, and recommended actions before you ship.',
       ],
     },
     {
-      title: '6. Use GitHub, Jira, Slack',
-      icon: <Webhook size={17} aria-hidden="true" />,
+      title: '5. Save and Share Snapshots',
+      icon: <CloudCog size={17} aria-hidden="true" />,
       body: [
-        'Live Integrations can copy or POST generated payloads for GitHub Issues, Jira Changes, and Slack workflow webhooks.',
-        'On GitHub Pages, do not paste secret tokens directly into the page. Put secrets in a backend/proxy/webhook tool, then paste the safe endpoint URL into Compass.',
-        'If no endpoint is configured, the Copy button still gives you the exact JSON payload to paste into another tool.',
+        'Save named snapshots to the cloud at any point in your review. Snapshots capture the complete flag state, context, release metadata, and policy check results.',
+        'Use the Snapshot Diff viewer to compare any two saved snapshots side by side — added, removed, and changed flags are highlighted in green and red.',
+        'Generate a public share link from any snapshot. Anyone with the link can load the exact workspace state you were reviewing — no login required for recipients.',
       ],
     },
     {
-      title: '7. Ship The Handoff',
+      title: '6. Generate DevOps Handoff Artifacts',
       icon: <Rocket size={17} aria-hidden="true" />,
       body: [
-        'Use Release Runbook to copy a human-readable release note with context, failed checks, active evaluations, and rollback steps.',
-        'Use SDK Payload when another app needs machine-readable evaluated values plus owners, tickets, reasons, and criticality.',
-        'Use Workspace JSON to export the entire control room state for audit, QA, or another browser.',
+        'Export a PDF Release Runbook with gate status, policy check results, active evaluations, and flag-by-flag rollback procedures — formatted for management review or change advisory board submission.',
+        'Generate integration payloads for GitHub Issues, Jira Change tickets, and Slack War Room webhooks. Configure a proxy endpoint to POST directly, or copy the JSON payload manually.',
+        'The SDK Payload gives downstream applications machine-readable evaluated flag values with owners, tickets, criticality, and evaluation reasons attached.',
       ],
     },
   ];
 
   return (
-    <section className="workspace-guide" aria-label="How to use Compass-Ultra">
+    <section className="workspace-guide" aria-label="Compass Ultra documentation">
       <div className="guide-intro">
         <div>
-          <span className="guide-kicker">How to use Compass-Ultra</span>
-          <h1>Run the workspace like a release command center.</h1>
+          <span className="guide-kicker">Compass Ultra — Release Intelligence Platform</span>
+          <h1>Ship with confidence. Every flag, every risk, every time.</h1>
           <p>
-            Open the dropdowns below in order the first time. After that, use them as quick
-            reference while you review flags, approvals, integrations, and rollout readiness.
+            Connect your flag providers, evaluate against real user segments, validate enterprise policy, and generate handoff artifacts — all before a single line changes in production.
           </p>
         </div>
       </div>
