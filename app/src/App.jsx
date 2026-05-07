@@ -851,10 +851,12 @@ export default function App() {
 
   const saveToCloud = async () => {
     if (!isAuthenticated) { loginWithRedirect(); return; }
+    const name = window.prompt('Name this snapshot:', workspaceName);
+    if (!name) return;
     setCloudLoading(true);
     try {
       const token = await getAccessTokenSilently();
-      await api.saveSnapshot(token, workspaceName, '', workspace);
+      await api.saveSnapshot(token, name, '', workspace);
       setCloudNotice('Saved to cloud!');
       await loadCloudSnapshots();
     } catch (e) {
@@ -1179,6 +1181,18 @@ export default function App() {
                   </span>
                   <span className="reason-pill">{result.reason}</span>
                   <button
+                    type="button"
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      copyText(flag.key, `${flag.key} copied`);
+                    }}
+                    aria-label={`Copy ${flag.key}`}
+                    title="Copy flag key"
+                    style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#3d4451', padding: '0 4px' }}
+                  >
+                    <Clipboard size={13} aria-hidden="true" />
+                  </button>
+                  <button
                     className="icon-danger"
                     type="button"
                     onClick={(event) => {
@@ -1264,6 +1278,11 @@ export default function App() {
               <div className="panel-heading">
                 <BadgeCheck size={18} aria-hidden="true" />
                 <h2>Flag Inspector</h2>
+                {selectedFlag && (
+                  <button type="button" onClick={() => copyText(selectedFlag.key, `${selectedFlag.key} copied`)} title="Copy flag key" aria-label="Copy flag key">
+                    <Clipboard size={15} aria-hidden="true" />
+                  </button>
+                )}
               </div>
               <label>
                 name
@@ -1330,7 +1349,12 @@ export default function App() {
 
               <label>
                 rollback
-                <input value={selectedFlag.rollback} onChange={(event) => updateFlag(selectedFlag.key, { rollback: event.target.value })} />
+                <div style={{ display: 'flex', gap: 4, alignItems: 'center' }}>
+                  <input value={selectedFlag.rollback} onChange={(event) => updateFlag(selectedFlag.key, { rollback: event.target.value })} style={{ flex: 1 }} />
+                  <button type="button" onClick={() => copyText(selectedFlag.rollback, 'Rollback copied!')} title="Copy rollback" style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#8b949e', padding: 0, flexShrink: 0 }}>
+                    <Clipboard size={13} />
+                  </button>
+                </div>
               </label>
 
               <div className="evaluation-card">
@@ -1455,9 +1479,20 @@ export default function App() {
                 <BrainCircuit size={18} aria-hidden="true" />
                 <h2>AI Risk Analysis</h2>
                 {aiAnalysis && (
-                  <button type="button" onClick={() => setAiAnalysis('')} aria-label="Close analysis" style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#8b949e' }}>
-                    ✕
-                  </button>
+                  <>
+                    <button type="button" onClick={() => copyText(aiAnalysis, 'AI analysis copied!')} aria-label="Copy plain text" title="Copy plain text">
+                      <Clipboard size={15} aria-hidden="true" />
+                    </button>
+                    <button type="button" onClick={() => copyText(`\`\`\`\n${aiAnalysis}\n\`\`\``, 'Copied as Slack markdown!')} aria-label="Copy as Slack markdown" title="Copy for Slack" style={{ fontSize: 10, background: 'none', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 3, color: '#8b949e', padding: '2px 5px', cursor: 'pointer' }}>
+                      Slack
+                    </button>
+                    <button type="button" onClick={() => copyText(aiAnalysis, 'Copied as Markdown!')} aria-label="Copy as Markdown" title="Copy for Notion/GitHub" style={{ fontSize: 10, background: 'none', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 3, color: '#8b949e', padding: '2px 5px', cursor: 'pointer' }}>
+                      MD
+                    </button>
+                    <button type="button" onClick={() => setAiAnalysis('')} aria-label="Close analysis" style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#8b949e' }}>
+                      ✕
+                    </button>
+                  </>
                 )}
               </div>
               {aiLoading && <p style={{ color: '#bc8cff', fontSize: 11 }}>Analyzing your flags… ✨</p>}
