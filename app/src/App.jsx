@@ -13,6 +13,7 @@ import {
   CloudCog,
   Download,
   BrainCircuit,
+  GitCompare,
   FileDown,
   FileJson,
   Gauge,
@@ -317,6 +318,9 @@ export default function App() {
   const [cloudNotice, setCloudNotice] = useState('');
   const [aiAnalysis, setAiAnalysis] = useState('');
   const [aiLoading, setAiLoading] = useState(false);
+  const [diffA, setDiffA] = useState(null);
+  const [diffB, setDiffB] = useState(null);
+  const [showDiff, setShowDiff] = useState(false);
 
   const importRef = useRef(null);
   const initial = useMemo(loadWorkspace, []);
@@ -944,6 +948,9 @@ export default function App() {
           <button type="button" onClick={resetWorkspace} title="Reset workspace" aria-label="Reset workspace">
             <RefreshCw size={17} aria-hidden="true" />
           </button>
+          <button type="button" onClick={() => setShowDiff(v => !v)} title="Snapshot diff viewer" aria-label="Snapshot diff viewer" style={{ color: showDiff ? '#58a6ff' : '#8b949e' }}>
+            <GitCompare size={17} aria-hidden="true" />
+          </button>
           <button type="button" onClick={runAiAnalysis} title="AI risk analysis" aria-label="AI risk analysis" style={{ color: aiLoading ? '#ffb800' : '#bc8cff' }}>
             <BrainCircuit size={17} aria-hidden="true" />
           </button>
@@ -1366,6 +1373,81 @@ export default function App() {
             </div>
             <pre>{sdkSnippet}</pre>
           </section>
+
+          {showDiff && (
+            <section className="panel code-panel">
+              <div className="panel-heading">
+                <GitCompare size={18} aria-hidden="true" />
+                <h2>Snapshot Diff</h2>
+                <button type="button" onClick={() => setShowDiff(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#8b949e' }}>✕</button>
+              </div>
+              {cloudSnapshots.length < 2 ? (
+                <p style={{ fontSize: 11, color: '#8b949e' }}>Save at least 2 cloud snapshots to compare them.</p>
+              ) : (
+                <>
+                  <label style={{ fontSize: 10, color: '#8b949e', display: 'block', marginBottom: 6 }}>
+                    Snapshot A (before)
+                    <select style={{ width: '100%', background: '#161b22', border: '1px solid rgba(255,255,255,0.07)', color: '#e6edf3', padding: '4px 6px', borderRadius: 4, marginTop: 4, fontSize: 10 }}
+                      value={diffA?.id || ''} onChange={e => setDiffA(cloudSnapshots.find(s => s.id === e.target.value) || null)}>
+                      <option value=''>Select snapshot…</option>
+                      {cloudSnapshots.map(s => <option key={s.id} value={s.id}>{s.name} — {new Date(s.created_at).toLocaleString()}</option>)}
+                    </select>
+                  </label>
+                  <label style={{ fontSize: 10, color: '#8b949e', display: 'block', marginBottom: 10 }}>
+                    Snapshot B (after)
+                    <select style={{ width: '100%', background: '#161b22', border: '1px solid rgba(255,255,255,0.07)', color: '#e6edf3', padding: '4px 6px', borderRadius: 4, marginTop: 4, fontSize: 10 }}
+                      value={diffB?.id || ''} onChange={e => setDiffB(cloudSnapshots.find(s => s.id === e.target.value) || null)}>
+                      <option value=''>Select snapshot…</option>
+                      {cloudSnapshots.map(s => <option key={s.id} value={s.id}>{s.name} — {new Date(s.created_at).toLocaleString()}</option>)}
+                    </select>
+                  </label>
+                  {diffA && diffB && (() => {
+                    const aFlags = diffA.snapshot_data?.flags || [];
+                    const bFlags = diffB.snapshot_data?.flags || [];
+                    const allKeys = [...new Set([...aFlags.map(f => f.key), ...bFlags.map(f => f.key)])];
+                    const diffs = allKeys.map(key => {
+                      const a = aFlags.find(f => f.key === key);
+                      const b = bFlags.find(f => f.key === key);
+                      if (!a) return { key, type: 'added', b };
+                      if (!b) return { key, type: 'removed', a };
+                      const changes = [];
+                      ['enabled','rollout','criticality','overrideValue','expiresAt','owner','approver'].forEach(field => {
+                        if (JSON.stringify(a[field]) !== JSON.stringify(b[field])) {
+                          changes.push({ field, from: a[field], to: b[field] });
+                        }
+                      });
+                      return changes.length ? { key, type: 'changed', changes } : null;
+                    }).filter(Boolean);
+
+                    if (diffs.length === 0) return <p style={{ fontSize: 11, color: '#3fb950' }}>✓ No differences found between these snapshots.</p>;
+
+                    return (
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                        <p style={{ fontSize: 10, color: '#8b949e', marginBottom: 4 }}>{diffs.length} difference{diffs.length !== 1 ? 's' : ''} found</p>
+                        {diffs.map(diff => (
+                          <div key={diff.key} style={{ background: '#161b22', border: `1px solid ${diff.type === 'added' ? '#3fb950' : diff.type === 'removed' ? '#f85149' : '#ffb800'}`, borderRadius: 4, padding: '8px 10px' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
+                              <strong style={{ fontSize: 10, color: '#e6edf3' }}>{diff.key}</strong>
+                              <span style={{ fontSize: 9, padding: '2px 6px', borderRadius: 10, background: diff.type === 'added' ? '#3fb950' : diff.type === 'removed' ? '#f85149' : '#ffb800', color: '#07090e', fontWeight: 700 }}>
+                                {diff.type.toUpperCase()}
+                              </span>
+                            </div>
+                            {diff.type === 'changed' && diff.changes.map(c => (
+                              <div key={c.field} style={{ fontSize: 9, marginTop: 3 }}>
+                                <span style={{ color: '#8b949e' }}>{c.field}: </span>
+                                <span style={{ color: '#f85149', textDecoration: 'line-through', marginRight: 6 }}>{JSON.stringify(c.from)}</span>
+                                <span style={{ color: '#3fb950' }}>{JSON.stringify(c.to)}</span>
+                              </div>
+                            ))}
+                          </div>
+                        ))}
+                      </div>
+                    );
+                  })()}
+                </>
+              )}
+            </section>
+          )}
 
           {(aiAnalysis || aiLoading) && (
             <section className="panel code-panel">
