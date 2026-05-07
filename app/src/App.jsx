@@ -825,7 +825,7 @@ export default function App() {
     if (!isAuthenticated) return;
     setCloudLoading(true);
     try {
-      const token = await getAccessTokenSilently();
+      const token = await getAccessTokenSilently({ authorizationParams: { audience: import.meta.env.VITE_AUTH0_AUDIENCE } });
       const snaps = await api.listSnapshots(token);
       setCloudSnapshots(snaps);
     } catch (e) {
@@ -855,7 +855,7 @@ export default function App() {
     if (!name) return;
     setCloudLoading(true);
     try {
-      const token = await getAccessTokenSilently();
+      const token = await getAccessTokenSilently({ authorizationParams: { audience: import.meta.env.VITE_AUTH0_AUDIENCE } });
       await api.saveSnapshot(token, name, '', workspace);
       setCloudNotice('Saved to cloud!');
       await loadCloudSnapshots();
@@ -881,7 +881,7 @@ export default function App() {
   const deleteCloudSnapshot = async (id) => {
     if (!isAuthenticated) return;
     try {
-      const token = await getAccessTokenSilently();
+      const token = await getAccessTokenSilently({ authorizationParams: { audience: import.meta.env.VITE_AUTH0_AUDIENCE } });
       await api.deleteSnapshot(token, id);
       await loadCloudSnapshots();
       setCloudNotice('Snapshot deleted');
@@ -895,11 +895,15 @@ export default function App() {
     setAiLoading(true);
     setAiAnalysis('');
     try {
-      const token = await getAccessTokenSilently();
+      const token = await getAccessTokenSilently({ authorizationParams: { audience: import.meta.env.VITE_AUTH0_AUDIENCE } });
       const { analysis } = await api.analyzeFlags(token, { flags, context, release, policyChecks });
       setAiAnalysis(analysis);
       record('AI risk analysis complete');
     } catch (e) {
+      if (e.error === 'login_required' || e.error === 'consent_required') {
+        loginWithRedirect();
+        return;
+      }
       setAiAnalysis('Analysis failed — check your connection and try again.');
     } finally {
       setAiLoading(false);
@@ -909,7 +913,7 @@ export default function App() {
   const shareCloudSnapshot = async (id) => {
     if (!isAuthenticated) return;
     try {
-      const token = await getAccessTokenSilently();
+      const token = await getAccessTokenSilently({ authorizationParams: { audience: import.meta.env.VITE_AUTH0_AUDIENCE } });
       const { shareUrl } = await api.shareSnapshot(token, id);
       await navigator.clipboard.writeText(shareUrl);
       setCloudNotice('Share link copied to clipboard!');
