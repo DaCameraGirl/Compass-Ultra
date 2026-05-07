@@ -13,8 +13,10 @@ import {
   CloudCog,
   Download,
   BrainCircuit,
+  DollarSign,
   GitCompare,
   FileDown,
+  Sparkles,
   FileJson,
   Gauge,
   GitBranch,
@@ -321,6 +323,7 @@ export default function App() {
   const [diffA, setDiffA] = useState(null);
   const [diffB, setDiffB] = useState(null);
   const [showDiff, setShowDiff] = useState(false);
+  const [showPricing, setShowPricing] = useState(false);
 
   const importRef = useRef(null);
   const initial = useMemo(loadWorkspace, []);
@@ -816,9 +819,21 @@ export default function App() {
     setTeam(baseline.team);
     setIntegrations(baseline.integrations);
     setContext(baseline.context);
-    setFlags(baseline.flags);
-    setSelectedKey(baseline.flags[0]?.key || '');
+    setFlags([]);
+    setSelectedKey('');
     record('Workspace reset');
+  };
+
+  const loadDemo = () => {
+    const demo = hydrateWorkspace({ flags: seedFlags, workspaceName: 'Acme Corp — Production Release' });
+    setWorkspaceName(demo.workspaceName);
+    setRelease({ ...defaultRelease, changeTicket: 'CHG-24051', train: 'prod-2026.05', releaseCaptain: 'Demo User' });
+    setTeam(demo.team);
+    setIntegrations(demo.integrations);
+    setContext(demo.context);
+    setFlags(demo.flags);
+    setSelectedKey(demo.flags[0]?.key || '');
+    record('Demo workspace loaded');
   };
 
   const loadCloudSnapshots = async () => {
@@ -953,6 +968,9 @@ export default function App() {
           </button>
           <button type="button" onClick={resetWorkspace} title="Reset workspace" aria-label="Reset workspace">
             <RefreshCw size={17} aria-hidden="true" />
+          </button>
+          <button type="button" onClick={() => setShowPricing(true)} title="Pricing" aria-label="Pricing" style={{ color: '#ffb800' }}>
+            <DollarSign size={17} aria-hidden="true" />
           </button>
           <button type="button" onClick={() => setShowDiff(v => !v)} title="Snapshot diff viewer" aria-label="Snapshot diff viewer" style={{ color: showDiff ? '#58a6ff' : '#8b949e' }}>
             <GitCompare size={17} aria-hidden="true" />
@@ -1158,6 +1176,27 @@ export default function App() {
               </span>
             </div>
             <div className="flag-table">
+              {flags.length === 0 && (
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '48px 24px', gap: 16, textAlign: 'center' }}>
+                  <div style={{ fontSize: 48 }}>🧭</div>
+                  <div>
+                    <h3 style={{ color: '#e6edf3', margin: '0 0 8px', fontSize: 16 }}>No flags loaded yet</h3>
+                    <p style={{ color: '#8b949e', fontSize: 13, margin: '0 0 24px', maxWidth: 360 }}>
+                      Load the demo to see Compass Ultra in action, or import your own flags from LaunchDarkly, Statsig, Firebase, or any JSON export.
+                    </p>
+                  </div>
+                  <div style={{ display: 'flex', gap: 12 }}>
+                    <button type="button" onClick={loadDemo} style={{ background: '#ffb800', color: '#07090e', border: 'none', borderRadius: 6, padding: '10px 20px', fontWeight: 700, fontSize: 13, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}>
+                      <Sparkles size={15} />
+                      Try the Demo
+                    </button>
+                    <button type="button" onClick={() => importRef.current?.click()} style={{ background: 'none', color: '#e6edf3', border: '1px solid rgba(255,255,255,0.14)', borderRadius: 6, padding: '10px 20px', fontWeight: 600, fontSize: 13, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}>
+                      <Upload size={15} />
+                      Import Flags
+                    </button>
+                  </div>
+                </div>
+              )}
               {visibleEvaluations.map(({ flag, result }) => (
                 <article className={`flag-row ${selectedFlag?.key === flag.key ? 'is-selected' : ''}`} key={flag.key} onClick={() => setSelectedKey(flag.key)}>
                   <div className="flag-primary">
@@ -1568,6 +1607,65 @@ export default function App() {
           </section>
         </aside>
       </section>
+      {showPricing && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.75)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }} onClick={() => setShowPricing(false)}>
+          <div style={{ background: '#0e1117', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 12, padding: 40, maxWidth: 860, width: '100%', position: 'relative' }} onClick={e => e.stopPropagation()}>
+            <button onClick={() => setShowPricing(false)} style={{ position: 'absolute', top: 16, right: 16, background: 'none', border: 'none', color: '#8b949e', cursor: 'pointer', fontSize: 20 }}>✕</button>
+            <div style={{ textAlign: 'center', marginBottom: 36 }}>
+              <span style={{ color: '#ffb800', fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: 'uppercase' }}>Compass Ultra</span>
+              <h2 style={{ color: '#e6edf3', fontSize: 28, margin: '8px 0 12px' }}>Simple, transparent pricing</h2>
+              <p style={{ color: '#8b949e', fontSize: 14 }}>Start free. Upgrade when your team needs more.</p>
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 16 }}>
+              {[
+                {
+                  name: 'Free', price: '$0', period: 'forever',
+                  color: '#3d4451',
+                  features: ['3 saved snapshots', 'Local workspace', 'PDF runbook export', 'Flag evaluation engine', 'Policy checks'],
+                  cta: 'Get started', highlight: false,
+                },
+                {
+                  name: 'Pro', price: '$29', period: 'per month',
+                  color: '#58a6ff',
+                  features: ['Unlimited snapshots', 'Cloud save & sync', 'Shareable public links', 'Snapshot diff viewer', 'All Free features'],
+                  cta: 'Start Pro', highlight: false,
+                },
+                {
+                  name: 'Team', price: '$99', period: 'per month',
+                  color: '#ffb800',
+                  features: ['Everything in Pro', 'AI risk analyzer', 'Flag expiration alerts', 'Team RBAC', 'Audit log export', 'Priority support'],
+                  cta: 'Start Team', highlight: true,
+                },
+                {
+                  name: 'Enterprise', price: 'Custom', period: 'contact us',
+                  color: '#bc8cff',
+                  features: ['Everything in Team', 'SSO / SAML', 'Slack bot integration', 'Real-time collaboration', 'SLA guarantee', 'Dedicated onboarding'],
+                  cta: 'Contact sales', highlight: false,
+                },
+              ].map(tier => (
+                <div key={tier.name} style={{ background: tier.highlight ? 'rgba(255,184,0,0.05)' : '#161b22', border: `1px solid ${tier.highlight ? tier.color : 'rgba(255,255,255,0.07)'}`, borderRadius: 8, padding: 24, display: 'flex', flexDirection: 'column', gap: 12, position: 'relative' }}>
+                  {tier.highlight && <span style={{ position: 'absolute', top: -11, left: '50%', transform: 'translateX(-50%)', background: '#ffb800', color: '#07090e', fontSize: 10, fontWeight: 700, padding: '2px 10px', borderRadius: 10, letterSpacing: 1 }}>MOST POPULAR</span>}
+                  <div>
+                    <div style={{ color: tier.color, fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: 1, marginBottom: 6 }}>{tier.name}</div>
+                    <div style={{ color: '#e6edf3', fontSize: 28, fontWeight: 800 }}>{tier.price}</div>
+                    <div style={{ color: '#8b949e', fontSize: 11 }}>{tier.period}</div>
+                  </div>
+                  <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: 7, flex: 1 }}>
+                    {tier.features.map(f => (
+                      <li key={f} style={{ color: '#8b949e', fontSize: 12, display: 'flex', alignItems: 'center', gap: 6 }}>
+                        <span style={{ color: tier.color }}>✓</span> {f}
+                      </li>
+                    ))}
+                  </ul>
+                  <button style={{ background: tier.highlight ? '#ffb800' : 'none', color: tier.highlight ? '#07090e' : tier.color, border: `1px solid ${tier.color}`, borderRadius: 6, padding: '9px 0', fontWeight: 700, fontSize: 13, cursor: 'pointer', marginTop: 8 }}>
+                    {tier.cta}
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
     </main>
   );
 }
@@ -1693,7 +1791,7 @@ function hydrateWorkspace(input, fallbackName = 'My production workspace') {
     team: normalizeTeam(input?.team),
     integrations: normalizeIntegrations(input?.integrations),
     context: { ...defaultContext, ...(input?.context || {}) },
-    flags: (importedFlags.length ? importedFlags : seedFlags).map(normalizeFlag),
+    flags: importedFlags.length ? importedFlags.map(normalizeFlag) : [],
     audit: normalizeAudit(input?.audit),
   };
 }
