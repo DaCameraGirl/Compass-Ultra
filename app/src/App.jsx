@@ -45,9 +45,9 @@ import { api } from './api.js';
 const storageKey = 'compass-ultra-workspace-v4';
 
 const defaultContext = {
-  key: 'user_2941',
-  email: 'ops.admin@dacameragirl.dev',
-  tenant: 'dcg-enterprise',
+  key: 'user_001',
+  email: 'admin@yourcompany.dev',
+  tenant: 'my-org',
   plan: 'enterprise',
   role: 'admin',
   region: 'us-east',
@@ -57,24 +57,24 @@ const defaultContext = {
 };
 
 const defaultRelease = {
-  train: 'DCG-prod-2026.05',
-  changeTicket: 'CHG-24051',
-  incidentChannel: '#dcg-war-room',
-  releaseCaptain: 'DaCameraGirl DevOps',
+  train: 'prod-2026.05',
+  changeTicket: 'CHG-00001',
+  incidentChannel: '#war-room',
+  releaseCaptain: 'Release Captain',
   approver: 'Platform SRE',
   window: 'Tue 22:00-23:00 ET',
 };
 
 const defaultTeam = {
-  workspaceId: 'dcg-prod-command',
+  workspaceId: 'prod-command',
   authMode: 'Local RBAC session',
   members: [
-    { id: 'dcg', name: 'DaCameraGirl', email: 'ops.admin@dacameragirl.dev', role: 'admin' },
-    { id: 'sre', name: 'Platform SRE', email: 'sre@dacameragirl.dev', role: 'approver' },
-    { id: 'qa', name: 'QA Release', email: 'qa@dacameragirl.dev', role: 'operator' },
-    { id: 'viewer', name: 'Audit Viewer', email: 'audit@dacameragirl.dev', role: 'viewer' },
+    { id: 'admin', name: 'Release Admin', email: 'admin@yourcompany.dev', role: 'admin' },
+    { id: 'sre', name: 'Platform SRE', email: 'sre@yourcompany.dev', role: 'approver' },
+    { id: 'qa', name: 'QA Release', email: 'qa@yourcompany.dev', role: 'operator' },
+    { id: 'viewer', name: 'Audit Viewer', email: 'audit@yourcompany.dev', role: 'viewer' },
   ],
-  activeMemberId: 'dcg',
+  activeMemberId: 'admin',
 };
 
 const defaultIntegrations = [
@@ -264,8 +264,8 @@ const seedFlags = [
 
 const samplePacks = {
   dcg: {
-    label: 'DaCameraGirl Enterprise',
-    workspaceName: 'DaCameraGirl production command center',
+    label: 'Enterprise Sample',
+    workspaceName: 'Production command center',
     flags: seedFlags,
   },
   launchdarkly: {
@@ -1681,7 +1681,7 @@ function loadWorkspace() {
   }
 }
 
-function hydrateWorkspace(input, fallbackName = 'DaCameraGirl production command center') {
+function hydrateWorkspace(input, fallbackName = 'My production workspace') {
   const importedFlags = normalizeImportedFlags(input);
   return {
     workspaceName: input?.workspaceName || input?.name || fallbackName,
@@ -1749,7 +1749,7 @@ function fromLaunchDarkly(item) {
     defaultValue: Boolean(item.offVariation),
     rollout: item.fallthrough?.rollout?.variations?.[0]?.weight ? Math.round(item.fallthrough.rollout.variations[0].weight / 1000) : 100,
     criticality: item.key?.includes('checkout') || item.key?.includes('privacy') ? 'high' : 'medium',
-    jira: 'DCG-import',
+    jira: 'IMPORT-001',
     approver: 'Provider Owner',
     expiresAt: '2026-12-31',
     rollback: `Disable ${item.key}.`,
@@ -1770,7 +1770,7 @@ function fromStatsig(item) {
     defaultValue: false,
     rollout: item.rollout || 100,
     criticality: item.name?.includes('sso') ? 'critical' : 'medium',
-    jira: 'DCG-import',
+    jira: 'IMPORT-001',
     approver: 'Experiment Owner',
     expiresAt: '2026-12-31',
     rollback: `Disable ${item.name || item.id}.`,
@@ -1792,7 +1792,7 @@ function fromFirebase([key, value]) {
     defaultValue: raw === 'true' ? true : raw === 'false' ? false : raw,
     rollout: 100,
     criticality: key.includes('paywall') ? 'high' : 'low',
-    jira: 'DCG-import',
+    jira: 'IMPORT-001',
     approver: 'Mobile Owner',
     expiresAt: '2026-12-31',
     rollback: `Restore Firebase default for ${key}.`,
