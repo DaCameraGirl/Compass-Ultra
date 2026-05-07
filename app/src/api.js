@@ -25,4 +25,9 @@ export const api = {
     request(`/api/v1/snapshots/${id}`, token, { method: 'DELETE' }),
   shareSnapshot: (token, id) =>
     request(`/api/v1/snapshots/${id}/share`, token, { method: 'POST' }),
+  analyzeFlags: (token, payload) =>
+    request('/api/v1/analyze', token, {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    }),
 };

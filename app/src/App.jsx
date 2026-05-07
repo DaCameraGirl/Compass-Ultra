@@ -12,6 +12,7 @@ import {
   Cloud,
   CloudCog,
   Download,
+  BrainCircuit,
   FileDown,
   FileJson,
   Gauge,
@@ -314,6 +315,8 @@ export default function App() {
   const [cloudSnapshots, setCloudSnapshots] = useState([]);
   const [cloudLoading, setCloudLoading] = useState(false);
   const [cloudNotice, setCloudNotice] = useState('');
+  const [aiAnalysis, setAiAnalysis] = useState('');
+  const [aiLoading, setAiLoading] = useState(false);
 
   const importRef = useRef(null);
   const initial = useMemo(loadWorkspace, []);
@@ -881,6 +884,22 @@ export default function App() {
     }
   };
 
+  const runAiAnalysis = async () => {
+    if (!isAuthenticated) { loginWithRedirect(); return; }
+    setAiLoading(true);
+    setAiAnalysis('');
+    try {
+      const token = await getAccessTokenSilently();
+      const { analysis } = await api.analyzeFlags(token, { flags, context, release, policyChecks });
+      setAiAnalysis(analysis);
+      record('AI risk analysis complete');
+    } catch (e) {
+      setAiAnalysis('Analysis failed — check your connection and try again.');
+    } finally {
+      setAiLoading(false);
+    }
+  };
+
   const shareCloudSnapshot = async (id) => {
     if (!isAuthenticated) return;
     try {
@@ -924,6 +943,9 @@ export default function App() {
           </button>
           <button type="button" onClick={resetWorkspace} title="Reset workspace" aria-label="Reset workspace">
             <RefreshCw size={17} aria-hidden="true" />
+          </button>
+          <button type="button" onClick={runAiAnalysis} title="AI risk analysis" aria-label="AI risk analysis" style={{ color: aiLoading ? '#ffb800' : '#bc8cff' }}>
+            <BrainCircuit size={17} aria-hidden="true" />
           </button>
           <button type="button" onClick={exportPDF} title="Export PDF runbook" aria-label="Export PDF runbook">
             <FileDown size={17} aria-hidden="true" />
@@ -1344,6 +1366,22 @@ export default function App() {
             </div>
             <pre>{sdkSnippet}</pre>
           </section>
+
+          {(aiAnalysis || aiLoading) && (
+            <section className="panel code-panel">
+              <div className="panel-heading">
+                <BrainCircuit size={18} aria-hidden="true" />
+                <h2>AI Risk Analysis</h2>
+                {aiAnalysis && (
+                  <button type="button" onClick={() => setAiAnalysis('')} aria-label="Close analysis" style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#8b949e' }}>
+                    ✕
+                  </button>
+                )}
+              </div>
+              {aiLoading && <p style={{ color: '#bc8cff', fontSize: 11 }}>Analyzing your flags… ✨</p>}
+              {aiAnalysis && <pre style={{ whiteSpace: 'pre-wrap', fontSize: 10, lineHeight: 1.6 }}>{aiAnalysis}</pre>}
+            </section>
+          )}
 
           <section className="panel audit-panel">
             <div className="panel-heading">
