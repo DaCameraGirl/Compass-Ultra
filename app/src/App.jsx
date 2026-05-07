@@ -320,6 +320,8 @@ export default function App() {
   const [cloudNotice, setCloudNotice] = useState('');
   const [aiAnalysis, setAiAnalysis] = useState('');
   const [aiLoading, setAiLoading] = useState(false);
+  const [aiRiskLevel, setAiRiskLevel] = useState('');
+  const [showRollbackModal, setShowRollbackModal] = useState(false);
   const [diffA, setDiffA] = useState(null);
   const [diffB, setDiffB] = useState(null);
   const [showDiff, setShowDiff] = useState(false);
@@ -913,6 +915,8 @@ export default function App() {
       const token = await getAccessTokenSilently({ authorizationParams: { audience: import.meta.env.VITE_AUTH0_AUDIENCE } });
       const { analysis } = await api.analyzeFlags(token, { flags, context, release, policyChecks });
       setAiAnalysis(analysis);
+      const riskMatch = analysis.match(/##\s*RISK LEVEL:\s*(LOW|MEDIUM|HIGH|CRITICAL)/i);
+      setAiRiskLevel(riskMatch ? riskMatch[1].toUpperCase() : '');
       record('AI risk analysis complete');
     } catch (e) {
       if (e.error === 'login_required' || e.error === 'consent_required') {
@@ -1540,6 +1544,52 @@ export default function App() {
               </div>
               {aiLoading && <p style={{ color: '#bc8cff', fontSize: 11 }}>Analyzing your flags… ✨</p>}
               {aiAnalysis && <pre style={{ whiteSpace: 'pre-wrap', fontSize: 10, lineHeight: 1.6 }}>{aiAnalysis}</pre>}
+              {aiAnalysis && (aiRiskLevel === 'HIGH' || aiRiskLevel === 'CRITICAL') && (
+                <div style={{ marginTop: 12, padding: '12px 14px', background: 'rgba(248,81,73,0.07)', border: '1px solid rgba(248,81,73,0.25)', borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
+                  <div>
+                    <div style={{ color: '#f85149', fontSize: 12, fontWeight: 700, marginBottom: 2 }}>⚠️ {aiRiskLevel} RISK DETECTED</div>
+                    <div style={{ color: '#8b949e', fontSize: 11 }}>Rollback to a previous safe snapshot to undo recent changes.</div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => { if (!isAuthenticated) { loginWithRedirect(); return; } setShowRollbackModal(true); }}
+                    style={{ background: '#f85149', color: '#fff', border: 'none', borderRadius: 6, padding: '8px 14px', fontSize: 12, fontWeight: 700, cursor: 'pointer', whiteSpace: 'nowrap', flexShrink: 0 }}
+                  >
+                    🔄 Rollback to Safe State
+                  </button>
+                </div>
+              )}
+              {showRollbackModal && (
+                <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.75)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }} onClick={() => setShowRollbackModal(false)}>
+                  <div style={{ background: '#0e1117', border: '1px solid rgba(248,81,73,0.3)', borderRadius: 12, padding: 28, maxWidth: 480, width: '100%', position: 'relative' }} onClick={e => e.stopPropagation()}>
+                    <button onClick={() => setShowRollbackModal(false)} style={{ position: 'absolute', top: 12, right: 12, background: 'none', border: 'none', color: '#8b949e', cursor: 'pointer', fontSize: 18 }}>✕</button>
+                    <div style={{ color: '#f85149', fontSize: 13, fontWeight: 700, marginBottom: 4 }}>🔄 Rollback Workspace</div>
+                    <div style={{ color: '#8b949e', fontSize: 12, marginBottom: 20 }}>Select a saved snapshot to restore. This replaces your current workspace state.</div>
+                    {cloudSnapshots.length === 0 ? (
+                      <div style={{ color: '#8b949e', fontSize: 12, textAlign: 'center', padding: '20px 0' }}>No saved snapshots found. Save a snapshot first to enable rollback.</div>
+                    ) : (
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                        {cloudSnapshots.map(snap => (
+                          <button
+                            key={snap.id}
+                            type="button"
+                            onClick={() => { restoreFromCloud(snap); setShowRollbackModal(false); setCloudNotice(`Rolled back to: ${snap.name}`); record(`Rollback to snapshot: ${snap.name}`); }}
+                            style={{ background: '#161b22', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 8, padding: '12px 14px', textAlign: 'left', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'space-between', transition: 'border-color 0.15s' }}
+                            onMouseOver={e => e.currentTarget.style.borderColor = 'rgba(88,166,255,0.4)'}
+                            onMouseOut={e => e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)'}
+                          >
+                            <div>
+                              <div style={{ color: '#e6edf3', fontSize: 13, fontWeight: 600 }}>{snap.name}</div>
+                              <div style={{ color: '#8b949e', fontSize: 11, marginTop: 2 }}>{new Date(snap.created_at).toLocaleString()}</div>
+                            </div>
+                            <span style={{ color: '#58a6ff', fontSize: 12, fontWeight: 700 }}>Restore →</span>
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
             </section>
           )}
 
@@ -1625,19 +1675,19 @@ export default function App() {
                   cta: 'Get started', highlight: false,
                 },
                 {
-                  name: 'Pro', price: '$29', period: 'per month',
+                  name: 'Pro', price: '$49', period: 'per month',
                   color: '#58a6ff',
                   features: ['Unlimited snapshots', 'Cloud save & sync', 'Shareable public links', 'Snapshot diff viewer', 'All Free features'],
                   cta: 'Start Pro', highlight: false,
                 },
                 {
-                  name: 'Team', price: '$99', period: 'per month',
+                  name: 'Team', price: '$249', period: 'per month',
                   color: '#ffb800',
                   features: ['Everything in Pro', 'AI risk analyzer', 'Flag expiration alerts', 'Team RBAC', 'Audit log export', 'Priority support'],
                   cta: 'Start Team', highlight: true,
                 },
                 {
-                  name: 'Enterprise', price: 'Custom', period: 'contact us',
+                  name: 'Enterprise', price: '$999', period: 'per month+',
                   color: '#bc8cff',
                   features: ['Everything in Team', 'SSO / SAML', 'Slack bot integration', 'Real-time collaboration', 'SLA guarantee', 'Dedicated onboarding'],
                   cta: 'Contact sales', highlight: false,
@@ -1688,54 +1738,54 @@ function WorkspaceGuide() {
       title: '1. Connect Your Flag Data',
       icon: <BookOpenCheck size={17} aria-hidden="true" />,
       body: [
-        'Compass Ultra works with LaunchDarkly, Statsig, Firebase Remote Config, or any JSON-based flag provider. Use the Sample Packs to load a realistic workspace instantly, or import your own JSON export from your provider.',
-        'Once your flags are loaded, set the Release Control fields on the left — change ticket, release train, captain, and deployment window. These appear in every generated artifact.',
-        'Your workspace auto-saves to the cloud. Use the cloud icon to save a named snapshot at any point in your review.',
+        'Compass Ultra integrates with LaunchDarkly, Statsig, Firebase Remote Config, and any JSON-based flag provider. Import your flag export directly from your provider dashboard — your full flag inventory loads in seconds.',
+        'Fill in the Release Control panel — change ticket, release train, captain, and deployment window. These fields populate every generated artifact, runbook, and integration payload automatically.',
+        'Every workspace state persists to the cloud. Named snapshots let you checkpoint a release at any stage and return to it exactly as you left it — across devices, across your team.',
       ],
     },
     {
       title: '2. Set Your Team and Permissions',
       icon: <Users size={17} aria-hidden="true" />,
       body: [
-        'Open Team Auth to set the active reviewer. Admins can configure integrations and team roles. Operators can edit flags and release state. Viewers get a read-only view with a full audit trail.',
-        'Every blocked action is recorded — if a viewer attempts to edit a flag, Compass logs it with the actor name, role, and timestamp. No silent permission bypasses.',
-        'Use role switching during a release review to walk stakeholders through what each team member can and cannot change.',
+        'Compass Ultra enforces three access tiers. Admins control integrations, team configuration, and release ownership. Operators manage flag state and release metadata. Viewers have full read access with a complete audit trail.',
+        'Every permission boundary is hard-enforced and logged. Blocked actions are recorded with the actor, role, timestamp, and the specific gate that denied access — no silent failures, no undocumented overrides.',
+        'RBAC is built for real release reviews — not just access control. Stakeholders and external auditors get exactly the visibility they need without the ability to mutate release state.',
       ],
     },
     {
       title: '3. Evaluate Flags Against Real User Segments',
       icon: <UserRound size={17} aria-hidden="true" />,
       body: [
-        'The Evaluation Context defines the user Compass evaluates all flags against — environment, plan, role, region, device, and custom attributes.',
-        'Switch between saved context presets to instantly see how your flag configuration behaves for enterprise users, EU customers, mobile trial users, or any segment you define.',
-        'This is the fastest way to reproduce a customer-specific flag state without touching production or writing code.',
+        'The Evaluation Context engine resolves all flag rules against a specific user profile — environment, plan tier, role, region, device type, and arbitrary custom attributes you define.',
+        'Saved context presets let you instantly replay your flag configuration for any customer segment: enterprise, free trial, EU region, mobile-only, or any internal persona your team has defined.',
+        'Every flag evaluation shows its resolution reason — whether the value came from a targeting rule, a manual override, a rollout bucket, or a default. No guesswork about why a flag is on or off for a given user.',
       ],
     },
     {
       title: '4. Review Risk Before You Ship',
       icon: <ShieldCheck size={17} aria-hidden="true" />,
       body: [
-        'The flag table shows every flag with its evaluated value, criticality, source provider, rollout percentage, and the reason for the current value — rule, override, rollout, or default.',
-        'Enterprise Policy Checks automatically validate change ticket coverage, approver assignments, expiration dates, canary rollout limits, dependency integrity, and provider connectivity.',
-        'Use the AI Risk Analyzer (brain icon) to get a Claude-powered assessment of your full release — it identifies dependency gaps, rollout mismatches, compliance risks, and recommended actions before you ship.',
+        'The flag table surfaces evaluated value, criticality, source provider, rollout percentage, and resolution reason for every flag in your release — in one view, before any change touches production.',
+        'Policy Checks run automatically across your entire flag set: change ticket coverage, approver assignments, expiration date compliance, canary rollout thresholds, dependency chain integrity, and provider health.',
+        'The AI Risk Analyzer generates a structured release assessment powered by Claude — flagging dependency gaps, rollout mismatches, compliance exposures, and a direct ship/no-ship recommendation with specific flag keys called out.',
       ],
     },
     {
       title: '5. Save and Share Snapshots',
       icon: <CloudCog size={17} aria-hidden="true" />,
       body: [
-        'Save named snapshots to the cloud at any point in your review. Snapshots capture the complete flag state, context, release metadata, and policy check results.',
-        'Use the Snapshot Diff viewer to compare any two saved snapshots side by side — added, removed, and changed flags are highlighted in green and red.',
-        'Generate a public share link from any snapshot. Anyone with the link can load the exact workspace state you were reviewing — no login required for recipients.',
+        'Cloud snapshots capture the complete release state — flag configuration, evaluation context, release metadata, policy check results, and audit history — timestamped and stored under your account.',
+        'The Snapshot Diff viewer compares any two snapshots side by side. Added, removed, and changed flags are highlighted individually so you can see exactly what shifted between your last checkpoint and now.',
+        'Any snapshot can be shared as a public link. Recipients load the exact workspace state — no account required. Built for handoffs to change advisory boards, on-call engineers, or external auditors.',
       ],
     },
     {
       title: '6. Generate DevOps Handoff Artifacts',
       icon: <Rocket size={17} aria-hidden="true" />,
       body: [
-        'Export a PDF Release Runbook with gate status, policy check results, active evaluations, and flag-by-flag rollback procedures — formatted for management review or change advisory board submission.',
-        'Generate integration payloads for GitHub Issues, Jira Change tickets, and Slack War Room webhooks. Configure a proxy endpoint to POST directly, or copy the JSON payload manually.',
-        'The SDK Payload gives downstream applications machine-readable evaluated flag values with owners, tickets, criticality, and evaluation reasons attached.',
+        'PDF Release Runbooks include gate status, policy check results, active flag evaluations, and per-flag rollback procedures. Formatted for management review, CAB submission, or incident war room reference.',
+        'Integration payloads for GitHub Issues, Jira change tickets, and Slack War Room webhooks are generated from live workspace state. POST directly via a configured proxy or copy the JSON for manual submission.',
+        'The SDK Payload delivers machine-readable evaluated flag values with ownership, ticket references, criticality ratings, and evaluation reasons attached — ready for downstream applications and deployment pipelines.',
       ],
     },
   ];
@@ -1747,7 +1797,7 @@ function WorkspaceGuide() {
           <span className="guide-kicker">Compass Ultra — Release Intelligence Platform</span>
           <h1>Ship with confidence. Every flag, every risk, every time.</h1>
           <p>
-            Connect your flag providers, evaluate against real user segments, validate enterprise policy, and generate handoff artifacts — all before a single line changes in production.
+            Compass Ultra gives engineering and DevOps teams a single control plane for feature flag releases — live flag evaluation, enterprise policy enforcement, AI-powered risk analysis, and automated handoff artifacts, all before a single change touches production.
           </p>
         </div>
       </div>
