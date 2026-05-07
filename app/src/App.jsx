@@ -1,4 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { useAuth0 } from '@auth0/auth0-react';
+import { jsPDF } from 'jspdf';
 import {
   Activity,
   AlertTriangle,
@@ -7,8 +9,10 @@ import {
   Braces,
   CheckCircle2,
   Clipboard,
+  Cloud,
   CloudCog,
   Download,
+  FileDown,
   FileJson,
   Gauge,
   GitBranch,
@@ -17,7 +21,10 @@ import {
   ListChecks,
   ListFilter,
   LockKeyhole,
+  LogIn,
+  LogOut,
   Plus,
+  Share2,
   RefreshCw,
   Rocket,
   Search,
@@ -31,6 +38,7 @@ import {
   Webhook,
   XCircle,
 } from 'lucide-react';
+import { api } from './api.js';
 
 const storageKey = 'compass-ultra-workspace-v4';
 
@@ -302,6 +310,11 @@ const emptyDraft = {
 };
 
 export default function App() {
+  const { isAuthenticated, loginWithRedirect, logout, getAccessTokenSilently, user } = useAuth0();
+  const [cloudSnapshots, setCloudSnapshots] = useState([]);
+  const [cloudLoading, setCloudLoading] = useState(false);
+  const [cloudNotice, setCloudNotice] = useState('');
+
   const importRef = useRef(null);
   const initial = useMemo(loadWorkspace, []);
   const [workspaceName, setWorkspaceName] = useState(initial.workspaceName);
@@ -627,6 +640,153 @@ export default function App() {
     record('Workspace exported');
   };
 
+  const exportPDF = () => {
+    const doc = new jsPDF({ unit: 'pt', format: 'letter' });
+    const margin = 48;
+    const pageW = doc.internal.pageSize.getWidth();
+    const maxW = pageW - margin * 2;
+    let y = margin;
+
+    const addPage = () => { doc.addPage(); y = margin; };
+    const checkY = (needed = 20) => { if (y + needed > doc.internal.pageSize.getHeight() - margin) addPage(); };
+
+    // Header bar
+    doc.setFillColor(7, 9, 14);
+    doc.rect(0, 0, pageW, 56, 'F');
+    doc.setTextColor(255, 184, 0);
+    doc.setFontSize(18);
+    doc.setFont('helvetica', 'bold');
+    doc.text('COMPASS-ULTRA', margin, 36);
+    doc.setFontSize(9);
+    doc.setTextColor(139, 148, 158);
+    doc.setFont('helvetica', 'normal');
+    doc.text(`Release Runbook  ·  ${new Date().toLocaleString()}`, margin, 50);
+    y = 80;
+
+    // Title
+    doc.setTextColor(230, 237, 243);
+    doc.setFontSize(14);
+    doc.setFont('helvetica', 'bold');
+    doc.setFillColor(22, 27, 34);
+    doc.rect(margin - 8, y - 14, maxW + 16, 24, 'F');
+    doc.text(workspaceName, margin, y);
+    y += 32;
+
+    // Release metadata
+    doc.setFontSize(9);
+    doc.setFont('helvetica', 'normal');
+    const meta = [
+      ['Change Ticket', release.changeTicket],
+      ['Release Train', release.train],
+      ['Release Captain', release.releaseCaptain],
+      ['Approver', release.approver],
+      ['Window', release.window],
+      ['Incident Channel', release.incidentChannel],
+    ];
+    meta.forEach(([label, value]) => {
+      checkY(16);
+      doc.setTextColor(139, 148, 158);
+      doc.text(`${label}:`, margin, y);
+      doc.setTextColor(230, 237, 243);
+      doc.text(String(value), margin + 110, y);
+      y += 16;
+    });
+    y += 12;
+
+    // Gate status
+    checkY(28);
+    const blocked = policyChecks.filter(c => c.status === 'block').length;
+    const warnings = policyChecks.filter(c => c.status === 'warn').length;
+    const gateColor = blocked ? [248, 81, 73] : warnings ? [240, 136, 62] : [63, 185, 80];
+    const gateLabel = blocked ? 'BLOCKED' : warnings ? 'NEEDS REVIEW' : 'READY TO SHIP';
+    doc.setFillColor(...gateColor);
+    doc.roundedRect(margin - 8, y - 14, maxW + 16, 22, 3, 3, 'F');
+    doc.setTextColor(7, 9, 14);
+    doc.setFontSize(11);
+    doc.setFont('helvetica', 'bold');
+    doc.text(`GATE STATUS: ${gateLabel}`, margin, y);
+    y += 30;
+
+    // Policy checks
+    doc.setFontSize(11);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(255, 184, 0);
+    doc.text('ENTERPRISE POLICY CHECKS', margin, y);
+    y += 16;
+    policyChecks.forEach(check => {
+      checkY(18);
+      const color = check.status === 'pass' ? [63, 185, 80] : check.status === 'warn' ? [240, 136, 62] : [248, 81, 73];
+      doc.setFillColor(...color);
+      doc.circle(margin + 4, y - 4, 4, 'F');
+      doc.setTextColor(230, 237, 243);
+      doc.setFontSize(9);
+      doc.setFont('helvetica', 'bold');
+      doc.text(check.title, margin + 14, y);
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(139, 148, 158);
+      const lines = doc.splitTextToSize(check.detail, maxW - 14);
+      lines.forEach(line => { checkY(13); doc.text(line, margin + 14, y += 13); });
+      y += 6;
+    });
+    y += 8;
+
+    // Active flags
+    checkY(28);
+    doc.setFontSize(11);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(255, 184, 0);
+    doc.text('ACTIVE FLAG EVALUATIONS', margin, y);
+    y += 16;
+    evaluations.filter(({ result }) => Boolean(result.value)).forEach(({ flag, result }) => {
+      checkY(36);
+      doc.setFillColor(22, 27, 34);
+      doc.rect(margin - 8, y - 14, maxW + 16, 32, 'F');
+      doc.setTextColor(230, 237, 243);
+      doc.setFontSize(9);
+      doc.setFont('helvetica', 'bold');
+      doc.text(flag.name, margin, y);
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(139, 148, 158);
+      doc.text(`${flag.key}  ·  owner: ${flag.owner}  ·  ticket: ${flag.jira}  ·  criticality: ${flag.criticality}  ·  reason: ${result.reason}`, margin, y + 13);
+      y += 38;
+    });
+    y += 8;
+
+    // Rollback steps
+    checkY(28);
+    doc.setFontSize(11);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(255, 184, 0);
+    doc.text('ROLLBACK PROCEDURES', margin, y);
+    y += 16;
+    flags.filter(f => f.enabled).forEach(flag => {
+      checkY(28);
+      doc.setTextColor(230, 237, 243);
+      doc.setFontSize(9);
+      doc.setFont('helvetica', 'bold');
+      doc.text(flag.key, margin, y);
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(139, 148, 158);
+      const lines = doc.splitTextToSize(flag.rollback, maxW - 14);
+      lines.forEach(line => { checkY(13); doc.text(line, margin + 14, y += 13); });
+      y += 6;
+    });
+
+    // Footer
+    const pages = doc.internal.getNumberOfPages();
+    for (let i = 1; i <= pages; i++) {
+      doc.setPage(i);
+      doc.setFillColor(7, 9, 14);
+      doc.rect(0, doc.internal.pageSize.getHeight() - 28, pageW, 28, 'F');
+      doc.setFontSize(8);
+      doc.setTextColor(61, 68, 81);
+      doc.text(`Compass-Ultra  ·  ${workspaceName}  ·  Page ${i} of ${pages}`, margin, doc.internal.pageSize.getHeight() - 10);
+    }
+
+    doc.save(`${slugKey(workspaceName) || 'compass-runbook'}-${Date.now()}.pdf`);
+    record('PDF runbook exported');
+  };
+
   const copyText = async (text, label) => {
     try {
       await navigator.clipboard.writeText(text);
@@ -652,6 +812,85 @@ export default function App() {
     setFlags(baseline.flags);
     setSelectedKey(baseline.flags[0]?.key || '');
     record('Workspace reset');
+  };
+
+  const loadCloudSnapshots = async () => {
+    if (!isAuthenticated) return;
+    setCloudLoading(true);
+    try {
+      const token = await getAccessTokenSilently();
+      const snaps = await api.listSnapshots(token);
+      setCloudSnapshots(snaps);
+    } catch (e) {
+      setCloudNotice('Failed to load cloud snapshots');
+    } finally {
+      setCloudLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (isAuthenticated) loadCloudSnapshots();
+  }, [isAuthenticated]);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const snapId = params.get('snapshot');
+    if (!snapId) return;
+    api.getSnapshot(snapId).then((snap) => {
+      restoreFromCloud(snap);
+      window.history.replaceState({}, '', window.location.pathname);
+    }).catch(() => {});
+  }, []);
+
+  const saveToCloud = async () => {
+    if (!isAuthenticated) { loginWithRedirect(); return; }
+    setCloudLoading(true);
+    try {
+      const token = await getAccessTokenSilently();
+      await api.saveSnapshot(token, workspaceName, '', workspace);
+      setCloudNotice('Saved to cloud!');
+      await loadCloudSnapshots();
+    } catch (e) {
+      setCloudNotice('Cloud save failed');
+    } finally {
+      setCloudLoading(false);
+    }
+  };
+
+  const restoreFromCloud = (snap) => {
+    const hydrated = hydrateWorkspace(snap.snapshot_data);
+    setWorkspaceName(hydrated.workspaceName);
+    setRelease(hydrated.release);
+    setTeam(hydrated.team);
+    setIntegrations(hydrated.integrations);
+    setContext(hydrated.context);
+    setFlags(hydrated.flags);
+    setSelectedKey(hydrated.flags[0]?.key || '');
+    record(`Restored cloud snapshot: ${snap.name}`);
+  };
+
+  const deleteCloudSnapshot = async (id) => {
+    if (!isAuthenticated) return;
+    try {
+      const token = await getAccessTokenSilently();
+      await api.deleteSnapshot(token, id);
+      await loadCloudSnapshots();
+      setCloudNotice('Snapshot deleted');
+    } catch (e) {
+      setCloudNotice('Delete failed');
+    }
+  };
+
+  const shareCloudSnapshot = async (id) => {
+    if (!isAuthenticated) return;
+    try {
+      const token = await getAccessTokenSilently();
+      const { shareUrl } = await api.shareSnapshot(token, id);
+      await navigator.clipboard.writeText(shareUrl);
+      setCloudNotice('Share link copied to clipboard!');
+    } catch (e) {
+      setCloudNotice('Share failed');
+    }
   };
 
   return (
@@ -686,6 +925,21 @@ export default function App() {
           <button type="button" onClick={resetWorkspace} title="Reset workspace" aria-label="Reset workspace">
             <RefreshCw size={17} aria-hidden="true" />
           </button>
+          <button type="button" onClick={exportPDF} title="Export PDF runbook" aria-label="Export PDF runbook">
+            <FileDown size={17} aria-hidden="true" />
+          </button>
+          <button type="button" onClick={saveToCloud} title={isAuthenticated ? 'Save to cloud' : 'Login to save to cloud'} aria-label="Save to cloud" style={{ color: isAuthenticated ? '#3fb950' : '#8b949e' }}>
+            <Cloud size={17} aria-hidden="true" />
+          </button>
+          {isAuthenticated ? (
+            <button type="button" onClick={() => logout({ logoutParams: { returnTo: window.location.href } })} title={`Logout ${user?.email}`} aria-label="Logout">
+              <LogOut size={17} aria-hidden="true" />
+            </button>
+          ) : (
+            <button type="button" onClick={() => loginWithRedirect()} title="Login" aria-label="Login">
+              <LogIn size={17} aria-hidden="true" />
+            </button>
+          )}
           <input ref={importRef} className="hidden-file" type="file" accept="application/json,.json" onChange={importWorkspace} />
         </div>
       </header>
@@ -1089,6 +1343,50 @@ export default function App() {
               </button>
             </div>
             <pre>{sdkSnippet}</pre>
+          </section>
+
+          <section className="panel audit-panel">
+            <div className="panel-heading">
+              <Cloud size={18} aria-hidden="true" />
+              <h2>Cloud Snapshots</h2>
+              {isAuthenticated && (
+                <button type="button" onClick={loadCloudSnapshots} aria-label="Refresh cloud snapshots">
+                  <RefreshCw size={15} aria-hidden="true" />
+                </button>
+              )}
+            </div>
+            {!isAuthenticated && (
+              <button className="full-button" type="button" onClick={() => loginWithRedirect()}>
+                <LogIn size={16} aria-hidden="true" />
+                Login to save &amp; load snapshots
+              </button>
+            )}
+            {isAuthenticated && (
+              <>
+                {cloudNotice && <p style={{ fontSize: 11, color: '#3fb950', marginBottom: 8 }}>{cloudNotice}</p>}
+                {cloudLoading && <p style={{ fontSize: 11, color: '#8b949e' }}>Loading…</p>}
+                {cloudSnapshots.length === 0 && !cloudLoading && (
+                  <p style={{ fontSize: 11, color: '#8b949e' }}>No cloud snapshots yet. Hit the cloud icon in the toolbar to save one.</p>
+                )}
+                {cloudSnapshots.map((snap) => (
+                  <article className="audit-item" key={snap.id} style={{ cursor: 'pointer' }}>
+                    <span>{new Date(snap.created_at).toLocaleDateString()}</span>
+                    <div style={{ flex: 1 }}>
+                      <strong>{snap.name}</strong>
+                    </div>
+                    <button type="button" onClick={() => restoreFromCloud(snap)} title="Restore" style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#3fb950', padding: 0 }}>
+                      <RefreshCw size={13} />
+                    </button>
+                    <button type="button" onClick={() => shareCloudSnapshot(snap.id)} title="Copy share link" style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#58a6ff', padding: 0, marginLeft: 8 }}>
+                      <Share2 size={13} />
+                    </button>
+                    <button type="button" onClick={() => deleteCloudSnapshot(snap.id)} title="Delete" style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#f85149', padding: 0, marginLeft: 8 }}>
+                      <Trash2 size={13} />
+                    </button>
+                  </article>
+                ))}
+              </>
+            )}
           </section>
 
           <section className="panel audit-panel">
