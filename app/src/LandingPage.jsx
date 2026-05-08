@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Brain, Shield, Cloud, FileDown, GitCompare, Users,
-  BarChart3, Check, ArrowRight, Menu, X, Compass, Zap, Lock,
+  BarChart3, Check, ArrowRight, Menu, X, Compass, Zap,
+  AlertTriangle, CheckCircle, Clock, Lock, Play,
 } from 'lucide-react';
 import './LandingPage.css';
 
@@ -80,6 +81,135 @@ const PRICING = [
   },
 ];
 
+const DEMO_FLAGS = [
+  { key: 'checkout.new_flow', name: 'New Checkout Flow', enabled: true, risk: 'high', rollout: 85 },
+  { key: 'payments.stripe_v4', name: 'Stripe v4 Integration', enabled: true, risk: 'medium', rollout: 100 },
+  { key: 'eu.gdpr_consent_v2', name: 'GDPR Consent v2', enabled: true, risk: 'medium', rollout: 100 },
+  { key: 'dark_mode_v3', name: 'Dark Mode v3', enabled: false, risk: 'low', rollout: 0 },
+  { key: 'flash_sale_engine', name: 'Flash Sale Engine', enabled: true, risk: 'high', rollout: 60 },
+];
+
+const POLICY_CHECKS = [
+  { label: 'Change ticket attached', pass: true },
+  { label: 'Approvers assigned', pass: true },
+  { label: 'Expiration dates set', pass: false },
+  { label: 'Canary limits respected', pass: false },
+  { label: 'No circular dependencies', pass: true },
+  { label: 'No production overrides', pass: true },
+];
+
+function DashboardMock() {
+  const [activeFlag, setActiveFlag] = useState(0);
+  const [score, setScore] = useState(0);
+  const [analyzing, setAnalyzing] = useState(false);
+  const [showResult, setShowResult] = useState(false);
+
+  useEffect(() => {
+    const t = setTimeout(() => setScore(62), 400);
+    return () => clearTimeout(t);
+  }, []);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setActiveFlag(f => (f + 1) % DEMO_FLAGS.length);
+    }, 2000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const handleAnalyze = () => {
+    setAnalyzing(true);
+    setShowResult(false);
+    setTimeout(() => { setAnalyzing(false); setShowResult(true); }, 1800);
+  };
+
+  const riskColor = score >= 70 ? '#3fb950' : score >= 40 ? '#e3b341' : '#f85149';
+
+  return (
+    <div className="dash-mock">
+      {/* topbar */}
+      <div className="dash-topbar">
+        <div className="dash-topbar-left">
+          <Compass size={14} color="#58a6ff" />
+          <span>Compass Ultra</span>
+          <span className="dash-badge-plan">TEAM</span>
+        </div>
+        <div className="dash-topbar-right">
+          <span className="dash-score-label">Release Score</span>
+          <span className="dash-score-value" style={{ color: riskColor }}>{score}%</span>
+        </div>
+      </div>
+
+      <div className="dash-body">
+        {/* flag list */}
+        <div className="dash-flags">
+          <div className="dash-panel-title">Feature Flags <span className="dash-count">{DEMO_FLAGS.length}</span></div>
+          {DEMO_FLAGS.map((flag, i) => (
+            <div
+              key={flag.key}
+              className={`dash-flag-row ${i === activeFlag ? 'dash-flag-row--active' : ''}`}
+              onClick={() => setActiveFlag(i)}
+            >
+              <div className={`dash-toggle ${flag.enabled ? 'dash-toggle--on' : ''}`} />
+              <div className="dash-flag-info">
+                <span className="dash-flag-name">{flag.name}</span>
+                <span className="dash-flag-key">{flag.key}</span>
+              </div>
+              <span className={`dash-risk-pill dash-risk-pill--${flag.risk}`}>
+                {flag.risk.toUpperCase()}
+              </span>
+            </div>
+          ))}
+        </div>
+
+        {/* right panel */}
+        <div className="dash-right">
+          {/* policy checks */}
+          <div className="dash-panel">
+            <div className="dash-panel-title">Policy Gates</div>
+            <div className="dash-checks">
+              {POLICY_CHECKS.map(c => (
+                <div key={c.label} className="dash-check-row">
+                  {c.pass
+                    ? <CheckCircle size={12} color="#3fb950" />
+                    : <AlertTriangle size={12} color="#f85149" />}
+                  <span style={{ color: c.pass ? '#8b949e' : '#f85149' }}>{c.label}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* AI analyzer */}
+          <div className="dash-panel dash-ai-panel">
+            <div className="dash-panel-title"><Brain size={12} color="#bc8cff" /> AI Risk Analyzer</div>
+            {!showResult && !analyzing && (
+              <button className="dash-analyze-btn" onClick={handleAnalyze}>
+                <Zap size={12} /> Run Analysis
+              </button>
+            )}
+            {analyzing && (
+              <div className="dash-analyzing">
+                <div className="dash-spinner" />
+                <span>Analyzing 5 flags…</span>
+              </div>
+            )}
+            {showResult && (
+              <div className="dash-ai-result">
+                <div className="dash-risk-header">
+                  <span className="dash-risk-badge dash-risk-badge--high">HIGH RISK</span>
+                  <span className="dash-with-caution">WITH-CAUTION</span>
+                </div>
+                <div className="dash-finding">🔴 <span><strong>checkout.new_flow</strong> depends on payments.v2 — disabled for EU (34% of users)</span></div>
+                <div className="dash-finding">🟠 <span><strong>eu.gdpr_consent_v2</strong> expires in 48 hours</span></div>
+                <div className="dash-finding">🟡 <span><strong>dark_mode_v3</strong> missing canary rollout config</span></div>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function LandingPage() {
   const navigate = useNavigate();
   const [scrolled, setScrolled] = useState(false);
@@ -92,6 +222,7 @@ export default function LandingPage() {
   }, []);
 
   const goToApp = () => navigate('/app');
+  const goToDemo = () => navigate('/app?demo=true');
 
   return (
     <div className="lp-root">
@@ -104,6 +235,7 @@ export default function LandingPage() {
             <span>Compass <strong>Ultra</strong></span>
           </div>
           <div className="lp-nav-links">
+            <a href="#demo">Demo</a>
             <a href="#features">Features</a>
             <a href="#how">How It Works</a>
             <a href="#pricing">Pricing</a>
@@ -118,6 +250,7 @@ export default function LandingPage() {
         </div>
         {menuOpen && (
           <div className="lp-mobile-menu">
+            <a href="#demo" onClick={() => setMenuOpen(false)}>Demo</a>
             <a href="#features" onClick={() => setMenuOpen(false)}>Features</a>
             <a href="#how" onClick={() => setMenuOpen(false)}>How It Works</a>
             <a href="#pricing" onClick={() => setMenuOpen(false)}>Pricing</a>
@@ -138,38 +271,27 @@ export default function LandingPage() {
                 <span className="lp-gradient-text">Every release.</span>
               </h1>
               <p className="lp-hero-sub">
-                Compass Ultra gives DevOps teams AI-powered risk analysis, automated policy enforcement, and instant handoff documentation — before a single change touches production.
+                AI-powered risk analysis, automated policy enforcement, and instant handoff documentation — before a single change touches production.
               </p>
               <div className="lp-hero-actions">
-                <button className="lp-btn-primary lp-btn-lg" onClick={goToApp}>
-                  Start for Free <ArrowRight size={16} />
+                <button className="lp-btn-primary lp-btn-lg" onClick={goToDemo}>
+                  <Play size={15} /> Try Live Demo
                 </button>
-                <a href="#how" className="lp-btn-ghost lp-btn-lg">See How It Works</a>
+                <button className="lp-btn-ghost lp-btn-lg" onClick={goToApp}>
+                  Start Free <ArrowRight size={16} />
+                </button>
               </div>
-              <p className="lp-hero-note">Free forever. No credit card required.</p>
+              <p className="lp-hero-note">No account needed for the demo. Free forever to get started.</p>
+              <div className="lp-hero-logos">
+                <span>Works with</span>
+                <span className="lp-provider-pill">LaunchDarkly</span>
+                <span className="lp-provider-pill">Statsig</span>
+                <span className="lp-provider-pill">Firebase</span>
+                <span className="lp-provider-pill">Any JSON</span>
+              </div>
             </div>
             <div className="lp-hero-visual">
-              <div className="lp-terminal">
-                <div className="lp-terminal-bar">
-                  <span className="lp-dot lp-dot--red" />
-                  <span className="lp-dot lp-dot--yellow" />
-                  <span className="lp-dot lp-dot--green" />
-                  <span className="lp-terminal-title">AI Risk Analyzer — prod-2026.05</span>
-                </div>
-                <div className="lp-terminal-body">
-                  <div className="lp-risk-level lp-risk--high">## RISK LEVEL: HIGH</div>
-                  <br />
-                  <div className="lp-terminal-label">## EXECUTIVE SUMMARY</div>
-                  <div className="lp-terminal-text">3 flags require immediate attention. checkout.new_flow has an unresolved dependency on payments.v2 which is disabled for EU users (34% of traffic).</div>
-                  <br />
-                  <div className="lp-terminal-label">## TOP RISKS</div>
-                  <div className="lp-terminal-text">🔴 checkout.new_flow depends on payments.v2 (disabled)</div>
-                  <div className="lp-terminal-text">🟠 eu.gdpr_consent_v2 expires in 48 hours</div>
-                  <div className="lp-terminal-text">🟡 dark_mode_v3 missing canary rollout</div>
-                  <br />
-                  <div className="lp-safe-to-ship">## SAFE TO SHIP? <span className="lp-caution">WITH-CAUTION</span></div>
-                </div>
-              </div>
+              <DashboardMock />
             </div>
           </div>
         </div>
@@ -194,8 +316,79 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* ── LIVE DEMO ── */}
+      <section id="demo" className="lp-section lp-demo-section">
+        <div className="lp-container">
+          <div className="lp-section-header">
+            <div className="lp-badge lp-badge--green">Live Demo</div>
+            <h2>See it in action — no sign-up required</h2>
+            <p>Click below to open the full app preloaded with a realistic Black Friday release scenario.</p>
+          </div>
+          <div className="lp-demo-cta-wrap">
+            <div className="lp-demo-preview">
+              <div className="lp-demo-preview-bar">
+                <span className="lp-dot lp-dot--red" />
+                <span className="lp-dot lp-dot--yellow" />
+                <span className="lp-dot lp-dot--green" />
+                <span className="lp-demo-preview-title">ShopFlow — Black Friday Release · 5 flags · HIGH RISK</span>
+              </div>
+              <div className="lp-demo-preview-body">
+                <div className="lp-demo-row lp-demo-row--bad">
+                  <AlertTriangle size={13} color="#f85149" />
+                  <span><strong>checkout.new_flow</strong> — dependency on payments.v2 is disabled for EU</span>
+                  <span className="lp-demo-pill lp-demo-pill--high">HIGH</span>
+                </div>
+                <div className="lp-demo-row lp-demo-row--warn">
+                  <Clock size={13} color="#e3b341" />
+                  <span><strong>eu.gdpr_consent_v2</strong> — expires in 48 hours, no renewal ticket</span>
+                  <span className="lp-demo-pill lp-demo-pill--med">MEDIUM</span>
+                </div>
+                <div className="lp-demo-row lp-demo-row--ok">
+                  <CheckCircle size={13} color="#3fb950" />
+                  <span><strong>payments.stripe_v4</strong> — all checks passed</span>
+                  <span className="lp-demo-pill lp-demo-pill--low">LOW</span>
+                </div>
+                <div className="lp-demo-row lp-demo-row--bad">
+                  <AlertTriangle size={13} color="#f85149" />
+                  <span><strong>flash_sale_engine</strong> — missing canary rollout, no expiry date</span>
+                  <span className="lp-demo-pill lp-demo-pill--high">HIGH</span>
+                </div>
+                <div className="lp-demo-overlay">
+                  <button className="lp-demo-launch-btn" onClick={goToDemo}>
+                    <Play size={18} /> Launch Full Demo
+                  </button>
+                  <p>Opens the real app — interactive, no login needed</p>
+                </div>
+              </div>
+            </div>
+            <div className="lp-demo-features">
+              <div className="lp-demo-feature-item">
+                <CheckCircle size={16} color="#3fb950" />
+                <span>Full flag evaluation engine with live context switching</span>
+              </div>
+              <div className="lp-demo-feature-item">
+                <CheckCircle size={16} color="#3fb950" />
+                <span>8 automated enterprise policy checks running live</span>
+              </div>
+              <div className="lp-demo-feature-item">
+                <CheckCircle size={16} color="#3fb950" />
+                <span>AI risk analyzer — real Claude API call, real result</span>
+              </div>
+              <div className="lp-demo-feature-item">
+                <CheckCircle size={16} color="#3fb950" />
+                <span>PDF runbook export works right in the demo</span>
+              </div>
+              <div className="lp-demo-feature-item">
+                <CheckCircle size={16} color="#3fb950" />
+                <span>GitHub, Jira, and Slack payload generation</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* ── HOW IT WORKS ── */}
-      <section id="how" className="lp-section">
+      <section id="how" className="lp-section lp-section--alt">
         <div className="lp-container">
           <div className="lp-section-header">
             <div className="lp-badge">How It Works</div>
@@ -215,7 +408,7 @@ export default function LandingPage() {
       </section>
 
       {/* ── FEATURES ── */}
-      <section id="features" className="lp-section lp-section--alt">
+      <section id="features" className="lp-section">
         <div className="lp-container">
           <div className="lp-section-header">
             <div className="lp-badge">Features</div>
@@ -258,7 +451,7 @@ export default function LandingPage() {
                   <li key={item}><Check size={15} color="#bc8cff" /><span>{item}</span></li>
                 ))}
               </ul>
-              <button className="lp-btn-primary" onClick={goToApp}>
+              <button className="lp-btn-primary" onClick={goToDemo}>
                 Try the AI Analyzer <ArrowRight size={16} />
               </button>
             </div>
@@ -294,7 +487,7 @@ export default function LandingPage() {
       </section>
 
       {/* ── PRICING ── */}
-      <section id="pricing" className="lp-section">
+      <section id="pricing" className="lp-section lp-section--alt">
         <div className="lp-container">
           <div className="lp-section-header">
             <div className="lp-badge">Pricing</div>
@@ -323,7 +516,7 @@ export default function LandingPage() {
                 <button
                   className={tier.highlight ? 'lp-btn-primary' : 'lp-btn-outline'}
                   style={tier.highlight ? { justifyContent: 'center' } : { borderColor: tier.color, color: tier.color }}
-                  onClick={goToApp}
+                  onClick={tier.name === 'Enterprise' ? () => window.location.href = 'mailto:hello@compassultra.com' : goToApp}
                 >
                   {tier.cta}
                 </button>
@@ -339,10 +532,15 @@ export default function LandingPage() {
         <div className="lp-container" style={{ textAlign: 'center', position: 'relative' }}>
           <h2>Ready to ship with confidence?</h2>
           <p>Stop guessing. Start shipping smart.</p>
-          <button className="lp-btn-primary lp-btn-lg" onClick={goToApp}>
-            Start for Free <ArrowRight size={16} />
-          </button>
-          <p className="lp-cta-note">Free forever. No credit card required.</p>
+          <div style={{ display: 'flex', gap: 16, justifyContent: 'center', flexWrap: 'wrap' }}>
+            <button className="lp-btn-primary lp-btn-lg" onClick={goToDemo}>
+              <Play size={15} /> Try Live Demo
+            </button>
+            <button className="lp-btn-ghost lp-btn-lg" onClick={goToApp}>
+              Start Free <ArrowRight size={16} />
+            </button>
+          </div>
+          <p className="lp-cta-note">No credit card required. Demo opens instantly.</p>
         </div>
       </section>
 
@@ -358,6 +556,7 @@ export default function LandingPage() {
               <p>Release intelligence for teams who can't afford to guess.</p>
             </div>
             <div className="lp-footer-links">
+              <a href="#demo">Demo</a>
               <a href="#features">Features</a>
               <a href="#how">How It Works</a>
               <a href="#pricing">Pricing</a>
