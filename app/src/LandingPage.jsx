@@ -66,13 +66,13 @@ const PRICING = [
   },
   {
     name: 'Pro', price: '$99', period: 'per month', color: '#58a6ff', highlight: false,
-    features: ['Unlimited snapshots', 'Cloud save & sync', 'Shareable public links', 'Snapshot diff viewer', 'All Free features'],
-    cta: 'Start Pro',
+    features: ['7-day free trial', 'Unlimited snapshots', 'Cloud save & sync', 'Shareable public links', 'Snapshot diff viewer', 'All Free features'],
+    cta: 'Start Free Trial',
   },
   {
     name: 'Team', price: '$499', period: 'per month', color: '#3fb950', highlight: true,
-    features: ['Everything in Pro', 'AI risk analyzer', 'Flag expiration alerts', 'Team RBAC', 'Audit log export', 'Priority support'],
-    cta: 'Start Team',
+    features: ['7-day free trial', 'Everything in Pro', 'AI risk analyzer', 'Flag expiration alerts', 'Team RBAC', 'Audit log export', 'Priority support'],
+    cta: 'Start Free Trial',
   },
   {
     name: 'Enterprise', price: 'Contact sales', period: '', color: '#bc8cff', highlight: false,
