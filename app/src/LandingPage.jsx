@@ -64,17 +64,17 @@ const PRICING = [
     cta: 'Get Started',
   },
   {
-    name: 'Pro', price: '$49', period: 'per month', color: '#58a6ff', highlight: false,
+    name: 'Pro', price: '$99', period: 'per month', color: '#58a6ff', highlight: false,
     features: ['Unlimited snapshots', 'Cloud save & sync', 'Shareable public links', 'Snapshot diff viewer', 'All Free features'],
     cta: 'Start Pro',
   },
   {
-    name: 'Team', price: '$249', period: 'per month', color: '#3fb950', highlight: true,
+    name: 'Team', price: '$499', period: 'per month', color: '#3fb950', highlight: true,
     features: ['Everything in Pro', 'AI risk analyzer', 'Flag expiration alerts', 'Team RBAC', 'Audit log export', 'Priority support'],
     cta: 'Start Team',
   },
   {
-    name: 'Enterprise', price: '$999', period: 'per month+', color: '#bc8cff', highlight: false,
+    name: 'Enterprise', price: 'Contact sales', period: '', color: '#bc8cff', highlight: false,
     features: ['Everything in Team', 'SSO / SAML', 'Slack bot integration', 'Real-time collaboration', 'SLA guarantee', 'Dedicated onboarding'],
     cta: 'Contact Sales',
   },

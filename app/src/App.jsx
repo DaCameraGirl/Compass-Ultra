@@ -1878,19 +1878,19 @@ export default function App() {
                   cta: 'Get started', highlight: false,
                 },
                 {
-                  name: 'Pro', price: '$49', period: 'per month',
+                  name: 'Pro', price: '$99', period: 'per month',
                   color: '#58a6ff',
                   features: ['Unlimited snapshots', 'Cloud save & sync', 'Shareable public links', 'Snapshot diff viewer', 'All Free features'],
                   cta: 'Start Pro', highlight: false, plan: 'pro',
                 },
                 {
-                  name: 'Team', price: '$249', period: 'per month',
+                  name: 'Team', price: '$499', period: 'per month',
                   color: '#3fb950',
                   features: ['Everything in Pro', 'AI risk analyzer', 'Flag expiration alerts', 'Team RBAC', 'Audit log export', 'Priority support'],
                   cta: 'Start Team', highlight: true, plan: 'team',
                 },
                 {
-                  name: 'Enterprise', price: '$999', period: 'per month+',
+                  name: 'Enterprise', price: 'Contact sales', period: '',
                   color: '#bc8cff',
                   features: ['Everything in Team', 'SSO / SAML', 'Slack bot integration', 'Real-time collaboration', 'SLA guarantee', 'Dedicated onboarding'],
                   cta: 'Contact Sales', highlight: false, plan: 'enterprise',
