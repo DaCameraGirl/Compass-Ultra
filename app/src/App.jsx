@@ -1678,7 +1678,7 @@ export default function App() {
                   name: 'Pro', price: '$49', period: 'per month',
                   color: '#58a6ff',
                   features: ['Unlimited snapshots', 'Cloud save & sync', 'Shareable public links', 'Snapshot diff viewer', 'All Free features'],
-                  cta: 'Start Pro', highlight: false,
+                  cta: 'Start Pro', highlight: false, plan: 'pro',
                 },
                 {
                   name: 'Team', price: '$249', period: 'per month',
@@ -1710,7 +1710,7 @@ export default function App() {
                   <button
                     style={{ background: tier.highlight ? '#3fb950' : 'none', color: tier.highlight ? '#07090e' : tier.color, border: `1px solid ${tier.color}`, borderRadius: 6, padding: '9px 0', fontWeight: 700, fontSize: 13, cursor: 'pointer', marginTop: 8 }}
                     onClick={async () => {
-                      if (tier.plan === 'enterprise') { window.location.href = 'mailto:angela.hudson.data@gmail.com?subject=Compass Ultra Enterprise Plan Inquiry'; return; }
+                      if (tier.plan === 'enterprise') { window.location.href = 'mailto:hello@compassultra.com?subject=Compass Ultra Enterprise Plan Inquiry'; return; }
                       if (tier.plan === 'free' || !tier.plan) { setShowPricing(false); return; }
                       if (!isAuthenticated) { loginWithRedirect(); return; }
                       try {
