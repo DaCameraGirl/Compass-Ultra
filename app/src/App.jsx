@@ -328,6 +328,18 @@ export default function App() {
   const [showPricing, setShowPricing] = useState(false);
   const [userPlan, setUserPlan] = useState('free');
   const [upgradeNotice, setUpgradeNotice] = useState('');
+  const [gateNotice, setGateNotice] = useState('');
+
+  const canUseAI   = userPlan === 'team';
+  const canUseDiff = userPlan === 'pro' || userPlan === 'team';
+  const canExportAudit = userPlan === 'team';
+  const snapshotCap = userPlan === 'free' ? 3 : Infinity;
+
+  const requirePlan = (needed, label) => {
+    setGateNotice(`${label} requires the ${needed} plan.`);
+    setShowPricing(true);
+    setTimeout(() => setGateNotice(''), 100);
+  };
 
   const importRef = useRef(null);
   const initial = useMemo(loadWorkspace, []);
@@ -885,6 +897,10 @@ export default function App() {
 
   const saveToCloud = async () => {
     if (!isAuthenticated) { loginWithRedirect(); return; }
+    if (cloudSnapshots.length >= snapshotCap) {
+      requirePlan('Pro', `Free plan is limited to ${snapshotCap} snapshots`);
+      return;
+    }
     const name = window.prompt('Name this snapshot:', workspaceName);
     if (!name) return;
     setCloudLoading(true);
@@ -926,6 +942,7 @@ export default function App() {
 
   const runAiAnalysis = async () => {
     if (!isAuthenticated) { loginWithRedirect(); return; }
+    if (!canUseAI) { requirePlan('Team', 'AI risk analyzer'); return; }
     setAiLoading(true);
     setAiAnalysis('');
     try {
@@ -999,11 +1016,13 @@ export default function App() {
           <button type="button" onClick={() => setShowPricing(true)} title="Pricing" aria-label="Pricing" style={{ color: '#ffb800' }}>
             <DollarSign size={17} aria-hidden="true" />
           </button>
-          <button type="button" onClick={() => setShowDiff(v => !v)} title="Snapshot diff viewer" aria-label="Snapshot diff viewer" style={{ color: showDiff ? '#58a6ff' : '#8b949e' }}>
+          <button type="button" onClick={() => canUseDiff ? setShowDiff(v => !v) : requirePlan('Pro', 'Snapshot diff viewer')} title={canUseDiff ? 'Snapshot diff viewer' : 'Snapshot diff viewer (Pro)'} aria-label="Snapshot diff viewer" style={{ color: showDiff ? '#58a6ff' : canUseDiff ? '#8b949e' : '#3d4451' }}>
             <GitCompare size={17} aria-hidden="true" />
+            {!canUseDiff && <LockKeyhole size={9} style={{ position: 'absolute', marginLeft: -7, marginTop: 8, color: '#ffb800' }} />}
           </button>
-          <button type="button" onClick={runAiAnalysis} title="AI risk analysis" aria-label="AI risk analysis" style={{ color: aiLoading ? '#ffb800' : '#bc8cff' }}>
+          <button type="button" onClick={runAiAnalysis} title={canUseAI ? 'AI risk analysis' : 'AI risk analysis (Team)'} aria-label="AI risk analysis" style={{ color: aiLoading ? '#ffb800' : canUseAI ? '#bc8cff' : '#3d4451', position: 'relative' }}>
             <BrainCircuit size={17} aria-hidden="true" />
+            {!canUseAI && <LockKeyhole size={9} style={{ position: 'absolute', top: 0, right: 0, color: '#ffb800' }} />}
           </button>
           <button type="button" onClick={exportPDF} title="Export PDF runbook" aria-label="Export PDF runbook">
             <FileDown size={17} aria-hidden="true" />
@@ -1667,7 +1686,7 @@ export default function App() {
             <div className="panel-heading">
               <Activity size={18} aria-hidden="true" />
               <h2>Audit</h2>
-              <button type="button" onClick={() => copyText(JSON.stringify(audit, null, 2), 'Audit copied')} aria-label="Copy structured audit history">
+              <button type="button" onClick={() => canExportAudit ? copyText(JSON.stringify(audit, null, 2), 'Audit copied') : requirePlan('Team', 'Audit log export')} aria-label="Copy structured audit history" title={canExportAudit ? 'Copy audit log' : 'Audit export (Team)'} style={{ color: canExportAudit ? undefined : '#3d4451' }}>
                 <Clipboard size={15} aria-hidden="true" />
               </button>
             </div>
@@ -1690,7 +1709,10 @@ export default function App() {
             <div style={{ textAlign: 'center', marginBottom: 36 }}>
               <span style={{ color: '#ffb800', fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: 'uppercase' }}>Compass Ultra</span>
               <h2 style={{ color: '#e6edf3', fontSize: 28, margin: '8px 0 12px' }}>Simple, transparent pricing</h2>
-              <p style={{ color: '#8b949e', fontSize: 14 }}>Start free. Upgrade when your team needs more.</p>
+              {gateNotice
+                ? <p style={{ color: '#ffb800', fontSize: 14, fontWeight: 600 }}>🔒 {gateNotice} Upgrade to unlock it.</p>
+                : <p style={{ color: '#8b949e', fontSize: 14 }}>Start free. Upgrade when your team needs more.</p>
+              }
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 16 }}>
               {[
