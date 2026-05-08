@@ -879,6 +879,7 @@ export default function App() {
 
   useEffect(() => {
     if (!isAuthenticated) return;
+    if (new URLSearchParams(window.location.search).get('upgraded')) return;
     getAccessTokenSilently({ authorizationParams: { audience: import.meta.env.VITE_AUTH0_AUDIENCE } })
       .then((token) => api.getPlan(token))
       .then((data) => setUserPlan(data.plan || 'free'))
