@@ -1851,9 +1851,17 @@ export default function App() {
                   features: ['Everything in Team', 'SSO / SAML', 'Slack bot integration', 'Real-time collaboration', 'SLA guarantee', 'Dedicated onboarding'],
                   cta: 'Contact Sales', highlight: false, plan: 'enterprise',
                 },
-              ].map(tier => (
-                <div key={tier.name} style={{ background: tier.highlight ? 'rgba(63,185,80,0.05)' : '#161b22', border: `1px solid ${tier.highlight ? tier.color : 'rgba(255,255,255,0.07)'}`, borderRadius: 8, padding: 24, display: 'flex', flexDirection: 'column', gap: 12, position: 'relative' }}>
-                  {tier.highlight && <span style={{ position: 'absolute', top: -11, left: '50%', transform: 'translateX(-50%)', background: '#3fb950', color: '#07090e', fontSize: 10, fontWeight: 700, padding: '2px 10px', borderRadius: 10, letterSpacing: 1 }}>MOST POPULAR</span>}
+              ].map(tier => {
+                const isCurrent = tier.plan === userPlan || (!tier.plan && userPlan === 'free');
+                const planOrder = { free: 0, pro: 1, team: 2, enterprise: 3 };
+                const isUpgrade = tier.plan && planOrder[tier.plan] > planOrder[userPlan];
+                const isDowngrade = tier.plan && planOrder[tier.plan] < planOrder[userPlan];
+                const alreadyPaid = userPlan !== 'free';
+                const ctaLabel = isCurrent ? 'Current plan' : isUpgrade && alreadyPaid ? 'Upgrade via portal' : isDowngrade && alreadyPaid ? 'Downgrade via portal' : tier.cta;
+                return (
+                <div key={tier.name} style={{ background: isCurrent ? 'rgba(88,166,255,0.05)' : tier.highlight ? 'rgba(63,185,80,0.05)' : '#161b22', border: `1px solid ${isCurrent ? '#58a6ff' : tier.highlight ? tier.color : 'rgba(255,255,255,0.07)'}`, borderRadius: 8, padding: 24, display: 'flex', flexDirection: 'column', gap: 12, position: 'relative' }}>
+                  {isCurrent && <span style={{ position: 'absolute', top: -11, left: '50%', transform: 'translateX(-50%)', background: '#58a6ff', color: '#000', fontSize: 10, fontWeight: 700, padding: '2px 10px', borderRadius: 10, letterSpacing: 1 }}>YOUR PLAN</span>}
+                  {!isCurrent && tier.highlight && <span style={{ position: 'absolute', top: -11, left: '50%', transform: 'translateX(-50%)', background: '#3fb950', color: '#07090e', fontSize: 10, fontWeight: 700, padding: '2px 10px', borderRadius: 10, letterSpacing: 1 }}>MOST POPULAR</span>}
                   <div>
                     <div style={{ color: tier.color, fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: 1, marginBottom: 6 }}>{tier.name}</div>
                     <div style={{ color: '#e6edf3', fontSize: 28, fontWeight: 800 }}>{tier.price}</div>
@@ -1867,11 +1875,21 @@ export default function App() {
                     ))}
                   </ul>
                   <button
-                    style={{ background: tier.highlight ? '#3fb950' : 'none', color: tier.highlight ? '#07090e' : tier.color, border: `1px solid ${tier.color}`, borderRadius: 6, padding: '9px 0', fontWeight: 700, fontSize: 13, cursor: 'pointer', marginTop: 8 }}
+                    disabled={isCurrent}
+                    style={{ background: isCurrent ? 'rgba(255,255,255,0.05)' : tier.highlight ? '#3fb950' : 'none', color: isCurrent ? '#484f58' : tier.highlight ? '#07090e' : tier.color, border: `1px solid ${isCurrent ? 'rgba(255,255,255,0.1)' : tier.color}`, borderRadius: 6, padding: '9px 0', fontWeight: 700, fontSize: 13, cursor: isCurrent ? 'default' : 'pointer', marginTop: 8 }}
                     onClick={async () => {
+                      if (isCurrent) return;
                       if (tier.plan === 'enterprise') { window.location.href = 'mailto:hello@compassultra.com?subject=Compass Ultra Enterprise Plan Inquiry'; return; }
                       if (tier.plan === 'free' || !tier.plan) { setShowPricing(false); return; }
                       if (!isAuthenticated) { loginWithRedirect(); return; }
+                      if (alreadyPaid && (isUpgrade || isDowngrade)) {
+                        try {
+                          const token = await getAccessTokenSilently({ authorizationParams: { audience: import.meta.env.VITE_AUTH0_AUDIENCE } });
+                          const { url } = await api.openPortal(token);
+                          window.location.href = url;
+                        } catch (e) { alert('Could not open portal. Please try again.'); }
+                        return;
+                      }
                       try {
                         const token = await getAccessTokenSilently({ authorizationParams: { audience: import.meta.env.VITE_AUTH0_AUDIENCE } });
                         const { url } = await api.createCheckout(token, tier.plan);
@@ -1879,10 +1897,11 @@ export default function App() {
                       } catch (e) { alert('Checkout error: ' + (e.message || 'Please try again.')); }
                     }}
                   >
-                    {tier.cta}
+                    {ctaLabel}
                   </button>
                 </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         </div>
