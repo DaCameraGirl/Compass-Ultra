@@ -36,4 +36,6 @@ export const api = {
       method: 'POST',
       body: JSON.stringify({ plan }),
     }),
+  openPortal: (token) =>
+    request('/api/v1/stripe/portal', token, { method: 'POST' }),
 };

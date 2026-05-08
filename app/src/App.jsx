@@ -1031,7 +1031,18 @@ export default function App() {
             <Cloud size={17} aria-hidden="true" />
           </button>
           {isAuthenticated && userPlan !== 'free' && (
-            <span style={{ fontSize: '0.7rem', fontWeight: 700, background: '#3fb950', color: '#000', borderRadius: 4, padding: '2px 7px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{userPlan}</span>
+            <button
+              type="button"
+              title="Manage subscription"
+              onClick={async () => {
+                try {
+                  const token = await getAccessTokenSilently({ authorizationParams: { audience: import.meta.env.VITE_AUTH0_AUDIENCE } });
+                  const { url } = await api.openPortal(token);
+                  window.location.href = url;
+                } catch (e) { alert('Could not open portal: ' + (e.message || 'Try again.')); }
+              }}
+              style={{ fontSize: '0.7rem', fontWeight: 700, background: '#3fb950', color: '#000', borderRadius: 4, padding: '2px 7px', textTransform: 'uppercase', letterSpacing: '0.05em', border: 'none', cursor: 'pointer' }}
+            >{userPlan}</button>
           )}
           {isAuthenticated ? (
             <button type="button" onClick={() => logout({ logoutParams: { returnTo: window.location.href } })} title={`Logout ${user?.email}`} aria-label="Logout">
