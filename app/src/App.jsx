@@ -1682,19 +1682,19 @@ export default function App() {
                 },
                 {
                   name: 'Team', price: '$249', period: 'per month',
-                  color: '#ffb800',
+                  color: '#3fb950',
                   features: ['Everything in Pro', 'AI risk analyzer', 'Flag expiration alerts', 'Team RBAC', 'Audit log export', 'Priority support'],
-                  cta: 'Start Team', highlight: true,
+                  cta: 'Start Team', highlight: true, plan: 'team',
                 },
                 {
                   name: 'Enterprise', price: '$999', period: 'per month+',
                   color: '#bc8cff',
                   features: ['Everything in Team', 'SSO / SAML', 'Slack bot integration', 'Real-time collaboration', 'SLA guarantee', 'Dedicated onboarding'],
-                  cta: 'Contact sales', highlight: false,
+                  cta: 'Contact Sales', highlight: false, plan: 'enterprise',
                 },
               ].map(tier => (
-                <div key={tier.name} style={{ background: tier.highlight ? 'rgba(255,184,0,0.05)' : '#161b22', border: `1px solid ${tier.highlight ? tier.color : 'rgba(255,255,255,0.07)'}`, borderRadius: 8, padding: 24, display: 'flex', flexDirection: 'column', gap: 12, position: 'relative' }}>
-                  {tier.highlight && <span style={{ position: 'absolute', top: -11, left: '50%', transform: 'translateX(-50%)', background: '#ffb800', color: '#07090e', fontSize: 10, fontWeight: 700, padding: '2px 10px', borderRadius: 10, letterSpacing: 1 }}>MOST POPULAR</span>}
+                <div key={tier.name} style={{ background: tier.highlight ? 'rgba(63,185,80,0.05)' : '#161b22', border: `1px solid ${tier.highlight ? tier.color : 'rgba(255,255,255,0.07)'}`, borderRadius: 8, padding: 24, display: 'flex', flexDirection: 'column', gap: 12, position: 'relative' }}>
+                  {tier.highlight && <span style={{ position: 'absolute', top: -11, left: '50%', transform: 'translateX(-50%)', background: '#3fb950', color: '#07090e', fontSize: 10, fontWeight: 700, padding: '2px 10px', borderRadius: 10, letterSpacing: 1 }}>MOST POPULAR</span>}
                   <div>
                     <div style={{ color: tier.color, fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: 1, marginBottom: 6 }}>{tier.name}</div>
                     <div style={{ color: '#e6edf3', fontSize: 28, fontWeight: 800 }}>{tier.price}</div>
@@ -1707,7 +1707,19 @@ export default function App() {
                       </li>
                     ))}
                   </ul>
-                  <button style={{ background: tier.highlight ? '#ffb800' : 'none', color: tier.highlight ? '#07090e' : tier.color, border: `1px solid ${tier.color}`, borderRadius: 6, padding: '9px 0', fontWeight: 700, fontSize: 13, cursor: 'pointer', marginTop: 8 }}>
+                  <button
+                    style={{ background: tier.highlight ? '#3fb950' : 'none', color: tier.highlight ? '#07090e' : tier.color, border: `1px solid ${tier.color}`, borderRadius: 6, padding: '9px 0', fontWeight: 700, fontSize: 13, cursor: 'pointer', marginTop: 8 }}
+                    onClick={async () => {
+                      if (tier.plan === 'enterprise') { window.location.href = 'mailto:hello@compassultra.com?subject=Enterprise Plan Inquiry'; return; }
+                      if (tier.plan === 'free' || !tier.plan) { setShowPricing(false); return; }
+                      if (!isAuthenticated) { loginWithRedirect(); return; }
+                      try {
+                        const token = await getAccessTokenSilently({ authorizationParams: { audience: import.meta.env.VITE_AUTH0_AUDIENCE } });
+                        const { url } = await api.createCheckout(token, tier.plan);
+                        window.location.href = url;
+                      } catch (e) { alert('Could not start checkout. Please try again.'); }
+                    }}
+                  >
                     {tier.cta}
                   </button>
                 </div>

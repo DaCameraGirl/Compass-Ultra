@@ -69,7 +69,7 @@ const PRICING = [
     cta: 'Start Pro',
   },
   {
-    name: 'Team', price: '$249', period: 'per month', color: '#ffb800', highlight: true,
+    name: 'Team', price: '$249', period: 'per month', color: '#3fb950', highlight: true,
     features: ['Everything in Pro', 'AI risk analyzer', 'Flag expiration alerts', 'Team RBAC', 'Audit log export', 'Priority support'],
     cta: 'Start Team',
   },

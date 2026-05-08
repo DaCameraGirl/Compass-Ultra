@@ -538,13 +538,13 @@
   gap: 10px;
   position: relative;
 }
-.lp-pricing-card--featured { background: rgba(255,184,0,0.02); }
+.lp-pricing-card--featured { background: rgba(63,185,80,0.03); }
 
 .lp-popular-badge {
   position: absolute;
   top: -11px; left: 50%;
   transform: translateX(-50%);
-  background: #ffb800;
+  background: #3fb950;
   color: #07090e;
   font-size: 10px;
   font-weight: 700;
