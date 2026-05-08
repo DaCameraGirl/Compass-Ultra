@@ -1,107 +1,195 @@
-# Compass-Ultra
+ <div align="center">
 
-React feature flag debugging before production rollout.
+  # ⚡ COMPASS ULTRA
 
-Compass-Ultra is an enterprise developer HUD for frontend, QA, and platform
-teams that need to preview feature gates, config overrides, experiments, and
-user segments without writing changes back to production flag providers.
+  ### The Enterprise Feature Flag Command Center
 
-## Product Positioning
+  **Debug. Simulate. Deploy with Confidence.**
 
-**Debug React feature flags before they break production.**
+  [![Live App](https://img.shields.io/badge/LIVE_APP-compassultra.com-6366f1?style=for-the-badge)](https://compassultra.com)
+  [![Status](https://img.shields.io/badge/STATUS-PRODUCTION-22c55e?style=for-the-badge)](https://compassultra.com)
+  [![Auth0](https://img.shields.io/badge/AUTH-Auth0-eb5424?style=for-the-badge)](https://auth0.com)
+  [![AI](https://img.shields.io/badge/AI-Claude_Sonnet-f97316?style=for-the-badge)](https://anthropic.com)
+  [![Stripe](https://img.shields.io/badge/PAYMENTS-Stripe-635bff?style=for-the-badge)](https://stripe.com)
 
-Teams use Compass-Ultra to:
+  ---
+  [![Auth0](https://img.shields.io/badge/AUTH-Auth0-eb5424?style=for-the-badge)](https://auth0.com)
+  [![AI](https://img.shields.io/badge/AI-Claude_Sonnet-f97316?style=for-the-badge)](https://anthropic.com)
+  [![Stripe](https://img.shields.io/badge/PAYMENTS-Stripe-635bff?style=for-the-badge)](https://stripe.com)
 
-- simulate feature flag combinations across environments
-- preview enterprise, trial, regional, and custom user segments
-- create shareable QA snapshots for bug reports and release reviews
-- validate rollout behavior without mutating provider-side flag state
-- connect existing providers through read-only adapters
+  ---
 
-## Live Product Surface
+  ![JS](https://img.shields.io/badge/JavaScript-61.6%25-f7df1e?style=flat-square&logo=javascript&logoColor=black)
+  ![TS](https://img.shields.io/badge/TypeScript-22.6%25-3178c6?style=flat-square&logo=typescript&logoColor=white)
+  ![CSS](https://img.shields.io/badge/CSS-15.2%25-264de4?style=flat-square&logo=css3&logoColor=white)
+  ![HTML](https://img.shields.io/badge/HTML-0.6%25-e34f26?style=flat-square&logo=html5&logoColor=white)
 
-The repo now includes a deployable Vite workspace with:
+  </div>
 
-- editable feature flags
-- deterministic flag evaluation against user context
-- boolean, variant, and JSON flag values
-- manual overrides and rollout percentage controls
-- single-rule targeting per flag
-- release train, change ticket, approver, captain, window, and incident-channel controls
-- enterprise policy checks for approvals, expired flags, canary limits, dependencies, and production overrides
-- sample packs for DaCameraGirl Enterprise, LaunchDarkly, Statsig, and Firebase Remote Config shapes
-- sample user contexts for production admins, EU customers, and mobile trial users
-- local team/RBAC sessions with admin, approver, operator, and viewer roles
-- structured audit history with actor, role, level, action, and detail fields
-- live adapter cards for provider pulls through read-only proxy/export URLs
-- GitHub, Jira, and Slack payload generation with copy or webhook POST actions
-- criticality, Jira/change IDs, approvers, expiration dates, dependencies, and rollback notes per flag
-- generated release runbook with active evaluations and rollback steps
-- local workspace persistence
-- provider JSON import for common LaunchDarkly, Statsig, Firebase Remote Config, and generic shapes
-- shareable URL snapshot restore
-- workspace JSON copy, download, and import
-- generated SDK payload with values, reasons, owners, tickets, and criticality
-- local audit trail for state changes
+  ## What Is This
 
-## Integration Model
+  Compass Ultra is a **release intelligence platform** for frontend, QA, and
+  platform teams.
 
-The GitHub Pages build is static, so it does not store OAuth credentials or
-provider secrets. Live provider sync is designed to use read-only proxy/export
-URLs that return JSON. GitHub, Jira, and Slack actions can copy payloads locally
-or POST to user-configured webhook/proxy endpoints.
+  Stop flying blind on deploy day. Load your feature flags, set your user
+  context, run the AI risk check, and know *before* you ship whether you're
+  about to cause an incident.
 
-## Ideal Buyers
+  No more 2AM pages because someone forgot to expire a flag. No more "it worked
+   in staging" disasters. No more five-person Slack threads trying to figure
+  out who approved what.
 
-- frontend platform teams
-- QA automation teams
-- product engineering teams
-- companies using LaunchDarkly, Statsig, Optimizely, Firebase Remote Config, or homegrown flag systems
+  ---
 
-## Run Locally
+  ## The Stack
 
-```bash
-npm install
-npm run dev
-```
+  | Layer | Tech |
+  |---|---|
+  | Frontend | React + Vite, deployed on Vercel |
+  | Backend | Node.js + Express, deployed on Railway |
+  | Database | PostgreSQL on Railway |
+  | Auth | Auth0 (JWT bearer tokens) |
+  | AI Engine | Claude Sonnet (Anthropic) |
+  | Payments | Stripe (Pro $49/mo · Team $249/mo · Enterprise $999/mo) |
+  | Domain | compassultra.com |
 
-## Build
+  ---
 
-```bash
-npm run build
-```
+  ## What It Does
 
-## GitHub Pages
+  ### 🏴 Live Flag Evaluation Engine
+  Load flags from LaunchDarkly, Statsig, Firebase Remote Config, or any JSON
+  export. Compass Ultra evaluates every flag against a real user context —
+  plan, role, region, device — and shows you exactly what each user sees.
 
-GitHub Pages serves the built static files from the repo root. Source files live
-under `app/`; run `npm run build` and copy `dist/index.html` plus `dist/assets/`
-to the repo root before publishing a new visual update.
+  ### 🎛️ Evaluation Context Editor
+  Set user attributes (plan, role, region, device type) and watch flag values
+  update live. No code changes. No deployments. Just answers.
 
-## Market-Ready Checklist
+  ### 🤖 AI Risk Analyzer (Claude Sonnet)
+  Send your full flag workspace to the AI and get back:
 
-- Add GitHub topics: `react`, `feature-flags`, `developer-tools`, `qa-tools`, `experimentation`, `debugging`.
-- Record a 30-60 second product GIF showing release gate checks, provider sample imports, context switching, and runbook copy.
-- Write a technical launch post: "How to debug React feature flags without changing staging."
-- Launch to Hacker News Show HN after the live workspace is deployed.
-- Post a short LinkedIn demo aimed at frontend and QA leads.
-- Add a contact link or waitlist for teams that want provider adapters.
+  - **Risk level** — LOW / MEDIUM / HIGH / CRITICAL
+  - **Financial impact forecast** — estimated revenue at risk, percentage of
+  users affected
+  - **Step-by-step deployment recommendations**
+  - **Auto-triggered rollback modal** if the risk is HIGH or CRITICAL
 
-## Roadmap
+  ### 🛡️ Enterprise Policy Checks
+  8 automated checks run on every workspace:
 
-- Provider adapter examples for LaunchDarkly and Statsig
-- SSO-ready team workspace design
-- Optional hosted version for team snapshot history
+  - Change ticket present?
+  - Required approvers assigned?
+  - Flags have expiration dates?
+  - Canary limits respected?
+  - No circular dependencies?
+  - No unauthorized production overrides?
 
-## Security Model
+  ### 📊 Release State Meter
+  0–100% release readiness score based on policy compliance, flag health, and
+  risk level.
 
-Compass-Ultra should remain read-only by default:
+  ### 👥 Team RBAC
+  Admin / Approver / Operator / Viewer roles with write controls baked in.
 
-- no production writes from the HUD
-- local-only override state
-- explicit share snapshots
-- provider credentials kept outside committed code
-- adapters designed to inspect state before they mutate anything
+  ### 📸 Cloud Snapshots
+  Named snapshots saved to PostgreSQL. Compare any two snapshots side by side
+  with the diff viewer. Share snapshots via public URL. Restore any saved state
+   with one click.
 
-## Licensing
+  ### 🔗 Integration Payloads
+  Auto-generate GitHub Issues, Jira tickets, and Slack war room messages. Copy
+  the payload or POST it directly to your webhook.
 
-Compass-Ultra is proprietary commercial software. See `LICENSE` for terms.
+  ### 📄 PDF Runbook Export
+  Generate a full release runbook from your active workspace — flag
+  evaluations, rollback steps, approvers, everything — as a downloadable PDF.
+
+  ### 🔒 Audit Log
+  Last 60 actions logged with actor, role, action type, and full detail. Know
+  exactly who changed what and when.
+
+  ---
+
+  ## Sample Packs
+
+  Not ready to connect a live provider? Load a sample pack and explore
+  instantly:
+
+  | Pack | What It Simulates |
+  |---|---|
+  | **Enterprise** | 12-flag B2B SaaS release with approvals and canary limits
+  |
+  | **LaunchDarkly** | Realistic LD-shaped flag export |
+  | **Statsig** | Gate + experiment + dynamic config combo |
+  | **Firebase** | Remote Config with rollout percentages |
+
+  ---
+
+  ## Pricing
+
+  | Plan | Price | Includes |
+  |---|---|---|
+  | **Free** | $0 | Core flag evaluation, context editor, policy checks |
+  | **Pro** | $49/mo | + Unlimited snapshots, cloud sync, diff viewer, share
+  links |
+  | **Team** | $249/mo | + AI analyzer, expiration alerts, RBAC, audit export |
+  | **Enterprise** | $999/mo | Contact sales — hello@compassultra.com |
+
+  ---
+
+  ## Run Locally
+
+  ```bash
+  # Clone the repo
+  git clone https://github.com/DaCameraGirl/Compass-Ultra.git
+  cd Compass-Ultra
+
+  # Install and run
+  npm install
+  npm run dev
+
+  For the full stack with cloud saves and AI analysis, you'll also need the
+  backend running:
+
+  git clone https://github.com/DaCameraGirl/compass-ultra-backend.git
+  cd compass-ultra-backend
+  npm install
+  npm run dev
+
+  ---
+  Who This Is For
+
+  - Frontend platform teams managing 50+ flags across environments
+  - QA teams that need shareable, reproducible flag states for bug reports
+  - DevOps teams that get paged when a forgotten flag breaks prod
+  - Engineering orgs on LaunchDarkly, Statsig, Optimizely, or Firebase Remote
+  Config
+
+  ---
+  Security Model
+
+  Compass Ultra is designed to be read-only by default:
+
+  - No writes back to your flag provider
+  - Override state is local to your workspace
+  - Provider credentials never committed to code
+  - Adapters inspect state before anything mutates
+  - Snapshots are scoped to your authenticated account
+
+  ---
+  Roadmap
+
+  - Flag expiration email alerts (daily digest via Resend)
+  - What-if simulator — toggle flags in a sandbox, see risk score change live
+  - Slack bot — /compass check returns current readiness score
+  - GitHub Actions integration — fail CI if risk is HIGH or CRITICAL
+  - Multi-workspace / org support
+  - Real-time collaboration (WebSockets)
+  - CVE / security scanning against OWASP patterns
+
+  ---
+  Built for teams that ship fast and sleep at night.
+
+  https://img.shields.io/badge/compassultra.com-Visit_Now-6366f1?style=for-the-
+  badge (https://compassultra.com)
