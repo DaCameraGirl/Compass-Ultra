@@ -303,10 +303,6 @@ const seedFlags = [
     source: 'Statsig',
   },
 ];
-    rules: [{ attribute: 'region', operator: 'contains', value: 'eu', valueWhenMatched: { route: 'eu-west', encrypt: true } }],
-    source: 'LaunchDarkly',
-  },
-];
 
 const samplePacks = {
   dcg: {
