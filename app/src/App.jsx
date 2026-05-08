@@ -1710,7 +1710,7 @@ export default function App() {
                   <button
                     style={{ background: tier.highlight ? '#3fb950' : 'none', color: tier.highlight ? '#07090e' : tier.color, border: `1px solid ${tier.color}`, borderRadius: 6, padding: '9px 0', fontWeight: 700, fontSize: 13, cursor: 'pointer', marginTop: 8 }}
                     onClick={async () => {
-                      if (tier.plan === 'enterprise') { window.location.href = 'mailto:hello@compassultra.com?subject=Enterprise Plan Inquiry'; return; }
+                      if (tier.plan === 'enterprise') { window.location.href = 'mailto:angela.hudson.data@gmail.com?subject=Compass Ultra Enterprise Plan Inquiry'; return; }
                       if (tier.plan === 'free' || !tier.plan) { setShowPricing(false); return; }
                       if (!isAuthenticated) { loginWithRedirect(); return; }
                       try {
