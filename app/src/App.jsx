@@ -42,6 +42,7 @@ import {
   Webhook,
   XCircle,
 } from 'lucide-react';
+import { Analytics } from '@vercel/analytics/react';
 import { api } from './api.js';
 
 const storageKey = 'compass-ultra-workspace-v4';
@@ -301,10 +302,6 @@ const seedFlags = [
     tags: ['pricing', 'bfcm', 'revenue', 'critical'],
     rules: [],
     source: 'Statsig',
-  },
-];
-    rules: [{ attribute: 'region', operator: 'contains', value: 'eu', valueWhenMatched: { route: 'eu-west', encrypt: true } }],
-    source: 'LaunchDarkly',
   },
 ];
 
@@ -1950,6 +1947,7 @@ export default function App() {
           </div>
         </div>
       )}
+      <Analytics />
     </main>
   );
 }
