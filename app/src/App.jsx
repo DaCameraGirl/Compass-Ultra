@@ -1717,7 +1717,7 @@ export default function App() {
                         const token = await getAccessTokenSilently({ authorizationParams: { audience: import.meta.env.VITE_AUTH0_AUDIENCE } });
                         const { url } = await api.createCheckout(token, tier.plan);
                         window.location.href = url;
-                      } catch (e) { alert('Could not start checkout. Please try again.'); }
+                      } catch (e) { alert('Checkout error: ' + (e.message || 'Please try again.')); }
                     }}
                   >
                     {tier.cta}
