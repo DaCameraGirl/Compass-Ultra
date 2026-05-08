@@ -329,6 +329,13 @@ export default function App() {
   const [userPlan, setUserPlan] = useState('free');
   const [upgradeNotice, setUpgradeNotice] = useState('');
   const [gateNotice, setGateNotice] = useState('');
+  const [showOnboarding, setShowOnboarding] = useState(() => !localStorage.getItem('cu-onboarded'));
+  const [onboardStep, setOnboardStep] = useState(1);
+
+  const finishOnboarding = () => {
+    localStorage.setItem('cu-onboarded', '1');
+    setShowOnboarding(false);
+  };
 
   const canUseAI   = userPlan === 'team';
   const canUseDiff = userPlan === 'pro' || userPlan === 'team';
@@ -1713,6 +1720,92 @@ export default function App() {
           </section>
         </aside>
       </section>
+      {showOnboarding && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.85)', zIndex: 2000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
+          <div style={{ background: '#0e1117', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 16, padding: 40, maxWidth: 520, width: '100%', position: 'relative' }}>
+            {/* Step dots */}
+            <div style={{ display: 'flex', gap: 6, justifyContent: 'center', marginBottom: 32 }}>
+              {[1,2,3].map(n => (
+                <div key={n} style={{ width: 8, height: 8, borderRadius: '50%', background: n === onboardStep ? '#58a6ff' : 'rgba(255,255,255,0.15)' }} />
+              ))}
+            </div>
+
+            {onboardStep === 1 && (
+              <>
+                <div style={{ textAlign: 'center', marginBottom: 28 }}>
+                  <div style={{ fontSize: 40, marginBottom: 12 }}>🧭</div>
+                  <h2 style={{ color: '#e6edf3', fontSize: 22, margin: '0 0 12px' }}>Welcome to Compass Ultra</h2>
+                  <p style={{ color: '#8b949e', fontSize: 14, lineHeight: 1.6 }}>Your release command center. Evaluate feature flags, enforce enterprise policies, and get AI-powered risk analysis — all before a single change hits production.</p>
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                  <button
+                    onClick={() => { applySamplePack('dcg'); setOnboardStep(2); }}
+                    style={{ background: '#58a6ff', color: '#000', border: 'none', borderRadius: 8, padding: '12px 0', fontWeight: 700, fontSize: 14, cursor: 'pointer' }}
+                  >Load the Demo — See It in Action</button>
+                  <button
+                    onClick={() => { importRef.current?.click(); finishOnboarding(); }}
+                    style={{ background: 'none', color: '#8b949e', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8, padding: '12px 0', fontWeight: 600, fontSize: 14, cursor: 'pointer' }}
+                  >Import My Own Flags</button>
+                  <button onClick={finishOnboarding} style={{ background: 'none', border: 'none', color: '#484f58', fontSize: 12, cursor: 'pointer', marginTop: 4 }}>Skip for now</button>
+                </div>
+              </>
+            )}
+
+            {onboardStep === 2 && (
+              <>
+                <h2 style={{ color: '#e6edf3', fontSize: 20, margin: '0 0 24px', textAlign: 'center' }}>Here's what you're looking at</h2>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 16, marginBottom: 28 }}>
+                  {[
+                    { icon: '🏁', title: 'Release Control', desc: 'Set your change ticket, release train, captain, and deploy window. Every artifact auto-fills from here.' },
+                    { icon: '⚡', title: 'Flag Evaluation', desc: 'Your flags are evaluated live against a real user context — plan, role, region, device. See exactly what each user gets.' },
+                    { icon: '🛡️', title: 'Policy Checks', desc: '8 automated checks run continuously. They tell you if your release is safe to ship or needs review.' },
+                  ].map(item => (
+                    <div key={item.title} style={{ display: 'flex', gap: 14, alignItems: 'flex-start' }}>
+                      <span style={{ fontSize: 22, flexShrink: 0 }}>{item.icon}</span>
+                      <div>
+                        <div style={{ color: '#e6edf3', fontWeight: 700, fontSize: 13, marginBottom: 3 }}>{item.title}</div>
+                        <div style={{ color: '#8b949e', fontSize: 12, lineHeight: 1.5 }}>{item.desc}</div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                <button
+                  onClick={() => setOnboardStep(3)}
+                  style={{ width: '100%', background: '#58a6ff', color: '#000', border: 'none', borderRadius: 8, padding: '12px 0', fontWeight: 700, fontSize: 14, cursor: 'pointer' }}
+                >Next →</button>
+              </>
+            )}
+
+            {onboardStep === 3 && (
+              <>
+                <div style={{ textAlign: 'center', marginBottom: 28 }}>
+                  <div style={{ fontSize: 40, marginBottom: 12 }}>🚀</div>
+                  <h2 style={{ color: '#e6edf3', fontSize: 20, margin: '0 0 12px' }}>You're ready to ship with confidence</h2>
+                  <p style={{ color: '#8b949e', fontSize: 14, lineHeight: 1.6 }}>A few things to try first:</p>
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 28 }}>
+                  {[
+                    { icon: '🔍', text: 'Click the brain icon (⚡) in the toolbar to run an AI risk analysis' },
+                    { icon: '💾', text: 'Hit the cloud icon to save your first snapshot' },
+                    { icon: '📄', text: 'Click the PDF icon to generate a release runbook' },
+                    { icon: '💰', text: 'Click the $ icon to explore plan options' },
+                  ].map(item => (
+                    <div key={item.text} style={{ display: 'flex', gap: 10, alignItems: 'flex-start', background: '#161b22', borderRadius: 8, padding: '10px 14px' }}>
+                      <span style={{ flexShrink: 0 }}>{item.icon}</span>
+                      <span style={{ color: '#8b949e', fontSize: 12, lineHeight: 1.5 }}>{item.text}</span>
+                    </div>
+                  ))}
+                </div>
+                <button
+                  onClick={finishOnboarding}
+                  style={{ width: '100%', background: '#3fb950', color: '#000', border: 'none', borderRadius: 8, padding: '12px 0', fontWeight: 700, fontSize: 14, cursor: 'pointer' }}
+                >Let's go →</button>
+              </>
+            )}
+          </div>
+        </div>
+      )}
+
       {showPricing && (
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.75)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }} onClick={() => setShowPricing(false)}>
           <div style={{ background: '#0e1117', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 12, padding: 40, maxWidth: 860, width: '100%', position: 'relative' }} onClick={e => e.stopPropagation()}>
