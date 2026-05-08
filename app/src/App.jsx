@@ -326,6 +326,8 @@ export default function App() {
   const [diffB, setDiffB] = useState(null);
   const [showDiff, setShowDiff] = useState(false);
   const [showPricing, setShowPricing] = useState(false);
+  const [userPlan, setUserPlan] = useState('free');
+  const [upgradeNotice, setUpgradeNotice] = useState('');
 
   const importRef = useRef(null);
   const initial = useMemo(loadWorkspace, []);
@@ -857,7 +859,22 @@ export default function App() {
   }, [isAuthenticated]);
 
   useEffect(() => {
+    if (!isAuthenticated) return;
+    getAccessTokenSilently({ authorizationParams: { audience: import.meta.env.VITE_AUTH0_AUDIENCE } })
+      .then((token) => api.getPlan(token))
+      .then((data) => setUserPlan(data.plan || 'free'))
+      .catch(() => {});
+  }, [isAuthenticated]);
+
+  useEffect(() => {
     const params = new URLSearchParams(window.location.search);
+    const upgraded = params.get('upgraded');
+    if (upgraded) {
+      setUpgradeNotice(`You're now on the ${upgraded.charAt(0).toUpperCase() + upgraded.slice(1)} plan — welcome aboard!`);
+      setUserPlan(upgraded);
+      window.history.replaceState({}, '', window.location.pathname);
+      setTimeout(() => setUpgradeNotice(''), 6000);
+    }
     const snapId = params.get('snapshot');
     if (!snapId) return;
     api.getSnapshot(snapId).then((snap) => {
@@ -943,6 +960,12 @@ export default function App() {
 
   return (
     <main className="app-shell">
+      {upgradeNotice && (
+        <div style={{ background: '#3fb950', color: '#000', padding: '10px 20px', textAlign: 'center', fontWeight: 600, fontSize: '0.95rem', position: 'fixed', top: 0, left: 0, right: 0, zIndex: 9999, boxShadow: '0 2px 8px rgba(0,0,0,0.3)' }}>
+          {upgradeNotice}
+          <button onClick={() => setUpgradeNotice('')} style={{ marginLeft: 16, background: 'none', border: 'none', cursor: 'pointer', fontWeight: 700, fontSize: '1rem' }}>×</button>
+        </div>
+      )}
       <header className="topbar">
         <a className="brand" href="#workspace" aria-label="Compass-Ultra">
           <span className="brand-mark">CU</span>
@@ -988,6 +1011,9 @@ export default function App() {
           <button type="button" onClick={saveToCloud} title={isAuthenticated ? 'Save to cloud' : 'Login to save to cloud'} aria-label="Save to cloud" style={{ color: isAuthenticated ? '#3fb950' : '#8b949e' }}>
             <Cloud size={17} aria-hidden="true" />
           </button>
+          {isAuthenticated && userPlan !== 'free' && (
+            <span style={{ fontSize: '0.7rem', fontWeight: 700, background: '#3fb950', color: '#000', borderRadius: 4, padding: '2px 7px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{userPlan}</span>
+          )}
           {isAuthenticated ? (
             <button type="button" onClick={() => logout({ logoutParams: { returnTo: window.location.href } })} title={`Logout ${user?.email}`} aria-label="Logout">
               <LogOut size={17} aria-hidden="true" />
