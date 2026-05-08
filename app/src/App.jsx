@@ -1046,7 +1046,13 @@ export default function App() {
                   const token = await getAccessTokenSilently({ authorizationParams: { audience: import.meta.env.VITE_AUTH0_AUDIENCE } });
                   const { url } = await api.openPortal(token);
                   window.location.href = url;
-                } catch (e) { alert('Could not open portal: ' + (e.message || 'Try again.')); }
+                } catch (e) {
+                  if (e.status === 404 || e.message?.includes('No subscription')) {
+                    setShowPricing(true);
+                  } else {
+                    alert('Could not open subscription portal. Please try again.');
+                  }
+                }
               }}
               style={{ fontSize: '0.7rem', fontWeight: 700, background: '#3fb950', color: '#000', borderRadius: 4, padding: '2px 7px', textTransform: 'uppercase', letterSpacing: '0.05em', border: 'none', cursor: 'pointer' }}
             >{userPlan}</button>
