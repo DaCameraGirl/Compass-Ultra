@@ -16,6 +16,7 @@ Compass Ultra is a local-first React control room for feature flags, experiments
 - Real-time feature flag evaluation against user context
 - 8 automated enterprise policy checks
 - Claude AI release risk analysis with concrete remediation steps
+- GitHub Actions release gate for CI/CD deploy checks
 - Snapshot diffing for before/after release review
 - PDF runbook export for CAB, incident response, and handoff
 - Shareable release snapshots for engineering, QA, and leadership

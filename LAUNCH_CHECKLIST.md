@@ -35,3 +35,4 @@ Post angle: Ask for feedback on the live demo and the release-risk workflow.
 - Decide whether to keep the animated product tour or replace it with a Loom embed.
 - Confirm paid-plan badge after live checkout and fresh login.
 - Confirm customer portal works from a live paid account.
+- Configure `COMPASS_API_KEY` in Railway and GitHub Actions secrets before promoting the CI release gate.

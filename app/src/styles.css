@@ -83,6 +83,40 @@ code {
   font-weight: 800;
 }
 
+.trust-page section {
+  max-width: 920px;
+}
+
+.trust-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+  margin: 28px 0;
+}
+
+.trust-grid article {
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  padding: 18px;
+  background: rgba(255, 255, 255, 0.025);
+}
+
+.trust-grid h2 {
+  margin: 0 0 8px;
+  font-size: 16px;
+}
+
+.trust-grid p {
+  margin: 0;
+  font-size: 14px;
+}
+
+@media (max-width: 720px) {
+  .trust-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
 .app-shell {
   min-height: 100vh;
 }
