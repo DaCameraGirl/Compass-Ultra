@@ -48,9 +48,9 @@ import { api } from './api.js';
 const storageKey = 'compass-ultra-workspace-v4';
 
 const defaultContext = {
-  key: 'sre_001',
-  email: 'sarah.chen@shopflow.io',
-  tenant: 'shopflow-prod',
+  key: 'demo_admin_001',
+  email: 'admin@example.test',
+  tenant: 'demo-retail-prod',
   plan: 'enterprise',
   role: 'admin',
   region: 'us-east',
@@ -60,22 +60,22 @@ const defaultContext = {
 };
 
 const defaultRelease = {
-  train: 'bfcm-2026.11',
+  train: 'peak-sale-2026.11',
   changeTicket: 'CHG-20261120',
-  incidentChannel: '#bfcm-war-room',
-  releaseCaptain: 'Sarah Chen',
-  approver: 'Platform SRE',
+  incidentChannel: '#release-war-room',
+  releaseCaptain: 'Release Captain',
+  approver: 'Platform Approver',
   window: 'Thu 23:00-01:00 ET',
 };
 
 const defaultTeam = {
-  workspaceId: 'shopflow-prod',
+  workspaceId: 'demo-retail-prod',
   authMode: 'Local RBAC session',
   members: [
-    { id: 'admin', name: 'Sarah Chen', email: 'sarah.chen@shopflow.io', role: 'admin' },
-    { id: 'sre', name: 'Marcus Webb', email: 'marcus.webb@shopflow.io', role: 'approver' },
-    { id: 'qa', name: 'Priya Nair', email: 'priya.nair@shopflow.io', role: 'operator' },
-    { id: 'viewer', name: 'Jordan Lee', email: 'jordan.lee@shopflow.io', role: 'viewer' },
+    { id: 'admin', name: 'Admin Reviewer', email: 'admin@example.test', role: 'admin' },
+    { id: 'sre', name: 'Release Approver', email: 'approver@example.test', role: 'approver' },
+    { id: 'qa', name: 'QA Operator', email: 'operator@example.test', role: 'operator' },
+    { id: 'viewer', name: 'Read Only Viewer', email: 'viewer@example.test', role: 'viewer' },
   ],
   activeMemberId: 'admin',
 };
@@ -90,14 +90,14 @@ const defaultIntegrations = [
 ];
 
 const sampleContexts = [
-  { name: 'Prod admin', context: defaultContext },
+  { name: 'Production admin', context: defaultContext },
   {
-    name: 'EU shopper',
-    context: { ...defaultContext, key: 'user_8842', email: 'buyer@shopflow.de', tenant: 'shopflow-eu', role: 'customer', region: 'eu-west', country: 'DE' },
+    name: 'EU customer',
+    context: { ...defaultContext, key: 'demo_user_8842', email: 'customer-eu@example.test', tenant: 'demo-retail-eu', role: 'customer', region: 'eu-west', country: 'DE' },
   },
   {
     name: 'Mobile guest',
-    context: { ...defaultContext, key: 'guest_4401', email: 'guest@shopflow.io', tenant: 'shopflow-prod', plan: 'free', role: 'guest', region: 'us-west', device: 'mobile', environment: 'production' },
+    context: { ...defaultContext, key: 'demo_guest_4401', email: 'guest@example.test', tenant: 'demo-retail-prod', plan: 'free', role: 'guest', region: 'us-west', device: 'mobile', environment: 'production' },
   },
 ];
 
@@ -112,13 +112,13 @@ const seedFlags = [
     overrideValue: null,
     rollout: 45,
     criticality: 'high',
-    jira: 'SFW-1842',
+    jira: 'CHG-1842',
     approver: 'Growth Lead',
     expiresAt: '2026-12-01',
     rollback: 'Disable express_pay and revert to standard checkout flow. Flush CDN cache on /checkout.',
     canaryRequired: true,
     dependencies: ['payments.stripe_v4'],
-    tags: ['revenue', 'checkout', 'bfcm'],
+    tags: ['revenue', 'checkout', 'peak-sale'],
     rules: [{ attribute: 'device', operator: 'equals', value: 'mobile', valueWhenMatched: true }],
     source: 'LaunchDarkly',
   },
@@ -132,13 +132,13 @@ const seedFlags = [
     overrideValue: null,
     rollout: 100,
     criticality: 'critical',
-    jira: 'SFW-1801',
+    jira: 'CHG-1801',
     approver: 'Finance Ops',
     expiresAt: '2026-11-30',
     rollback: 'Set payments.stripe_v4 false. Revert to v3 SDK. Replay any failed charges from dead-letter queue.',
     canaryRequired: true,
     dependencies: [],
-    tags: ['payments', 'critical', 'bfcm'],
+    tags: ['payments', 'critical', 'peak-sale'],
     rules: [{ attribute: 'country', operator: 'notEquals', value: 'DE', valueWhenMatched: true }],
     source: 'Statsig',
   },
@@ -152,7 +152,7 @@ const seedFlags = [
     overrideValue: null,
     rollout: 100,
     criticality: 'critical',
-    jira: 'SFW-1799',
+    jira: 'CHG-1799',
     approver: 'Security',
     expiresAt: '2026-12-31',
     rollback: 'Revert model to rules_v1 and set blockOnTimeout false.',
@@ -172,13 +172,13 @@ const seedFlags = [
     overrideValue: null,
     rollout: 60,
     criticality: 'high',
-    jira: 'SFW-1823',
-    approver: 'Marcus Webb',
+    jira: 'CHG-1823',
+    approver: 'Platform Approver',
     expiresAt: '2026-11-28',
     rollback: 'Disable realtime_sync. Fall back to 5-minute polling. Alert #inventory-ops.',
     canaryRequired: true,
     dependencies: [],
-    tags: ['inventory', 'bfcm', 'platform'],
+    tags: ['inventory', 'peak-sale', 'platform'],
     rules: [],
     source: 'Statsig',
   },
@@ -192,7 +192,7 @@ const seedFlags = [
     overrideValue: null,
     rollout: 25,
     criticality: 'medium',
-    jira: 'SFW-1810',
+    jira: 'CHG-1810',
     approver: 'Search Lead',
     expiresAt: '2027-01-15',
     rollback: 'Force variant to keyword.',
@@ -213,13 +213,13 @@ const seedFlags = [
     overrideValue: null,
     rollout: 35,
     criticality: 'high',
-    jira: 'SFW-1835',
+    jira: 'CHG-1835',
     approver: 'Logistics Lead',
     expiresAt: '2026-12-26',
     rollback: 'Disable same_day flag. Show standard shipping only.',
     canaryRequired: true,
     dependencies: ['inventory.realtime_sync'],
-    tags: ['shipping', 'bfcm', 'logistics'],
+    tags: ['shipping', 'peak-sale', 'logistics'],
     rules: [{ attribute: 'region', operator: 'equals', value: 'us-east', valueWhenMatched: true }],
     source: 'LaunchDarkly',
   },
@@ -233,7 +233,7 @@ const seedFlags = [
     overrideValue: null,
     rollout: 10,
     criticality: 'low',
-    jira: 'SFW-1788',
+    jira: 'CHG-1788',
     approver: 'Frontend Lead',
     expiresAt: '2027-03-01',
     rollback: 'Disable dark_mode. No data impact.',
@@ -253,13 +253,13 @@ const seedFlags = [
     overrideValue: null,
     rollout: 0,
     criticality: 'critical',
-    jira: 'SFW-1000',
-    approver: 'Sarah Chen',
+    jira: 'CHG-1000',
+    approver: 'Platform Approver',
     expiresAt: '2027-12-31',
     rollback: 'Enable to shed load and force degraded mode across all services.',
     canaryRequired: false,
     dependencies: [],
-    tags: ['sre', 'emergency', 'bfcm'],
+    tags: ['sre', 'emergency', 'peak-sale'],
     rules: [],
     source: 'Local',
   },
@@ -273,7 +273,7 @@ const seedFlags = [
     overrideValue: null,
     rollout: 100,
     criticality: 'critical',
-    jira: 'SFW-1791',
+    jira: 'CHG-1791',
     approver: 'Privacy',
     expiresAt: '2027-12-31',
     rollback: 'Revert to v2 consent banner. Notify legal immediately.',
@@ -293,13 +293,13 @@ const seedFlags = [
     overrideValue: null,
     rollout: 100,
     criticality: 'critical',
-    jira: 'SFW-1850',
+    jira: 'CHG-1850',
     approver: 'Finance Ops',
     expiresAt: '2026-11-30',
     rollback: 'Disable flash_sale_engine immediately. Revert prices via admin panel. Alert #commerce-ops.',
     canaryRequired: true,
     dependencies: ['payments.stripe_v4', 'inventory.realtime_sync'],
-    tags: ['pricing', 'bfcm', 'revenue', 'critical'],
+    tags: ['pricing', 'peak-sale', 'revenue', 'critical'],
     rules: [],
     source: 'Statsig',
   },
@@ -307,8 +307,8 @@ const seedFlags = [
 
 const samplePacks = {
   dcg: {
-    label: 'ShopFlow — Black Friday Release',
-    workspaceName: 'ShopFlow — BFCM 2026 Release Command',
+    label: 'Demo Retail — Peak Sale Release',
+    workspaceName: 'Demo Retail — Peak Sale Command',
     flags: seedFlags,
   },
   launchdarkly: {
@@ -367,19 +367,29 @@ export default function App() {
   const [diffB, setDiffB] = useState(null);
   const [showDiff, setShowDiff] = useState(false);
   const [showPricing, setShowPricing] = useState(false);
-  const [userPlan, setUserPlan] = useState('free');
+  const [demoMode, setDemoMode] = useState(() => new URLSearchParams(window.location.search).get('demo') === 'true');
+  const [userPlan, setUserPlan] = useState(() => (
+    typeof window !== 'undefined'
+      ? new URLSearchParams(window.location.search).get('upgraded') || 'free'
+      : 'free'
+  ));
   const [upgradeNotice, setUpgradeNotice] = useState('');
   const [gateNotice, setGateNotice] = useState('');
   const [showOnboarding, setShowOnboarding] = useState(() => !localStorage.getItem('cu-onboarded'));
   const [onboardStep, setOnboardStep] = useState(1);
+  const checkoutPlanRef = useRef(
+    typeof window !== 'undefined'
+      ? new URLSearchParams(window.location.search).get('upgraded')
+      : null
+  );
 
   const finishOnboarding = () => {
     localStorage.setItem('cu-onboarded', '1');
     setShowOnboarding(false);
   };
 
-  const canUseAI   = userPlan === 'team';
-  const canUseDiff = userPlan === 'pro' || userPlan === 'team';
+  const canUseAI   = demoMode || userPlan === 'team';
+  const canUseDiff = demoMode || userPlan === 'pro' || userPlan === 'team';
   const canExportAudit = userPlan === 'team';
   const snapshotCap = userPlan === 'free' ? 3 : Infinity;
 
@@ -387,6 +397,19 @@ export default function App() {
     setGateNotice(`${label} requires the ${needed} plan.`);
     setShowPricing(true);
     setTimeout(() => setGateNotice(''), 100);
+  };
+
+  const getPublicReturnUrl = () => (
+    window.location.hostname === 'localhost' ? window.location.origin : 'https://compassultra.com'
+  );
+
+  const handleLogout = () => {
+    checkoutPlanRef.current = null;
+    setUserPlan('free');
+    setCloudSnapshots([]);
+    setCloudNotice('');
+    setUpgradeNotice('');
+    logout({ logoutParams: { returnTo: getPublicReturnUrl() } });
   };
 
   const importRef = useRef(null);
@@ -418,6 +441,8 @@ export default function App() {
 
   const policyChecks = useMemo(() => makePolicyChecks(flags, evaluations, context, release, integrations), [context, evaluations, flags, integrations, release]);
   const releaseState = getReleaseState(policyChecks);
+  const policyBlockers = policyChecks.filter((check) => check.status === 'block').length;
+  const policyWarnings = policyChecks.filter((check) => check.status === 'warn').length;
 
   const visibleEvaluations = evaluations.filter(({ flag }) => {
     const text = `${flag.key} ${flag.name} ${flag.owner} ${flag.source} ${flag.criticality} ${flag.jira} ${flag.tags?.join(' ')}`.toLowerCase();
@@ -428,6 +453,10 @@ export default function App() {
   const enabledFlags = flags.filter((flag) => flag.enabled).length;
   const matchedRules = evaluations.filter(({ result }) => result.reason === 'rule').length;
   const criticalActive = evaluations.filter(({ flag, result }) => flag.criticality === 'critical' && Boolean(result.value)).length;
+  const diffSnapshots = useMemo(
+    () => (demoMode && cloudSnapshots.length < 2 ? makeDemoSnapshots(seedFlags, defaultContext, defaultRelease) : cloudSnapshots),
+    [cloudSnapshots, demoMode]
+  );
 
   const workspace = useMemo(
     () => ({
@@ -888,8 +917,22 @@ export default function App() {
     record('Workspace reset');
   };
 
+  const openSnapshotDiff = () => {
+    if (!canUseDiff) {
+      requirePlan('Pro', 'Snapshot diff viewer');
+      return;
+    }
+
+    if (demoMode && !diffA && !diffB) {
+      const demoSnapshots = makeDemoSnapshots(seedFlags, defaultContext, defaultRelease);
+      setDiffA(demoSnapshots[0]);
+      setDiffB(demoSnapshots[1]);
+    }
+    setShowDiff((current) => !current);
+  };
+
   const loadDemo = () => {
-    const demo = hydrateWorkspace({ flags: seedFlags, workspaceName: 'Acme Corp — Production Release' });
+    const demo = hydrateWorkspace({ flags: seedFlags, workspaceName: 'Demo Retail — Production Release' });
     setWorkspaceName(demo.workspaceName);
     setRelease({ ...defaultRelease, changeTicket: 'CHG-24051', train: 'prod-2026.05', releaseCaptain: 'Demo User' });
     setTeam(demo.team);
@@ -897,6 +940,7 @@ export default function App() {
     setContext(demo.context);
     setFlags(demo.flags);
     setSelectedKey(demo.flags[0]?.key || '');
+    setDemoMode(true);
     record('Demo workspace loaded');
   };
 
@@ -919,18 +963,54 @@ export default function App() {
   }, [isAuthenticated]);
 
   useEffect(() => {
-    if (!isAuthenticated) return;
-    if (new URLSearchParams(window.location.search).get('upgraded')) return;
-    getAccessTokenSilently({ authorizationParams: { audience: import.meta.env.VITE_AUTH0_AUDIENCE } })
-      .then((token) => api.getPlan(token))
-      .then((data) => setUserPlan(data.plan || 'free'))
-      .catch(() => {});
-  }, [isAuthenticated]);
+    if (!isAuthenticated) return undefined;
+    let cancelled = false;
+    const expectedPlan = checkoutPlanRef.current;
+    const refreshPlan = async (attempt = 0) => {
+      try {
+        const token = await getAccessTokenSilently({ authorizationParams: { audience: import.meta.env.VITE_AUTH0_AUDIENCE } });
+        const data = await api.getPlan(token);
+        const nextPlan = data.plan || 'free';
+        if (cancelled) return;
+        if (expectedPlan && nextPlan === 'free' && attempt < 10) {
+          window.setTimeout(() => refreshPlan(attempt + 1), 1500);
+          return;
+        }
+        setUserPlan(nextPlan);
+        if (!expectedPlan || nextPlan !== 'free') checkoutPlanRef.current = null;
+      } catch {
+        if (!cancelled && expectedPlan && attempt < 10) {
+          window.setTimeout(() => refreshPlan(attempt + 1), 1500);
+        }
+      }
+    };
+    refreshPlan();
+    return () => {
+      cancelled = true;
+    };
+  }, [getAccessTokenSilently, isAuthenticated]);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
+
+    if (params.get('demo') === 'true') {
+      const demo = hydrateWorkspace({ flags: seedFlags, workspaceName: 'Demo Retail — Peak Sale Release' });
+      setWorkspaceName(demo.workspaceName);
+      setRelease({ ...defaultRelease, changeTicket: 'CHG-1850', train: 'peak-sale-2026.11', releaseCaptain: 'Demo Release Lead' });
+      setTeam(demo.team);
+      setIntegrations(demo.integrations);
+      setContext(demo.context);
+      setFlags(demo.flags);
+      setSelectedKey(demo.flags[0]?.key || '');
+      setDemoMode(true);
+      record('Demo workspace auto-loaded');
+      window.history.replaceState({}, '', window.location.pathname);
+      return;
+    }
+
     const upgraded = params.get('upgraded');
     if (upgraded) {
+      checkoutPlanRef.current = upgraded;
       setUpgradeNotice(`You're now on the ${upgraded.charAt(0).toUpperCase() + upgraded.slice(1)} plan — welcome aboard!`);
       setUserPlan(upgraded);
       window.history.replaceState({}, '', window.location.pathname);
@@ -990,6 +1070,30 @@ export default function App() {
   };
 
   const runAiAnalysis = async () => {
+    if (demoMode && !isAuthenticated) {
+      setAiLoading(true);
+      setAiAnalysis('');
+      try {
+        const { analysis } = await api.analyzeDemoFlags({ flags, context, release, policyChecks });
+        setAiAnalysis(analysis);
+        const riskMatch = analysis.match(/##\s*RISK LEVEL:\s*(LOW|MEDIUM|HIGH|CRITICAL)/i);
+        setAiRiskLevel(riskMatch ? riskMatch[1].toUpperCase() : '');
+        setAiLoading(false);
+        record('Live demo AI risk analysis complete');
+        return;
+      } catch (e) {
+        record('Live demo AI unavailable; using state-aware fallback', e.message || '', 'warn');
+      }
+      window.setTimeout(() => {
+        const analysis = makeDemoAiAnalysis(workspaceName, release, context, flags, policyChecks);
+        setAiAnalysis(analysis);
+        const riskMatch = analysis.match(/##\s*RISK LEVEL:\s*(LOW|MEDIUM|HIGH|CRITICAL)/i);
+        setAiRiskLevel(riskMatch ? riskMatch[1].toUpperCase() : '');
+        setAiLoading(false);
+        record('State-aware demo AI risk analysis complete');
+      }, 650);
+      return;
+    }
     if (!isAuthenticated) { loginWithRedirect(); return; }
     if (!canUseAI) { requirePlan('Team', 'AI risk analyzer'); return; }
     setAiLoading(true);
@@ -1065,11 +1169,11 @@ export default function App() {
           <button type="button" onClick={() => setShowPricing(true)} title="Pricing" aria-label="Pricing" style={{ color: '#ffb800' }}>
             <DollarSign size={17} aria-hidden="true" />
           </button>
-          <button type="button" onClick={() => canUseDiff ? setShowDiff(v => !v) : requirePlan('Pro', 'Snapshot diff viewer')} title={canUseDiff ? 'Snapshot diff viewer' : 'Snapshot diff viewer (Pro)'} aria-label="Snapshot diff viewer" style={{ color: showDiff ? '#58a6ff' : canUseDiff ? '#8b949e' : '#3d4451' }}>
+          <button type="button" onClick={openSnapshotDiff} title={demoMode ? 'Demo snapshot diff viewer' : canUseDiff ? 'Snapshot diff viewer' : 'Snapshot diff viewer (Pro)'} aria-label="Snapshot diff viewer" style={{ color: showDiff ? '#58a6ff' : canUseDiff ? '#8b949e' : '#3d4451' }}>
             <GitCompare size={17} aria-hidden="true" />
             {!canUseDiff && <LockKeyhole size={9} style={{ position: 'absolute', marginLeft: -7, marginTop: 8, color: '#ffb800' }} />}
           </button>
-          <button type="button" onClick={runAiAnalysis} title={canUseAI ? 'AI risk analysis' : 'AI risk analysis (Team)'} aria-label="AI risk analysis" style={{ color: aiLoading ? '#ffb800' : canUseAI ? '#bc8cff' : '#3d4451', position: 'relative' }}>
+          <button type="button" onClick={runAiAnalysis} title={demoMode ? 'Run demo AI risk analysis' : canUseAI ? 'AI risk analysis' : 'AI risk analysis (Team)'} aria-label="AI risk analysis" style={{ color: aiLoading ? '#ffb800' : canUseAI ? '#bc8cff' : '#3d4451', position: 'relative' }}>
             <BrainCircuit size={17} aria-hidden="true" />
             {!canUseAI && <LockKeyhole size={9} style={{ position: 'absolute', top: 0, right: 0, color: '#ffb800' }} />}
           </button>
@@ -1100,7 +1204,7 @@ export default function App() {
             >{userPlan}</button>
           )}
           {isAuthenticated ? (
-            <button type="button" onClick={() => logout({ logoutParams: { returnTo: window.location.href } })} title={`Logout ${user?.email}`} aria-label="Logout">
+            <button type="button" onClick={handleLogout} title={`Logout ${user?.email}`} aria-label="Logout">
               <LogOut size={17} aria-hidden="true" />
             </button>
           ) : (
@@ -1111,6 +1215,61 @@ export default function App() {
           <input ref={importRef} className="hidden-file" type="file" accept="application/json,.json" onChange={importWorkspace} />
         </div>
       </header>
+
+      <section className="ai-risk-strip" data-risk={aiRiskLevel ? aiRiskLevel.toLowerCase() : 'pending'}>
+        <div className="ai-risk-main">
+          <div className="ai-risk-icon">
+            <BrainCircuit size={22} aria-hidden="true" />
+          </div>
+          <div>
+            <span className="ai-risk-kicker">AI Release Risk Analyzer</span>
+            <h1>
+              {aiLoading
+                ? 'Claude is reviewing this release.'
+                : aiRiskLevel
+                  ? `${aiRiskLevel} risk detected`
+                  : 'Run the AI risk check before deploy.'}
+            </h1>
+            <p>
+              {aiAnalysis
+                ? 'Latest analysis is ready below with blockers, affected flags, and recommended actions.'
+                : 'Send the current flags, policy gates, release context, and rollout data for a ship/no-ship review.'}
+            </p>
+          </div>
+        </div>
+        <div className="ai-risk-metrics">
+          <span><strong>{releaseState.score}%</strong> readiness</span>
+          <span><strong>{policyBlockers}</strong> blockers</span>
+          <span><strong>{policyWarnings}</strong> warnings</span>
+        </div>
+        <button type="button" className="ai-risk-cta" onClick={runAiAnalysis} disabled={aiLoading}>
+          <BrainCircuit size={16} aria-hidden="true" />
+          {aiLoading ? 'Analyzing...' : aiRiskLevel ? 'Run Again' : 'Run AI Risk Analysis'}
+        </button>
+      </section>
+
+      {demoMode && (
+        <section className="demo-guide-bar" aria-label="Demo walkthrough">
+          <div>
+            <strong>Try the release review loop</strong>
+            <span>Toggle a risky flag, run AI analysis, compare snapshots, then export the runbook.</span>
+          </div>
+          <div className="demo-guide-actions">
+            <button type="button" onClick={runAiAnalysis}>
+              <BrainCircuit size={15} aria-hidden="true" />
+              Run AI
+            </button>
+            <button type="button" onClick={openSnapshotDiff}>
+              <GitCompare size={15} aria-hidden="true" />
+              Snapshot Diff
+            </button>
+            <button type="button" onClick={exportPDF}>
+              <FileDown size={15} aria-hidden="true" />
+              Export Runbook
+            </button>
+          </div>
+        </section>
+      )}
 
       <section id="workspace" className="workspace-layout">
         <WorkspaceGuide />
@@ -1563,24 +1722,27 @@ export default function App() {
                 <h2>Snapshot Diff</h2>
                 <button type="button" onClick={() => setShowDiff(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#8b949e' }}>✕</button>
               </div>
-              {cloudSnapshots.length < 2 ? (
+              {diffSnapshots.length < 2 ? (
                 <p style={{ fontSize: 11, color: '#8b949e' }}>Save at least 2 cloud snapshots to compare them.</p>
               ) : (
                 <>
+                  {demoMode && cloudSnapshots.length < 2 && (
+                    <p style={{ fontSize: 11, color: '#8b949e', marginBottom: 10 }}>Demo mode uses two sample snapshots so you can try the diff viewer without logging in.</p>
+                  )}
                   <label style={{ fontSize: 10, color: '#8b949e', display: 'block', marginBottom: 6 }}>
                     Snapshot A (before)
                     <select style={{ width: '100%', background: '#161b22', border: '1px solid rgba(255,255,255,0.07)', color: '#e6edf3', padding: '4px 6px', borderRadius: 4, marginTop: 4, fontSize: 10 }}
-                      value={diffA?.id || ''} onChange={e => setDiffA(cloudSnapshots.find(s => s.id === e.target.value) || null)}>
+                      value={diffA?.id || ''} onChange={e => setDiffA(diffSnapshots.find(s => s.id === e.target.value) || null)}>
                       <option value=''>Select snapshot…</option>
-                      {cloudSnapshots.map(s => <option key={s.id} value={s.id}>{s.name} — {new Date(s.created_at).toLocaleString()}</option>)}
+                      {diffSnapshots.map(s => <option key={s.id} value={s.id}>{s.name} — {new Date(s.created_at).toLocaleString()}</option>)}
                     </select>
                   </label>
                   <label style={{ fontSize: 10, color: '#8b949e', display: 'block', marginBottom: 10 }}>
                     Snapshot B (after)
                     <select style={{ width: '100%', background: '#161b22', border: '1px solid rgba(255,255,255,0.07)', color: '#e6edf3', padding: '4px 6px', borderRadius: 4, marginTop: 4, fontSize: 10 }}
-                      value={diffB?.id || ''} onChange={e => setDiffB(cloudSnapshots.find(s => s.id === e.target.value) || null)}>
+                      value={diffB?.id || ''} onChange={e => setDiffB(diffSnapshots.find(s => s.id === e.target.value) || null)}>
                       <option value=''>Select snapshot…</option>
-                      {cloudSnapshots.map(s => <option key={s.id} value={s.id}>{s.name} — {new Date(s.created_at).toLocaleString()}</option>)}
+                      {diffSnapshots.map(s => <option key={s.id} value={s.id}>{s.name} — {new Date(s.created_at).toLocaleString()}</option>)}
                     </select>
                   </label>
                   {diffA && diffB && (() => {
@@ -1875,21 +2037,21 @@ export default function App() {
                   cta: 'Get started', highlight: false,
                 },
                 {
-                  name: 'Pro', price: '$49', period: 'per month',
+                  name: 'Pro', price: '$199', period: 'per month',
                   color: '#58a6ff',
-                  features: ['Unlimited snapshots', 'Cloud save & sync', 'Shareable public links', 'Snapshot diff viewer', 'All Free features'],
-                  cta: 'Start Pro', highlight: false, plan: 'pro',
+                  features: ['7-day full-feature trial', 'Everything in Free', 'Unlimited snapshots', 'Cloud save & sync', 'Shareable public links', 'Snapshot diff viewer'],
+                  cta: 'Start Free Trial', highlight: false, plan: 'pro',
                 },
                 {
-                  name: 'Team', price: '$249', period: 'per month',
+                  name: 'Team', price: '$499', period: 'per month',
                   color: '#3fb950',
-                  features: ['Everything in Pro', 'AI risk analyzer', 'Flag expiration alerts', 'Team RBAC', 'Audit log export', 'Priority support'],
-                  cta: 'Start Team', highlight: true, plan: 'team',
+                  features: ['7-day full-feature trial', 'Everything in Pro', 'AI risk analyzer', 'Flag expiration alerts', 'Team RBAC', 'Slack workflow payloads', 'Audit log export', 'Priority support'],
+                  cta: 'Start Free Trial', highlight: true, plan: 'team',
                 },
                 {
-                  name: 'Enterprise', price: '$999', period: 'per month+',
+                  name: 'Enterprise', price: 'Contact sales', period: '',
                   color: '#bc8cff',
-                  features: ['Everything in Team', 'SSO / SAML', 'Slack bot integration', 'Real-time collaboration', 'SLA guarantee', 'Dedicated onboarding'],
+                  features: ['Everything in Team', 'SSO / SAML', 'Custom security review', 'Real-time collaboration', 'SLA guarantee', 'Dedicated onboarding'],
                   cta: 'Contact Sales', highlight: false, plan: 'enterprise',
                 },
               ].map(tier => {
@@ -2016,7 +2178,7 @@ function WorkspaceGuide() {
       icon: <Rocket size={17} aria-hidden="true" />,
       body: [
         'PDF Release Runbooks include gate status, policy check results, active flag evaluations, and per-flag rollback procedures. Formatted for management review, CAB submission, or incident war room reference.',
-        'Integration payloads for GitHub Issues, Jira change tickets, and Slack War Room webhooks are generated from live workspace state. POST directly via a configured proxy or copy the JSON for manual submission.',
+        'Integration payloads for GitHub Issues, Jira change tickets, and Slack workflow webhooks are generated from live workspace state. POST directly via a configured proxy or copy the JSON for manual submission. A full installed Slack bot can come later.',
         'The SDK Payload delivers machine-readable evaluated flag values with ownership, ticket references, criticality ratings, and evaluation reasons attached — ready for downstream applications and deployment pipelines.',
       ],
     },
@@ -2063,6 +2225,112 @@ function loadWorkspace() {
   } catch {
     return hydrateWorkspace({});
   }
+}
+
+function makeDemoSnapshots(flags, context, release) {
+  const beforeFlags = flags.map((flag) => ({ ...flag, rollout: Math.min(flag.rollout, 25), overrideValue: null }));
+  const afterFlags = flags.map((flag) => {
+    if (flag.key === 'checkout.express_pay') return { ...flag, rollout: 45 };
+    if (flag.key === 'promos.flash_sale_engine') return { ...flag, enabled: true, rollout: 100 };
+    if (flag.key === 'payments.stripe_v4') return { ...flag, enabled: false };
+    return flag;
+  });
+
+  return [
+    {
+      id: 'demo-before',
+      name: 'Demo baseline checkpoint',
+      created_at: '2026-05-01T14:00:00.000Z',
+      snapshot_data: {
+        workspaceName: 'Demo Retail — Baseline',
+        release: { ...release, changeTicket: 'CHG-1840' },
+        context,
+        flags: beforeFlags,
+      },
+    },
+    {
+      id: 'demo-after',
+      name: 'Demo peak-sale rollout',
+      created_at: '2026-05-01T16:30:00.000Z',
+      snapshot_data: {
+        workspaceName: 'Demo Retail — Peak Sale Release',
+        release: { ...release, changeTicket: 'CHG-1850' },
+        context,
+        flags: afterFlags,
+      },
+    },
+  ];
+}
+
+function makeDemoAiAnalysis(workspaceName, release, context, flags, policyChecks) {
+  const blocked = policyChecks.filter((check) => check.status === 'block');
+  const warnings = policyChecks.filter((check) => check.status === 'warn');
+  const evaluations = flags.map((flag) => ({ flag, result: evaluateFlag(flag, context) }));
+  const activeHighRisk = evaluations.filter(({ flag, result }) => ['critical', 'high'].includes(flag.criticality) && Boolean(result.value));
+  const canaryBreaches = flags.filter((flag) => flag.enabled && flag.canaryRequired && flag.rollout > 50 && context.environment === 'production');
+  const brokenDeps = flags.flatMap((flag) =>
+    flag.enabled
+      ? flag.dependencies
+        .filter((dependency) => !flags.find((item) => item.key === dependency && item.enabled))
+        .map((dependency) => ({ flag, dependency }))
+      : []
+  );
+  const prodOverrides = flags.filter((flag) => flag.overrideValue !== null && context.environment === 'production');
+  const staleOrMissingExpiry = flags.filter((flag) => flag.enabled && !flag.expiresAt);
+  const ruleMatches = evaluations.filter(({ result }) => result.reason === 'rule');
+  const rolloutMatches = evaluations.filter(({ result }) => result.reason === 'rollout');
+  const blockerScore = blocked.length * 3 + brokenDeps.length * 3 + prodOverrides.length * 2 + canaryBreaches.length + warnings.length;
+  const riskLevel = blockerScore >= 8 || (activeHighRisk.length >= 5 && canaryBreaches.length >= 2)
+    ? 'CRITICAL'
+    : blockerScore >= 4 || brokenDeps.length > 0 || blocked.length > 0
+      ? 'HIGH'
+      : blockerScore >= 1 || activeHighRisk.length > 0
+        ? 'MEDIUM'
+        : 'LOW';
+  const decision = riskLevel === 'LOW' ? 'SHIP' : riskLevel === 'MEDIUM' ? 'SHIP WITH CAUTION' : 'HOLD';
+  const topFlagNames = (items) => items.slice(0, 3).map((item) => item.flag?.key || item.key).join(', ');
+  const findings = [];
+
+  if (blocked.length) findings.push(`${blocked.length} blocking policy gate(s): ${blocked.map((check) => check.title).join('; ')}.`);
+  if (warnings.length) findings.push(`${warnings.length} warning gate(s): ${warnings.map((check) => check.title).join('; ')}.`);
+  if (activeHighRisk.length) findings.push(`${activeHighRisk.length} high or critical flags evaluate active for ${context.role || 'user'} in ${context.environment || 'production'}: ${topFlagNames(activeHighRisk)}.`);
+  if (canaryBreaches.length) findings.push(`Canary limits are exceeded by ${canaryBreaches.map((flag) => `${flag.key} at ${flag.rollout}%`).join(', ')}.`);
+  if (brokenDeps.length) findings.push(`Dependency gap: ${brokenDeps.map(({ flag, dependency }) => `${flag.key} needs ${dependency}`).join('; ')}.`);
+  if (prodOverrides.length) findings.push(`Production override active on ${prodOverrides.map((flag) => flag.key).join(', ')}.`);
+  if (staleOrMissingExpiry.length) findings.push(`Missing expiration metadata on ${staleOrMissingExpiry.map((flag) => flag.key).join(', ')}.`);
+  if (!findings.length) findings.push('No blockers found for the current context, rollout, dependency, and policy state.');
+
+  const actions = [];
+  if (brokenDeps.length) actions.push(`Enable or remove the dependency before rollout: ${brokenDeps.map(({ dependency }) => dependency).join(', ')}.`);
+  if (canaryBreaches.length) actions.push(`Reduce canary-required rollouts to 50% or lower: ${canaryBreaches.map((flag) => flag.key).join(', ')}.`);
+  if (blocked.length) actions.push(`Clear blocking gates: ${blocked.map((check) => check.title).join(', ')}.`);
+  if (warnings.length && !blocked.length) actions.push(`Review warning gates before approving: ${warnings.map((check) => check.title).join(', ')}.`);
+  if (prodOverrides.length) actions.push(`Remove production overrides on ${prodOverrides.map((flag) => flag.key).join(', ')}.`);
+  if (!actions.length) actions.push('Save a clean snapshot, export the runbook, and proceed with normal release approval.');
+
+  return [
+    `# ${workspaceName || 'Demo Retail Release'} AI Risk Analysis`,
+    '',
+    `## RISK LEVEL: ${riskLevel}`,
+    '',
+    `Decision: ${decision}.`,
+    `Change ticket ${release.changeTicket || 'CHG-DEMO'} currently has ${blocked.length} blocking gate(s), ${warnings.length} warning gate(s), and ${activeHighRisk.length} active high-risk evaluation path(s).`,
+    `Context evaluated: ${context.environment || 'production'} / ${context.tenant || 'demo-retail-prod'} / ${context.role || 'role'} / ${context.region || 'region'} / ${context.device || 'device'}.`,
+    '',
+    '## Key Findings',
+    ...findings.slice(0, 6).map((finding) => `- ${finding}`),
+    '',
+    '## Immediate Fix List',
+    ...actions.map((action) => `- ${action}`),
+    '',
+    '## Evidence Snapshot',
+    `- Enabled flags: ${flags.filter((flag) => flag.enabled).length}/${flags.length}.`,
+    `- Rule matches: ${ruleMatches.length}; rollout evaluations: ${rolloutMatches.length}.`,
+    `- Selected release train: ${release.train || 'not set'}; window: ${release.window || 'not set'}.`,
+    `- Highest-risk flags: ${activeHighRisk.slice(0, 5).map(({ flag }) => `${flag.key} (${flag.criticality})`).join(', ') || 'none active'}.`,
+    '',
+    'This public-demo analysis is generated from the current workspace state, so toggles, rollouts, dependencies, and policy gates change the result.',
+  ].join('\n');
 }
 
 function hydrateWorkspace(input, fallbackName = 'My production workspace') {
@@ -2306,7 +2574,7 @@ function makePolicyChecks(flags, evaluations, context, release, integrations = d
       id: 'outbound-hooks',
       status: configuredOutbound ? 'pass' : 'warn',
       title: 'Outbound DevOps hooks configured',
-      detail: configuredOutbound ? `${configuredOutbound} GitHub/Jira/Slack endpoints configured.` : 'Payload copy works now; configure webhooks for one-click posting.',
+      detail: configuredOutbound ? `${configuredOutbound} GitHub/Jira/Slack webhook endpoints configured.` : 'Payload copy works now; configure webhooks for one-click posting.',
     },
   ];
 }

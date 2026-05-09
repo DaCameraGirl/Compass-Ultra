@@ -1,0 +1,28 @@
+name: Compass Ultra Release Gate
+description: Check a Compass Ultra workspace and fail CI when release risk is too high.
+inputs:
+  api-url:
+    description: Compass Ultra API base URL.
+    required: false
+    default: https://api.compass-ultra.com
+  api-key:
+    description: Compass Ultra API key.
+    required: true
+  workspace:
+    description: Path to exported Compass Ultra workspace JSON.
+    required: true
+  fail-on:
+    description: Risk threshold that fails the workflow. One of low, medium, high, critical.
+    required: false
+    default: high
+runs:
+  using: composite
+  steps:
+    - name: Run Compass release gate
+      shell: bash
+      run: node "$GITHUB_ACTION_PATH/compass-check.mjs"
+      env:
+        COMPASS_API_URL: ${{ inputs.api-url }}
+        COMPASS_API_KEY: ${{ inputs.api-key }}
+        COMPASS_WORKSPACE: ${{ inputs.workspace }}
+        COMPASS_FAIL_ON: ${{ inputs.fail-on }}
