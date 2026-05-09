@@ -2002,7 +2002,7 @@ export default function App() {
                   cta: 'Get started', highlight: false,
                 },
                 {
-                  name: 'Pro', price: '$99', period: 'per month',
+                  name: 'Pro', price: '$199', period: 'per month',
                   color: '#58a6ff',
                   features: ['7-day full-feature trial', 'Everything in Free', 'Unlimited snapshots', 'Cloud save & sync', 'Shareable public links', 'Snapshot diff viewer'],
                   cta: 'Start Free Trial', highlight: false, plan: 'pro',
