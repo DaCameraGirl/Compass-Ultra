@@ -210,6 +210,143 @@ function DashboardMock() {
   );
 }
 
+function DashboardMockInteractive() {
+  const [flags, setFlags] = useState(DEMO_FLAGS);
+  const [activeFlag, setActiveFlag] = useState(0);
+  const [analyzing, setAnalyzing] = useState(false);
+  const [showResult, setShowResult] = useState(false);
+
+  const active = flags[activeFlag] || flags[0];
+  const activeCritical = flags.filter(flag => flag.enabled && flag.risk === 'high').length;
+  const highRollout = flags.some(flag => flag.enabled && flag.risk === 'high' && flag.rollout > 50);
+  const disabledDependency = Boolean(
+    flags.find(flag => flag.key === 'checkout.new_flow')?.enabled &&
+    !flags.find(flag => flag.key === 'payments.stripe_v4')?.enabled
+  );
+  const score = Math.max(28, 96 - activeCritical * 14 - (highRollout ? 12 : 0) - (disabledDependency ? 16 : 0));
+  const riskColor = score >= 70 ? '#3fb950' : score >= 40 ? '#e3b341' : '#f85149';
+  const riskLevel = score >= 75 ? 'LOW' : score >= 55 ? 'MEDIUM' : 'HIGH';
+  const riskTone = riskLevel.toLowerCase();
+
+  const policyChecks = [
+    { label: 'Change ticket attached', pass: true },
+    { label: 'Approvers assigned', pass: true },
+    { label: 'Expiration dates set', pass: !flags.some(flag => flag.enabled && flag.risk !== 'low') },
+    { label: 'Canary limits respected', pass: !highRollout },
+    { label: 'No dependency gaps', pass: !disabledDependency },
+    { label: 'No production overrides', pass: true },
+  ];
+
+  const toggleFlag = (index) => {
+    setFlags(current => current.map((flag, i) => i === index ? { ...flag, enabled: !flag.enabled } : flag));
+    setActiveFlag(index);
+    setShowResult(false);
+  };
+
+  const setActiveRollout = (rollout) => {
+    setFlags(current => current.map((flag, i) => i === activeFlag ? { ...flag, rollout } : flag));
+    setShowResult(false);
+  };
+
+  const handleAnalyze = () => {
+    setAnalyzing(true);
+    setShowResult(false);
+    setTimeout(() => { setAnalyzing(false); setShowResult(true); }, 900);
+  };
+
+  return (
+    <div className="dash-mock">
+      <div className="dash-topbar">
+        <div className="dash-topbar-left">
+          <Compass size={14} color="#58a6ff" />
+          <span>Compass Ultra</span>
+          <span className="dash-badge-plan">DEMO</span>
+        </div>
+        <div className="dash-topbar-right">
+          <span className="dash-score-label">Release Score</span>
+          <span className="dash-score-value" style={{ color: riskColor }}>{score}%</span>
+        </div>
+      </div>
+
+      <div className="dash-body">
+        <div className="dash-flags">
+          <div className="dash-panel-title">Feature Flags <span className="dash-count">{flags.length}</span><span style={{ marginLeft: 'auto', fontSize: 9, color: '#484f58', fontWeight: 400, textTransform: 'none', letterSpacing: 0 }}>toggle + inspect</span></div>
+          {flags.map((flag, i) => (
+            <div key={flag.key} className={`dash-flag-row ${i === activeFlag ? 'dash-flag-row--active' : ''}`} onClick={() => setActiveFlag(i)}>
+              <button
+                type="button"
+                className={`dash-toggle ${flag.enabled ? 'dash-toggle--on' : ''}`}
+                onClick={(event) => {
+                  event.stopPropagation();
+                  toggleFlag(i);
+                }}
+                aria-label={`${flag.enabled ? 'Disable' : 'Enable'} ${flag.name}`}
+                aria-pressed={flag.enabled}
+              />
+              <div className="dash-flag-info">
+                <span className="dash-flag-name">{flag.name}</span>
+                <span className="dash-flag-key">{flag.key} · {flag.enabled ? `${flag.rollout}% rollout` : 'disabled'}</span>
+              </div>
+              <span className={`dash-risk-pill dash-risk-pill--${flag.risk}`}>{flag.risk.toUpperCase()}</span>
+            </div>
+          ))}
+        </div>
+
+        <div className="dash-right">
+          <div className="dash-panel">
+            <div className="dash-panel-title">Policy Gates</div>
+            <div className="dash-checks">
+              {policyChecks.map(check => (
+                <div key={check.label} className="dash-check-row">
+                  {check.pass ? <CheckCircle size={12} color="#3fb950" /> : <AlertTriangle size={12} color="#f85149" />}
+                  <span style={{ color: check.pass ? '#8b949e' : '#f85149' }}>{check.label}</span>
+                </div>
+              ))}
+            </div>
+            {active && (
+              <div className="dash-mini-editor">
+                <span>{active.name}</span>
+                <label>
+                  rollout
+                  <input type="range" min="0" max="100" value={active.rollout} disabled={!active.enabled} onChange={(event) => setActiveRollout(Number(event.target.value))} />
+                  <strong>{active.enabled ? `${active.rollout}%` : 'off'}</strong>
+                </label>
+              </div>
+            )}
+          </div>
+
+          <div className="dash-panel dash-ai-panel">
+            <div className="dash-panel-title"><Brain size={12} color="#bc8cff" /> AI Risk Analyzer<span style={{ marginLeft: 'auto', fontSize: 9, color: '#484f58', fontWeight: 400, textTransform: 'none', letterSpacing: 0 }}>interactive</span></div>
+            {!showResult && !analyzing && (
+              <button className="dash-analyze-btn" onClick={handleAnalyze}>
+                <Zap size={12} /> Run Analysis
+              </button>
+            )}
+            {analyzing && (
+              <div className="dash-analyzing">
+                <div className="dash-spinner" />
+                <span>Analyzing current flag state...</span>
+              </div>
+            )}
+            {showResult && (
+              <div className="dash-ai-result">
+                <div className="dash-risk-header">
+                  <span className={`dash-risk-badge dash-risk-badge--${riskTone}`}>{riskLevel} RISK</span>
+                  <span className="dash-with-caution">{riskLevel === 'LOW' ? 'READY' : 'WITH-CAUTION'}</span>
+                </div>
+                {disabledDependency && <div className="dash-finding"><span className="dash-finding-dot is-bad" /><span><strong>checkout.new_flow</strong> depends on payments.v2, which is disabled.</span></div>}
+                {highRollout && <div className="dash-finding"><span className="dash-finding-dot is-warn" /><span><strong>high-risk rollout</strong> exceeds the 50% canary limit.</span></div>}
+                {!disabledDependency && !highRollout && <div className="dash-finding"><span className="dash-finding-dot is-good" /><span><strong>policy gates</strong> are clear for the current demo state.</span></div>}
+                <div className="dash-finding"><span className="dash-finding-dot is-info" /><span><strong>{active?.key}</strong> is selected at {active?.enabled ? `${active.rollout}% rollout` : 'disabled'}.</span></div>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function LandingPage() {
   const navigate = useNavigate();
   const [scrolled, setScrolled] = useState(false);
@@ -291,7 +428,7 @@ export default function LandingPage() {
               </div>
             </div>
             <div className="lp-hero-visual">
-              <DashboardMock />
+              <DashboardMockInteractive />
             </div>
           </div>
         </div>
@@ -322,7 +459,7 @@ export default function LandingPage() {
           <div className="lp-section-header">
             <div className="lp-badge lp-badge--green">Live Demo</div>
             <h2>See it in action — no sign-up required</h2>
-            <p>Click below to open the full app preloaded with a realistic Black Friday release scenario.</p>
+            <p>Click below to open the full app preloaded with a neutral peak-sale release scenario.</p>
           </div>
           <div className="lp-demo-cta-wrap">
             <div className="lp-demo-preview">
@@ -330,7 +467,7 @@ export default function LandingPage() {
                 <span className="lp-dot lp-dot--red" />
                 <span className="lp-dot lp-dot--yellow" />
                 <span className="lp-dot lp-dot--green" />
-                <span className="lp-demo-preview-title">ShopFlow — Black Friday Release · 5 flags · HIGH RISK</span>
+                <span className="lp-demo-preview-title">Demo Retail — Peak Sale Release · 5 flags · HIGH RISK</span>
               </div>
               <div className="lp-demo-preview-body">
                 <div className="lp-demo-row lp-demo-row--bad">
@@ -372,7 +509,7 @@ export default function LandingPage() {
               </div>
               <div className="lp-demo-feature-item">
                 <CheckCircle size={16} color="#3fb950" />
-                <span>AI risk analyzer — real Claude API call, real result</span>
+                <span>AI risk analyzer available in the demo with a local sample result</span>
               </div>
               <div className="lp-demo-feature-item">
                 <CheckCircle size={16} color="#3fb950" />

@@ -47,9 +47,9 @@ import { api } from './api.js';
 const storageKey = 'compass-ultra-workspace-v4';
 
 const defaultContext = {
-  key: 'sre_001',
-  email: 'sarah.chen@shopflow.io',
-  tenant: 'shopflow-prod',
+  key: 'demo_admin_001',
+  email: 'admin@example.test',
+  tenant: 'demo-retail-prod',
   plan: 'enterprise',
   role: 'admin',
   region: 'us-east',
@@ -59,22 +59,22 @@ const defaultContext = {
 };
 
 const defaultRelease = {
-  train: 'bfcm-2026.11',
+  train: 'peak-sale-2026.11',
   changeTicket: 'CHG-20261120',
-  incidentChannel: '#bfcm-war-room',
-  releaseCaptain: 'Sarah Chen',
-  approver: 'Platform SRE',
+  incidentChannel: '#release-war-room',
+  releaseCaptain: 'Release Captain',
+  approver: 'Platform Approver',
   window: 'Thu 23:00-01:00 ET',
 };
 
 const defaultTeam = {
-  workspaceId: 'shopflow-prod',
+  workspaceId: 'demo-retail-prod',
   authMode: 'Local RBAC session',
   members: [
-    { id: 'admin', name: 'Sarah Chen', email: 'sarah.chen@shopflow.io', role: 'admin' },
-    { id: 'sre', name: 'Marcus Webb', email: 'marcus.webb@shopflow.io', role: 'approver' },
-    { id: 'qa', name: 'Priya Nair', email: 'priya.nair@shopflow.io', role: 'operator' },
-    { id: 'viewer', name: 'Jordan Lee', email: 'jordan.lee@shopflow.io', role: 'viewer' },
+    { id: 'admin', name: 'Admin Reviewer', email: 'admin@example.test', role: 'admin' },
+    { id: 'sre', name: 'Release Approver', email: 'approver@example.test', role: 'approver' },
+    { id: 'qa', name: 'QA Operator', email: 'operator@example.test', role: 'operator' },
+    { id: 'viewer', name: 'Read Only Viewer', email: 'viewer@example.test', role: 'viewer' },
   ],
   activeMemberId: 'admin',
 };
@@ -89,14 +89,14 @@ const defaultIntegrations = [
 ];
 
 const sampleContexts = [
-  { name: 'Prod admin', context: defaultContext },
+  { name: 'Production admin', context: defaultContext },
   {
-    name: 'EU shopper',
-    context: { ...defaultContext, key: 'user_8842', email: 'buyer@shopflow.de', tenant: 'shopflow-eu', role: 'customer', region: 'eu-west', country: 'DE' },
+    name: 'EU customer',
+    context: { ...defaultContext, key: 'demo_user_8842', email: 'customer-eu@example.test', tenant: 'demo-retail-eu', role: 'customer', region: 'eu-west', country: 'DE' },
   },
   {
     name: 'Mobile guest',
-    context: { ...defaultContext, key: 'guest_4401', email: 'guest@shopflow.io', tenant: 'shopflow-prod', plan: 'free', role: 'guest', region: 'us-west', device: 'mobile', environment: 'production' },
+    context: { ...defaultContext, key: 'demo_guest_4401', email: 'guest@example.test', tenant: 'demo-retail-prod', plan: 'free', role: 'guest', region: 'us-west', device: 'mobile', environment: 'production' },
   },
 ];
 
@@ -111,13 +111,13 @@ const seedFlags = [
     overrideValue: null,
     rollout: 45,
     criticality: 'high',
-    jira: 'SFW-1842',
+    jira: 'CHG-1842',
     approver: 'Growth Lead',
     expiresAt: '2026-12-01',
     rollback: 'Disable express_pay and revert to standard checkout flow. Flush CDN cache on /checkout.',
     canaryRequired: true,
     dependencies: ['payments.stripe_v4'],
-    tags: ['revenue', 'checkout', 'bfcm'],
+    tags: ['revenue', 'checkout', 'peak-sale'],
     rules: [{ attribute: 'device', operator: 'equals', value: 'mobile', valueWhenMatched: true }],
     source: 'LaunchDarkly',
   },
@@ -131,13 +131,13 @@ const seedFlags = [
     overrideValue: null,
     rollout: 100,
     criticality: 'critical',
-    jira: 'SFW-1801',
+    jira: 'CHG-1801',
     approver: 'Finance Ops',
     expiresAt: '2026-11-30',
     rollback: 'Set payments.stripe_v4 false. Revert to v3 SDK. Replay any failed charges from dead-letter queue.',
     canaryRequired: true,
     dependencies: [],
-    tags: ['payments', 'critical', 'bfcm'],
+    tags: ['payments', 'critical', 'peak-sale'],
     rules: [{ attribute: 'country', operator: 'notEquals', value: 'DE', valueWhenMatched: true }],
     source: 'Statsig',
   },
@@ -151,7 +151,7 @@ const seedFlags = [
     overrideValue: null,
     rollout: 100,
     criticality: 'critical',
-    jira: 'SFW-1799',
+    jira: 'CHG-1799',
     approver: 'Security',
     expiresAt: '2026-12-31',
     rollback: 'Revert model to rules_v1 and set blockOnTimeout false.',
@@ -171,13 +171,13 @@ const seedFlags = [
     overrideValue: null,
     rollout: 60,
     criticality: 'high',
-    jira: 'SFW-1823',
-    approver: 'Marcus Webb',
+    jira: 'CHG-1823',
+    approver: 'Platform Approver',
     expiresAt: '2026-11-28',
     rollback: 'Disable realtime_sync. Fall back to 5-minute polling. Alert #inventory-ops.',
     canaryRequired: true,
     dependencies: [],
-    tags: ['inventory', 'bfcm', 'platform'],
+    tags: ['inventory', 'peak-sale', 'platform'],
     rules: [],
     source: 'Statsig',
   },
@@ -191,7 +191,7 @@ const seedFlags = [
     overrideValue: null,
     rollout: 25,
     criticality: 'medium',
-    jira: 'SFW-1810',
+    jira: 'CHG-1810',
     approver: 'Search Lead',
     expiresAt: '2027-01-15',
     rollback: 'Force variant to keyword.',
@@ -212,13 +212,13 @@ const seedFlags = [
     overrideValue: null,
     rollout: 35,
     criticality: 'high',
-    jira: 'SFW-1835',
+    jira: 'CHG-1835',
     approver: 'Logistics Lead',
     expiresAt: '2026-12-26',
     rollback: 'Disable same_day flag. Show standard shipping only.',
     canaryRequired: true,
     dependencies: ['inventory.realtime_sync'],
-    tags: ['shipping', 'bfcm', 'logistics'],
+    tags: ['shipping', 'peak-sale', 'logistics'],
     rules: [{ attribute: 'region', operator: 'equals', value: 'us-east', valueWhenMatched: true }],
     source: 'LaunchDarkly',
   },
@@ -232,7 +232,7 @@ const seedFlags = [
     overrideValue: null,
     rollout: 10,
     criticality: 'low',
-    jira: 'SFW-1788',
+    jira: 'CHG-1788',
     approver: 'Frontend Lead',
     expiresAt: '2027-03-01',
     rollback: 'Disable dark_mode. No data impact.',
@@ -252,13 +252,13 @@ const seedFlags = [
     overrideValue: null,
     rollout: 0,
     criticality: 'critical',
-    jira: 'SFW-1000',
-    approver: 'Sarah Chen',
+    jira: 'CHG-1000',
+    approver: 'Platform Approver',
     expiresAt: '2027-12-31',
     rollback: 'Enable to shed load and force degraded mode across all services.',
     canaryRequired: false,
     dependencies: [],
-    tags: ['sre', 'emergency', 'bfcm'],
+    tags: ['sre', 'emergency', 'peak-sale'],
     rules: [],
     source: 'Local',
   },
@@ -272,7 +272,7 @@ const seedFlags = [
     overrideValue: null,
     rollout: 100,
     criticality: 'critical',
-    jira: 'SFW-1791',
+    jira: 'CHG-1791',
     approver: 'Privacy',
     expiresAt: '2027-12-31',
     rollback: 'Revert to v2 consent banner. Notify legal immediately.',
@@ -292,13 +292,13 @@ const seedFlags = [
     overrideValue: null,
     rollout: 100,
     criticality: 'critical',
-    jira: 'SFW-1850',
+    jira: 'CHG-1850',
     approver: 'Finance Ops',
     expiresAt: '2026-11-30',
     rollback: 'Disable flash_sale_engine immediately. Revert prices via admin panel. Alert #commerce-ops.',
     canaryRequired: true,
     dependencies: ['payments.stripe_v4', 'inventory.realtime_sync'],
-    tags: ['pricing', 'bfcm', 'revenue', 'critical'],
+    tags: ['pricing', 'peak-sale', 'revenue', 'critical'],
     rules: [],
     source: 'Statsig',
   },
@@ -306,8 +306,8 @@ const seedFlags = [
 
 const samplePacks = {
   dcg: {
-    label: 'ShopFlow — Black Friday Release',
-    workspaceName: 'ShopFlow — BFCM 2026 Release Command',
+    label: 'Demo Retail — Peak Sale Release',
+    workspaceName: 'Demo Retail — Peak Sale Command',
     flags: seedFlags,
   },
   launchdarkly: {
@@ -366,6 +366,7 @@ export default function App() {
   const [diffB, setDiffB] = useState(null);
   const [showDiff, setShowDiff] = useState(false);
   const [showPricing, setShowPricing] = useState(false);
+  const [demoMode, setDemoMode] = useState(() => new URLSearchParams(window.location.search).get('demo') === 'true');
   const [userPlan, setUserPlan] = useState('free');
   const [upgradeNotice, setUpgradeNotice] = useState('');
   const [gateNotice, setGateNotice] = useState('');
@@ -377,8 +378,8 @@ export default function App() {
     setShowOnboarding(false);
   };
 
-  const canUseAI   = userPlan === 'team';
-  const canUseDiff = userPlan === 'pro' || userPlan === 'team';
+  const canUseAI   = demoMode || userPlan === 'team';
+  const canUseDiff = demoMode || userPlan === 'pro' || userPlan === 'team';
   const canExportAudit = userPlan === 'team';
   const snapshotCap = userPlan === 'free' ? 3 : Infinity;
 
@@ -427,6 +428,10 @@ export default function App() {
   const enabledFlags = flags.filter((flag) => flag.enabled).length;
   const matchedRules = evaluations.filter(({ result }) => result.reason === 'rule').length;
   const criticalActive = evaluations.filter(({ flag, result }) => flag.criticality === 'critical' && Boolean(result.value)).length;
+  const diffSnapshots = useMemo(
+    () => (demoMode && cloudSnapshots.length < 2 ? makeDemoSnapshots(seedFlags, defaultContext, defaultRelease) : cloudSnapshots),
+    [cloudSnapshots, demoMode]
+  );
 
   const workspace = useMemo(
     () => ({
@@ -887,8 +892,22 @@ export default function App() {
     record('Workspace reset');
   };
 
+  const openSnapshotDiff = () => {
+    if (!canUseDiff) {
+      requirePlan('Pro', 'Snapshot diff viewer');
+      return;
+    }
+
+    if (demoMode && !diffA && !diffB) {
+      const demoSnapshots = makeDemoSnapshots(seedFlags, defaultContext, defaultRelease);
+      setDiffA(demoSnapshots[0]);
+      setDiffB(demoSnapshots[1]);
+    }
+    setShowDiff((current) => !current);
+  };
+
   const loadDemo = () => {
-    const demo = hydrateWorkspace({ flags: seedFlags, workspaceName: 'Acme Corp — Production Release' });
+    const demo = hydrateWorkspace({ flags: seedFlags, workspaceName: 'Demo Retail — Production Release' });
     setWorkspaceName(demo.workspaceName);
     setRelease({ ...defaultRelease, changeTicket: 'CHG-24051', train: 'prod-2026.05', releaseCaptain: 'Demo User' });
     setTeam(demo.team);
@@ -896,6 +915,7 @@ export default function App() {
     setContext(demo.context);
     setFlags(demo.flags);
     setSelectedKey(demo.flags[0]?.key || '');
+    setDemoMode(true);
     record('Demo workspace loaded');
   };
 
@@ -930,14 +950,15 @@ export default function App() {
     const params = new URLSearchParams(window.location.search);
 
     if (params.get('demo') === 'true') {
-      const demo = hydrateWorkspace({ flags: seedFlags, workspaceName: 'ShopFlow — Black Friday Release' });
+      const demo = hydrateWorkspace({ flags: seedFlags, workspaceName: 'Demo Retail — Peak Sale Release' });
       setWorkspaceName(demo.workspaceName);
-      setRelease({ ...defaultRelease, changeTicket: 'SFW-1850', train: 'prod-2026.11', releaseCaptain: 'Angela Hudson' });
+      setRelease({ ...defaultRelease, changeTicket: 'CHG-1850', train: 'peak-sale-2026.11', releaseCaptain: 'Demo Release Lead' });
       setTeam(demo.team);
       setIntegrations(demo.integrations);
       setContext(demo.context);
       setFlags(demo.flags);
       setSelectedKey(demo.flags[0]?.key || '');
+      setDemoMode(true);
       record('Demo workspace auto-loaded');
       window.history.replaceState({}, '', window.location.pathname);
       return;
@@ -1004,6 +1025,19 @@ export default function App() {
   };
 
   const runAiAnalysis = async () => {
+    if (demoMode && !isAuthenticated) {
+      setAiLoading(true);
+      setAiAnalysis('');
+      window.setTimeout(() => {
+        const analysis = makeDemoAiAnalysis(workspaceName, release, context, flags, policyChecks);
+        setAiAnalysis(analysis);
+        const riskMatch = analysis.match(/##\s*RISK LEVEL:\s*(LOW|MEDIUM|HIGH|CRITICAL)/i);
+        setAiRiskLevel(riskMatch ? riskMatch[1].toUpperCase() : '');
+        setAiLoading(false);
+        record('Demo AI risk analysis complete');
+      }, 650);
+      return;
+    }
     if (!isAuthenticated) { loginWithRedirect(); return; }
     if (!canUseAI) { requirePlan('Team', 'AI risk analyzer'); return; }
     setAiLoading(true);
@@ -1079,11 +1113,11 @@ export default function App() {
           <button type="button" onClick={() => setShowPricing(true)} title="Pricing" aria-label="Pricing" style={{ color: '#ffb800' }}>
             <DollarSign size={17} aria-hidden="true" />
           </button>
-          <button type="button" onClick={() => canUseDiff ? setShowDiff(v => !v) : requirePlan('Pro', 'Snapshot diff viewer')} title={canUseDiff ? 'Snapshot diff viewer' : 'Snapshot diff viewer (Pro)'} aria-label="Snapshot diff viewer" style={{ color: showDiff ? '#58a6ff' : canUseDiff ? '#8b949e' : '#3d4451' }}>
+          <button type="button" onClick={openSnapshotDiff} title={demoMode ? 'Demo snapshot diff viewer' : canUseDiff ? 'Snapshot diff viewer' : 'Snapshot diff viewer (Pro)'} aria-label="Snapshot diff viewer" style={{ color: showDiff ? '#58a6ff' : canUseDiff ? '#8b949e' : '#3d4451' }}>
             <GitCompare size={17} aria-hidden="true" />
             {!canUseDiff && <LockKeyhole size={9} style={{ position: 'absolute', marginLeft: -7, marginTop: 8, color: '#ffb800' }} />}
           </button>
-          <button type="button" onClick={runAiAnalysis} title={canUseAI ? 'AI risk analysis' : 'AI risk analysis (Team)'} aria-label="AI risk analysis" style={{ color: aiLoading ? '#ffb800' : canUseAI ? '#bc8cff' : '#3d4451', position: 'relative' }}>
+          <button type="button" onClick={runAiAnalysis} title={demoMode ? 'Run demo AI risk analysis' : canUseAI ? 'AI risk analysis' : 'AI risk analysis (Team)'} aria-label="AI risk analysis" style={{ color: aiLoading ? '#ffb800' : canUseAI ? '#bc8cff' : '#3d4451', position: 'relative' }}>
             <BrainCircuit size={17} aria-hidden="true" />
             {!canUseAI && <LockKeyhole size={9} style={{ position: 'absolute', top: 0, right: 0, color: '#ffb800' }} />}
           </button>
@@ -1577,24 +1611,27 @@ export default function App() {
                 <h2>Snapshot Diff</h2>
                 <button type="button" onClick={() => setShowDiff(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#8b949e' }}>✕</button>
               </div>
-              {cloudSnapshots.length < 2 ? (
+              {diffSnapshots.length < 2 ? (
                 <p style={{ fontSize: 11, color: '#8b949e' }}>Save at least 2 cloud snapshots to compare them.</p>
               ) : (
                 <>
+                  {demoMode && cloudSnapshots.length < 2 && (
+                    <p style={{ fontSize: 11, color: '#8b949e', marginBottom: 10 }}>Demo mode uses two sample snapshots so you can try the diff viewer without logging in.</p>
+                  )}
                   <label style={{ fontSize: 10, color: '#8b949e', display: 'block', marginBottom: 6 }}>
                     Snapshot A (before)
                     <select style={{ width: '100%', background: '#161b22', border: '1px solid rgba(255,255,255,0.07)', color: '#e6edf3', padding: '4px 6px', borderRadius: 4, marginTop: 4, fontSize: 10 }}
-                      value={diffA?.id || ''} onChange={e => setDiffA(cloudSnapshots.find(s => s.id === e.target.value) || null)}>
+                      value={diffA?.id || ''} onChange={e => setDiffA(diffSnapshots.find(s => s.id === e.target.value) || null)}>
                       <option value=''>Select snapshot…</option>
-                      {cloudSnapshots.map(s => <option key={s.id} value={s.id}>{s.name} — {new Date(s.created_at).toLocaleString()}</option>)}
+                      {diffSnapshots.map(s => <option key={s.id} value={s.id}>{s.name} — {new Date(s.created_at).toLocaleString()}</option>)}
                     </select>
                   </label>
                   <label style={{ fontSize: 10, color: '#8b949e', display: 'block', marginBottom: 10 }}>
                     Snapshot B (after)
                     <select style={{ width: '100%', background: '#161b22', border: '1px solid rgba(255,255,255,0.07)', color: '#e6edf3', padding: '4px 6px', borderRadius: 4, marginTop: 4, fontSize: 10 }}
-                      value={diffB?.id || ''} onChange={e => setDiffB(cloudSnapshots.find(s => s.id === e.target.value) || null)}>
+                      value={diffB?.id || ''} onChange={e => setDiffB(diffSnapshots.find(s => s.id === e.target.value) || null)}>
                       <option value=''>Select snapshot…</option>
-                      {cloudSnapshots.map(s => <option key={s.id} value={s.id}>{s.name} — {new Date(s.created_at).toLocaleString()}</option>)}
+                      {diffSnapshots.map(s => <option key={s.id} value={s.id}>{s.name} — {new Date(s.created_at).toLocaleString()}</option>)}
                     </select>
                   </label>
                   {diffA && diffB && (() => {
@@ -2076,6 +2113,68 @@ function loadWorkspace() {
   } catch {
     return hydrateWorkspace({});
   }
+}
+
+function makeDemoSnapshots(flags, context, release) {
+  const beforeFlags = flags.map((flag) => ({ ...flag, rollout: Math.min(flag.rollout, 25), overrideValue: null }));
+  const afterFlags = flags.map((flag) => {
+    if (flag.key === 'checkout.express_pay') return { ...flag, rollout: 45 };
+    if (flag.key === 'promos.flash_sale_engine') return { ...flag, enabled: true, rollout: 100 };
+    if (flag.key === 'payments.stripe_v4') return { ...flag, enabled: false };
+    return flag;
+  });
+
+  return [
+    {
+      id: 'demo-before',
+      name: 'Demo baseline checkpoint',
+      created_at: '2026-05-01T14:00:00.000Z',
+      snapshot_data: {
+        workspaceName: 'Demo Retail — Baseline',
+        release: { ...release, changeTicket: 'CHG-1840' },
+        context,
+        flags: beforeFlags,
+      },
+    },
+    {
+      id: 'demo-after',
+      name: 'Demo peak-sale rollout',
+      created_at: '2026-05-01T16:30:00.000Z',
+      snapshot_data: {
+        workspaceName: 'Demo Retail — Peak Sale Release',
+        release: { ...release, changeTicket: 'CHG-1850' },
+        context,
+        flags: afterFlags,
+      },
+    },
+  ];
+}
+
+function makeDemoAiAnalysis(workspaceName, release, context, flags, policyChecks) {
+  const blocked = policyChecks.filter((check) => check.status === 'block');
+  const warnings = policyChecks.filter((check) => check.status === 'warn');
+  const criticalFlags = flags.filter((flag) => ['critical', 'high'].includes(flag.criticality));
+
+  return [
+    `# ${workspaceName || 'Demo Retail Release'} AI Risk Analysis`,
+    '',
+    '## RISK LEVEL: HIGH',
+    '',
+    `Change ticket ${release.changeTicket || 'CHG-DEMO'} has ${blocked.length} blocking check(s) and ${warnings.length} warning check(s).`,
+    `The production context is ${context.environment || 'production'} for tenant ${context.tenant || 'demo-retail-prod'}.`,
+    '',
+    '## Key Findings',
+    `- ${criticalFlags.length} high or critical flags are active in the demo release path.`,
+    '- Canary-required rollout limits need review before broad production exposure.',
+    '- Dependency checks should be resolved before enabling checkout, pricing, or inventory paths together.',
+    '',
+    '## Recommended Action',
+    '- Hold broad rollout until dependency and canary findings are cleared.',
+    '- Keep rollback commands attached to every critical flag.',
+    '- Save a clean snapshot before changes and compare it against the release snapshot before approval.',
+    '',
+    'Demo note: this analysis is generated locally for the public demo. Signed-in Team workspaces can call the live backend analyzer.',
+  ].join('\n');
 }
 
 function hydrateWorkspace(input, fallbackName = 'My production workspace') {
