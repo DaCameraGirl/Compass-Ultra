@@ -622,6 +622,19 @@ export default function LandingPage() {
                 </button>
               </div>
               <p className="lp-hero-note">No account needed for the demo. Free forever to get started.</p>
+              <div className="lp-hero-ai-card">
+                <div className="lp-hero-ai-head">
+                  <Brain size={16} />
+                  <strong>AI Release Risk Analyzer</strong>
+                  <span>HIGH RISK</span>
+                </div>
+                <p><strong>checkout.new_flow</strong> depends on disabled payments.v2 for EU paid users.</p>
+                <ul>
+                  <li>Reduce rollout to 10%</li>
+                  <li>Assign production approver</li>
+                  <li>Add rollback owner</li>
+                </ul>
+              </div>
               <div className="lp-hero-logos">
                 <span>Works with</span>
                 {BUILT_FOR.slice(0, 4).map((provider) => (

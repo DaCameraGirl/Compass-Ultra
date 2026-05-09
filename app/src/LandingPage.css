@@ -225,6 +225,71 @@
   margin: 14px 0 0;
 }
 
+.lp-hero-ai-card {
+  max-width: 520px;
+  margin: 18px 0 0;
+  border: 1px solid rgba(188,140,255,0.24);
+  border-radius: 10px;
+  background: rgba(188,140,255,0.07);
+  padding: 16px;
+  box-shadow: 0 18px 50px rgba(188,140,255,0.08);
+}
+
+.lp-hero-ai-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+  color: #bc8cff;
+}
+
+.lp-hero-ai-head strong {
+  color: #e6edf3;
+  font-size: 13px;
+}
+
+.lp-hero-ai-head span {
+  margin-left: auto;
+  border: 1px solid rgba(248,81,73,0.32);
+  border-radius: 999px;
+  background: rgba(248,81,73,0.13);
+  color: #f85149;
+  padding: 3px 8px;
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 0.5px;
+}
+
+.lp-hero-ai-card p {
+  margin: 0 0 10px;
+  color: #c9d1d9;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.lp-hero-ai-card p strong {
+  color: #fff;
+}
+
+.lp-hero-ai-card ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.lp-hero-ai-card li {
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 999px;
+  background: rgba(255,255,255,0.04);
+  color: #8b949e;
+  padding: 5px 9px;
+  font-size: 11px;
+  font-weight: 700;
+}
+
 /* ─── TERMINAL ──────────────────────────────────────────────────── */
 .lp-terminal {
   background: #0e1117;

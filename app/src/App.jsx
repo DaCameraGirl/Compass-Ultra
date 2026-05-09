@@ -440,6 +440,8 @@ export default function App() {
 
   const policyChecks = useMemo(() => makePolicyChecks(flags, evaluations, context, release, integrations), [context, evaluations, flags, integrations, release]);
   const releaseState = getReleaseState(policyChecks);
+  const policyBlockers = policyChecks.filter((check) => check.status === 'block').length;
+  const policyWarnings = policyChecks.filter((check) => check.status === 'warn').length;
 
   const visibleEvaluations = evaluations.filter(({ flag }) => {
     const text = `${flag.key} ${flag.name} ${flag.owner} ${flag.source} ${flag.criticality} ${flag.jira} ${flag.tags?.join(' ')}`.toLowerCase();
@@ -1212,6 +1214,38 @@ export default function App() {
           <input ref={importRef} className="hidden-file" type="file" accept="application/json,.json" onChange={importWorkspace} />
         </div>
       </header>
+
+      <section className="ai-risk-strip" data-risk={aiRiskLevel ? aiRiskLevel.toLowerCase() : 'pending'}>
+        <div className="ai-risk-main">
+          <div className="ai-risk-icon">
+            <BrainCircuit size={22} aria-hidden="true" />
+          </div>
+          <div>
+            <span className="ai-risk-kicker">AI Release Risk Analyzer</span>
+            <h1>
+              {aiLoading
+                ? 'Claude is reviewing this release.'
+                : aiRiskLevel
+                  ? `${aiRiskLevel} risk detected`
+                  : 'Run the AI risk check before deploy.'}
+            </h1>
+            <p>
+              {aiAnalysis
+                ? 'Latest analysis is ready below with blockers, affected flags, and recommended actions.'
+                : 'Send the current flags, policy gates, release context, and rollout data for a ship/no-ship review.'}
+            </p>
+          </div>
+        </div>
+        <div className="ai-risk-metrics">
+          <span><strong>{releaseState.score}%</strong> readiness</span>
+          <span><strong>{policyBlockers}</strong> blockers</span>
+          <span><strong>{policyWarnings}</strong> warnings</span>
+        </div>
+        <button type="button" className="ai-risk-cta" onClick={runAiAnalysis} disabled={aiLoading}>
+          <BrainCircuit size={16} aria-hidden="true" />
+          {aiLoading ? 'Analyzing...' : aiRiskLevel ? 'Run Again' : 'Run AI Risk Analysis'}
+        </button>
+      </section>
 
       {demoMode && (
         <section className="demo-guide-bar" aria-label="Demo walkthrough">
