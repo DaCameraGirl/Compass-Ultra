@@ -42,6 +42,7 @@ import {
   Webhook,
   XCircle,
 } from 'lucide-react';
+import { Analytics } from '@vercel/analytics/react';
 import { api } from './api.js';
 
 const storageKey = 'compass-ultra-workspace-v4';
@@ -2108,6 +2109,7 @@ export default function App() {
           </div>
         </div>
       )}
+      <Analytics />
     </main>
   );
 }
