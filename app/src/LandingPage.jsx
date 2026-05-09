@@ -43,19 +43,26 @@ const FEATURES = [
 const STEPS = [
   {
     number: '01',
-    title: 'Connect Your Flag Data',
-    description: 'Import from LaunchDarkly, Statsig, Firebase Remote Config, or paste any JSON export. Your full flag inventory loads in seconds.',
+    title: 'Load the release state',
+    description: 'Import LaunchDarkly, Statsig, Firebase Remote Config, or any JSON export. Compass Ultra turns scattered flags into one reviewable release.',
   },
   {
     number: '02',
-    title: 'Run the Pre-Release Analysis',
-    description: 'AI evaluates every flag against your user context, runs 8 policy gates, identifies dependency conflicts, and generates a complete risk assessment.',
+    title: 'Find what can break',
+    description: 'Policy gates and AI analysis call out dependency gaps, risky rollouts, missing approvals, expired flags, and context-specific surprises.',
   },
   {
     number: '03',
-    title: 'Ship with Full Confidence',
-    description: 'Get a clear ship/no-ship recommendation, export your PDF runbook, share the snapshot with your team, and deploy knowing you\'re covered.',
+    title: 'Share the proof',
+    description: 'Compare snapshots, export the runbook, and hand your team a clear ship, hold, or fix-first decision before production changes.',
   },
+];
+
+const DEMO_TOUR_STEPS = [
+  'Toggle a release flag',
+  'Watch policy gates update',
+  'Run AI analysis',
+  'Compare and export proof',
 ];
 
 const PRICING = [
@@ -66,17 +73,17 @@ const PRICING = [
   },
   {
     name: 'Pro', price: '$99', period: 'per month', color: '#58a6ff', highlight: false,
-    features: ['7-day free trial', 'Unlimited snapshots', 'Cloud save & sync', 'Shareable public links', 'Snapshot diff viewer', 'All Free features'],
+    features: ['7-day full-feature trial', 'Everything in Free', 'Unlimited snapshots', 'Cloud save & sync', 'Shareable public links', 'Snapshot diff viewer'],
     cta: 'Start Free Trial',
   },
   {
     name: 'Team', price: '$499', period: 'per month', color: '#3fb950', highlight: true,
-    features: ['7-day free trial', 'Everything in Pro', 'AI risk analyzer', 'Flag expiration alerts', 'Team RBAC', 'Audit log export', 'Priority support'],
+    features: ['7-day full-feature trial', 'Everything in Pro', 'AI risk analyzer', 'Flag expiration alerts', 'Team RBAC', 'Slack workflow payloads', 'Audit log export', 'Priority support'],
     cta: 'Start Free Trial',
   },
   {
     name: 'Enterprise', price: 'Contact sales', period: '', color: '#bc8cff', highlight: false,
-    features: ['Everything in Team', 'SSO / SAML', 'Slack bot integration', 'Real-time collaboration', 'SLA guarantee', 'Dedicated onboarding'],
+    features: ['Everything in Team', 'SSO / SAML', 'Custom security review', 'Real-time collaboration', 'SLA guarantee', 'Dedicated onboarding'],
     cta: 'Contact Sales',
   },
 ];
@@ -215,6 +222,7 @@ function DashboardMockInteractive() {
   const [activeFlag, setActiveFlag] = useState(0);
   const [analyzing, setAnalyzing] = useState(false);
   const [showResult, setShowResult] = useState(false);
+  const [demoAction, setDemoAction] = useState('Change a flag, then run the release review.');
 
   const active = flags[activeFlag] || flags[0];
   const activeCritical = flags.filter(flag => flag.enabled && flag.risk === 'high').length;
@@ -241,17 +249,41 @@ function DashboardMockInteractive() {
     setFlags(current => current.map((flag, i) => i === index ? { ...flag, enabled: !flag.enabled } : flag));
     setActiveFlag(index);
     setShowResult(false);
+    setDemoAction('Flag changed. The release score and gates updated.');
   };
 
   const setActiveRollout = (rollout) => {
     setFlags(current => current.map((flag, i) => i === activeFlag ? { ...flag, rollout } : flag));
     setShowResult(false);
+    setDemoAction('Rollout changed. Policy gates recalculated.');
   };
 
   const handleAnalyze = () => {
     setAnalyzing(true);
     setShowResult(false);
-    setTimeout(() => { setAnalyzing(false); setShowResult(true); }, 900);
+    setDemoAction('AI is reviewing the current flag state.');
+    setTimeout(() => {
+      setAnalyzing(false);
+      setShowResult(true);
+      setDemoAction('Analysis complete. Compare snapshots or export the runbook next.');
+    }, 900);
+  };
+
+  const applyScenario = (mode) => {
+    setFlags(current => current.map((flag) => {
+      if (mode === 'safe') {
+        if (flag.risk === 'high') return { ...flag, enabled: false, rollout: 0 };
+        if (flag.key === 'payments.stripe_v4') return { ...flag, enabled: true, rollout: 35 };
+        return { ...flag, enabled: flag.risk !== 'low', rollout: Math.min(flag.rollout || 25, 35) };
+      }
+      if (flag.key === 'payments.stripe_v4') return { ...flag, enabled: false, rollout: 0 };
+      if (flag.key === 'checkout.new_flow') return { ...flag, enabled: true, rollout: 90 };
+      if (flag.key === 'flash_sale_engine') return { ...flag, enabled: true, rollout: 80 };
+      return flag;
+    }));
+    setActiveFlag(mode === 'safe' ? 1 : 0);
+    setShowResult(false);
+    setDemoAction(mode === 'safe' ? 'Release stabilized. Run analysis to confirm.' : 'Blocker created. Run analysis to see why.');
   };
 
   return (
@@ -266,6 +298,14 @@ function DashboardMockInteractive() {
           <span className="dash-score-label">Release Score</span>
           <span className="dash-score-value" style={{ color: riskColor }}>{score}%</span>
         </div>
+      </div>
+
+      <div className="dash-demo-rail">
+        {DEMO_TOUR_STEPS.map((step, index) => (
+          <span key={step} className={index <= (showResult ? 3 : analyzing ? 2 : 1) ? 'is-current' : ''}>
+            {index + 1}. {step}
+          </span>
+        ))}
       </div>
 
       <div className="dash-body">
@@ -293,6 +333,10 @@ function DashboardMockInteractive() {
         </div>
 
         <div className="dash-right">
+          <div className="dash-scenario-strip">
+            <button type="button" onClick={() => applyScenario('blocked')}>Create blocker</button>
+            <button type="button" onClick={() => applyScenario('safe')}>Stabilize</button>
+          </div>
           <div className="dash-panel">
             <div className="dash-panel-title">Policy Gates</div>
             <div className="dash-checks">
@@ -338,8 +382,13 @@ function DashboardMockInteractive() {
                 {highRollout && <div className="dash-finding"><span className="dash-finding-dot is-warn" /><span><strong>high-risk rollout</strong> exceeds the 50% canary limit.</span></div>}
                 {!disabledDependency && !highRollout && <div className="dash-finding"><span className="dash-finding-dot is-good" /><span><strong>policy gates</strong> are clear for the current demo state.</span></div>}
                 <div className="dash-finding"><span className="dash-finding-dot is-info" /><span><strong>{active?.key}</strong> is selected at {active?.enabled ? `${active.rollout}% rollout` : 'disabled'}.</span></div>
+                <div className="dash-next-actions">
+                  <button type="button" onClick={() => setDemoAction('Snapshot Diff would compare the last safe checkpoint against this release.')}>Snapshot Diff</button>
+                  <button type="button" onClick={() => setDemoAction('Runbook export would package gates, risks, and rollback steps for review.')}>Export Runbook</button>
+                </div>
               </div>
             )}
+            <p className="dash-demo-note">{demoAction}</p>
           </div>
         </div>
       </div>
@@ -404,11 +453,11 @@ export default function LandingPage() {
             <div className="lp-hero-text">
               <div className="lp-badge">Release Intelligence Platform</div>
               <h1 className="lp-hero-headline">
-                Ship smarter.<br />
-                <span className="lp-gradient-text">Every release.</span>
+                Catch risky releases<br />
+                <span className="lp-gradient-text">before production.</span>
               </h1>
               <p className="lp-hero-sub">
-                AI-powered risk analysis, automated policy enforcement, and instant handoff documentation — before a single change touches production.
+                Compass Ultra turns feature flags, policy checks, AI review, snapshot diffs, and release runbooks into one pre-production command center.
               </p>
               <div className="lp-hero-actions">
                 <button className="lp-btn-primary lp-btn-lg" onClick={goToDemo}>
@@ -439,10 +488,10 @@ export default function LandingPage() {
         <div className="lp-container">
           <div className="lp-stats-grid">
             {[
-              { value: '8', label: 'Automated Policy Gates' },
-              { value: 'AI', label: 'Ship / No-Ship Assessment' },
-              { value: '1-click', label: 'PDF Runbook Export' },
-              { value: '100%', label: 'Audit Trail Coverage' },
+              { value: '8', label: 'Policy gates before deploy' },
+              { value: 'AI', label: 'Risk explanation for each release' },
+              { value: 'Diff', label: 'Snapshot comparison' },
+              { value: 'PDF', label: 'Runbook handoff' },
             ].map((s, i) => (
               <div key={i} className="lp-stat">
                 <strong>{s.value}</strong>
@@ -458,8 +507,8 @@ export default function LandingPage() {
         <div className="lp-container">
           <div className="lp-section-header">
             <div className="lp-badge lp-badge--green">Live Demo</div>
-            <h2>See it in action — no sign-up required</h2>
-            <p>Click below to open the full app preloaded with a neutral peak-sale release scenario.</p>
+            <h2>Try the release review loop</h2>
+            <p>Change a flag, run AI analysis, compare snapshots, and export a runbook with no account required.</p>
           </div>
           <div className="lp-demo-cta-wrap">
             <div className="lp-demo-preview">
@@ -509,7 +558,11 @@ export default function LandingPage() {
               </div>
               <div className="lp-demo-feature-item">
                 <CheckCircle size={16} color="#3fb950" />
-                <span>AI risk analyzer available in the demo with a local sample result</span>
+                <span>AI risk analyzer calls the live backend when available</span>
+              </div>
+              <div className="lp-demo-feature-item">
+                <CheckCircle size={16} color="#3fb950" />
+                <span>Snapshot diff opens with before-and-after sample releases</span>
               </div>
               <div className="lp-demo-feature-item">
                 <CheckCircle size={16} color="#3fb950" />

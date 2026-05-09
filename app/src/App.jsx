@@ -1028,13 +1028,24 @@ export default function App() {
     if (demoMode && !isAuthenticated) {
       setAiLoading(true);
       setAiAnalysis('');
+      try {
+        const { analysis } = await api.analyzeDemoFlags({ flags, context, release, policyChecks });
+        setAiAnalysis(analysis);
+        const riskMatch = analysis.match(/##\s*RISK LEVEL:\s*(LOW|MEDIUM|HIGH|CRITICAL)/i);
+        setAiRiskLevel(riskMatch ? riskMatch[1].toUpperCase() : '');
+        setAiLoading(false);
+        record('Live demo AI risk analysis complete');
+        return;
+      } catch (e) {
+        record('Live demo AI unavailable; using state-aware fallback', e.message || '', 'warn');
+      }
       window.setTimeout(() => {
         const analysis = makeDemoAiAnalysis(workspaceName, release, context, flags, policyChecks);
         setAiAnalysis(analysis);
         const riskMatch = analysis.match(/##\s*RISK LEVEL:\s*(LOW|MEDIUM|HIGH|CRITICAL)/i);
         setAiRiskLevel(riskMatch ? riskMatch[1].toUpperCase() : '');
         setAiLoading(false);
-        record('Demo AI risk analysis complete');
+        record('State-aware demo AI risk analysis complete');
       }, 650);
       return;
     }
@@ -1159,6 +1170,29 @@ export default function App() {
           <input ref={importRef} className="hidden-file" type="file" accept="application/json,.json" onChange={importWorkspace} />
         </div>
       </header>
+
+      {demoMode && (
+        <section className="demo-guide-bar" aria-label="Demo walkthrough">
+          <div>
+            <strong>Try the release review loop</strong>
+            <span>Toggle a risky flag, run AI analysis, compare snapshots, then export the runbook.</span>
+          </div>
+          <div className="demo-guide-actions">
+            <button type="button" onClick={runAiAnalysis}>
+              <BrainCircuit size={15} aria-hidden="true" />
+              Run AI
+            </button>
+            <button type="button" onClick={openSnapshotDiff}>
+              <GitCompare size={15} aria-hidden="true" />
+              Snapshot Diff
+            </button>
+            <button type="button" onClick={exportPDF}>
+              <FileDown size={15} aria-hidden="true" />
+              Export Runbook
+            </button>
+          </div>
+        </section>
+      )}
 
       <section id="workspace" className="workspace-layout">
         <WorkspaceGuide />
@@ -1928,19 +1962,19 @@ export default function App() {
                 {
                   name: 'Pro', price: '$99', period: 'per month',
                   color: '#58a6ff',
-                  features: ['7-day free trial', 'Unlimited snapshots', 'Cloud save & sync', 'Shareable public links', 'Snapshot diff viewer', 'All Free features'],
+                  features: ['7-day full-feature trial', 'Everything in Free', 'Unlimited snapshots', 'Cloud save & sync', 'Shareable public links', 'Snapshot diff viewer'],
                   cta: 'Start Free Trial', highlight: false, plan: 'pro',
                 },
                 {
                   name: 'Team', price: '$499', period: 'per month',
                   color: '#3fb950',
-                  features: ['7-day free trial', 'Everything in Pro', 'AI risk analyzer', 'Flag expiration alerts', 'Team RBAC', 'Audit log export', 'Priority support'],
+                  features: ['7-day full-feature trial', 'Everything in Pro', 'AI risk analyzer', 'Flag expiration alerts', 'Team RBAC', 'Slack workflow payloads', 'Audit log export', 'Priority support'],
                   cta: 'Start Free Trial', highlight: true, plan: 'team',
                 },
                 {
                   name: 'Enterprise', price: 'Contact sales', period: '',
                   color: '#bc8cff',
-                  features: ['Everything in Team', 'SSO / SAML', 'Slack bot integration', 'Real-time collaboration', 'SLA guarantee', 'Dedicated onboarding'],
+                  features: ['Everything in Team', 'SSO / SAML', 'Custom security review', 'Real-time collaboration', 'SLA guarantee', 'Dedicated onboarding'],
                   cta: 'Contact Sales', highlight: false, plan: 'enterprise',
                 },
               ].map(tier => {
@@ -2066,7 +2100,7 @@ function WorkspaceGuide() {
       icon: <Rocket size={17} aria-hidden="true" />,
       body: [
         'PDF Release Runbooks include gate status, policy check results, active flag evaluations, and per-flag rollback procedures. Formatted for management review, CAB submission, or incident war room reference.',
-        'Integration payloads for GitHub Issues, Jira change tickets, and Slack War Room webhooks are generated from live workspace state. POST directly via a configured proxy or copy the JSON for manual submission.',
+        'Integration payloads for GitHub Issues, Jira change tickets, and Slack workflow webhooks are generated from live workspace state. POST directly via a configured proxy or copy the JSON for manual submission. A full installed Slack bot can come later.',
         'The SDK Payload delivers machine-readable evaluated flag values with ownership, ticket references, criticality ratings, and evaluation reasons attached — ready for downstream applications and deployment pipelines.',
       ],
     },
@@ -2153,27 +2187,71 @@ function makeDemoSnapshots(flags, context, release) {
 function makeDemoAiAnalysis(workspaceName, release, context, flags, policyChecks) {
   const blocked = policyChecks.filter((check) => check.status === 'block');
   const warnings = policyChecks.filter((check) => check.status === 'warn');
-  const criticalFlags = flags.filter((flag) => ['critical', 'high'].includes(flag.criticality));
+  const evaluations = flags.map((flag) => ({ flag, result: evaluateFlag(flag, context) }));
+  const activeHighRisk = evaluations.filter(({ flag, result }) => ['critical', 'high'].includes(flag.criticality) && Boolean(result.value));
+  const canaryBreaches = flags.filter((flag) => flag.enabled && flag.canaryRequired && flag.rollout > 50 && context.environment === 'production');
+  const brokenDeps = flags.flatMap((flag) =>
+    flag.enabled
+      ? flag.dependencies
+        .filter((dependency) => !flags.find((item) => item.key === dependency && item.enabled))
+        .map((dependency) => ({ flag, dependency }))
+      : []
+  );
+  const prodOverrides = flags.filter((flag) => flag.overrideValue !== null && context.environment === 'production');
+  const staleOrMissingExpiry = flags.filter((flag) => flag.enabled && !flag.expiresAt);
+  const ruleMatches = evaluations.filter(({ result }) => result.reason === 'rule');
+  const rolloutMatches = evaluations.filter(({ result }) => result.reason === 'rollout');
+  const blockerScore = blocked.length * 3 + brokenDeps.length * 3 + prodOverrides.length * 2 + canaryBreaches.length + warnings.length;
+  const riskLevel = blockerScore >= 8 || (activeHighRisk.length >= 5 && canaryBreaches.length >= 2)
+    ? 'CRITICAL'
+    : blockerScore >= 4 || brokenDeps.length > 0 || blocked.length > 0
+      ? 'HIGH'
+      : blockerScore >= 1 || activeHighRisk.length > 0
+        ? 'MEDIUM'
+        : 'LOW';
+  const decision = riskLevel === 'LOW' ? 'SHIP' : riskLevel === 'MEDIUM' ? 'SHIP WITH CAUTION' : 'HOLD';
+  const topFlagNames = (items) => items.slice(0, 3).map((item) => item.flag?.key || item.key).join(', ');
+  const findings = [];
+
+  if (blocked.length) findings.push(`${blocked.length} blocking policy gate(s): ${blocked.map((check) => check.title).join('; ')}.`);
+  if (warnings.length) findings.push(`${warnings.length} warning gate(s): ${warnings.map((check) => check.title).join('; ')}.`);
+  if (activeHighRisk.length) findings.push(`${activeHighRisk.length} high or critical flags evaluate active for ${context.role || 'user'} in ${context.environment || 'production'}: ${topFlagNames(activeHighRisk)}.`);
+  if (canaryBreaches.length) findings.push(`Canary limits are exceeded by ${canaryBreaches.map((flag) => `${flag.key} at ${flag.rollout}%`).join(', ')}.`);
+  if (brokenDeps.length) findings.push(`Dependency gap: ${brokenDeps.map(({ flag, dependency }) => `${flag.key} needs ${dependency}`).join('; ')}.`);
+  if (prodOverrides.length) findings.push(`Production override active on ${prodOverrides.map((flag) => flag.key).join(', ')}.`);
+  if (staleOrMissingExpiry.length) findings.push(`Missing expiration metadata on ${staleOrMissingExpiry.map((flag) => flag.key).join(', ')}.`);
+  if (!findings.length) findings.push('No blockers found for the current context, rollout, dependency, and policy state.');
+
+  const actions = [];
+  if (brokenDeps.length) actions.push(`Enable or remove the dependency before rollout: ${brokenDeps.map(({ dependency }) => dependency).join(', ')}.`);
+  if (canaryBreaches.length) actions.push(`Reduce canary-required rollouts to 50% or lower: ${canaryBreaches.map((flag) => flag.key).join(', ')}.`);
+  if (blocked.length) actions.push(`Clear blocking gates: ${blocked.map((check) => check.title).join(', ')}.`);
+  if (warnings.length && !blocked.length) actions.push(`Review warning gates before approving: ${warnings.map((check) => check.title).join(', ')}.`);
+  if (prodOverrides.length) actions.push(`Remove production overrides on ${prodOverrides.map((flag) => flag.key).join(', ')}.`);
+  if (!actions.length) actions.push('Save a clean snapshot, export the runbook, and proceed with normal release approval.');
 
   return [
     `# ${workspaceName || 'Demo Retail Release'} AI Risk Analysis`,
     '',
-    '## RISK LEVEL: HIGH',
+    `## RISK LEVEL: ${riskLevel}`,
     '',
-    `Change ticket ${release.changeTicket || 'CHG-DEMO'} has ${blocked.length} blocking check(s) and ${warnings.length} warning check(s).`,
-    `The production context is ${context.environment || 'production'} for tenant ${context.tenant || 'demo-retail-prod'}.`,
+    `Decision: ${decision}.`,
+    `Change ticket ${release.changeTicket || 'CHG-DEMO'} currently has ${blocked.length} blocking gate(s), ${warnings.length} warning gate(s), and ${activeHighRisk.length} active high-risk evaluation path(s).`,
+    `Context evaluated: ${context.environment || 'production'} / ${context.tenant || 'demo-retail-prod'} / ${context.role || 'role'} / ${context.region || 'region'} / ${context.device || 'device'}.`,
     '',
     '## Key Findings',
-    `- ${criticalFlags.length} high or critical flags are active in the demo release path.`,
-    '- Canary-required rollout limits need review before broad production exposure.',
-    '- Dependency checks should be resolved before enabling checkout, pricing, or inventory paths together.',
+    ...findings.slice(0, 6).map((finding) => `- ${finding}`),
     '',
-    '## Recommended Action',
-    '- Hold broad rollout until dependency and canary findings are cleared.',
-    '- Keep rollback commands attached to every critical flag.',
-    '- Save a clean snapshot before changes and compare it against the release snapshot before approval.',
+    '## Immediate Fix List',
+    ...actions.map((action) => `- ${action}`),
     '',
-    'Demo note: this analysis is generated locally for the public demo. Signed-in Team workspaces can call the live backend analyzer.',
+    '## Evidence Snapshot',
+    `- Enabled flags: ${flags.filter((flag) => flag.enabled).length}/${flags.length}.`,
+    `- Rule matches: ${ruleMatches.length}; rollout evaluations: ${rolloutMatches.length}.`,
+    `- Selected release train: ${release.train || 'not set'}; window: ${release.window || 'not set'}.`,
+    `- Highest-risk flags: ${activeHighRisk.slice(0, 5).map(({ flag }) => `${flag.key} (${flag.criticality})`).join(', ') || 'none active'}.`,
+    '',
+    'This public-demo analysis is generated from the current workspace state, so toggles, rollouts, dependencies, and policy gates change the result.',
   ].join('\n');
 }
 
@@ -2418,7 +2496,7 @@ function makePolicyChecks(flags, evaluations, context, release, integrations = d
       id: 'outbound-hooks',
       status: configuredOutbound ? 'pass' : 'warn',
       title: 'Outbound DevOps hooks configured',
-      detail: configuredOutbound ? `${configuredOutbound} GitHub/Jira/Slack endpoints configured.` : 'Payload copy works now; configure webhooks for one-click posting.',
+      detail: configuredOutbound ? `${configuredOutbound} GitHub/Jira/Slack webhook endpoints configured.` : 'Payload copy works now; configure webhooks for one-click posting.',
     },
   ];
 }

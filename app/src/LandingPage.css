@@ -749,6 +749,24 @@
   grid-template-columns: 1fr 1fr;
   min-height: 260px;
 }
+.dash-demo-rail {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1px;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+  background: rgba(255,255,255,0.03);
+}
+.dash-demo-rail span {
+  padding: 7px 8px;
+  color: #484f58;
+  font-size: 8px;
+  line-height: 1.25;
+  background: #0d1117;
+}
+.dash-demo-rail .is-current {
+  color: #58a6ff;
+  background: rgba(88,166,255,0.08);
+}
 .dash-flags {
   border-right: 1px solid rgba(255,255,255,0.05);
   padding: 10px 0;
@@ -850,6 +868,25 @@
   display: flex;
   flex-direction: column;
   gap: 0;
+}
+.dash-scenario-strip {
+  display: flex;
+  gap: 6px;
+  padding: 8px 10px 0;
+}
+.dash-scenario-strip button {
+  flex: 1;
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 5px;
+  background: rgba(255,255,255,0.03);
+  color: #8b949e;
+  padding: 5px 6px;
+  font-size: 9px;
+  font-weight: 700;
+}
+.dash-scenario-strip button:hover {
+  border-color: rgba(88,166,255,0.4);
+  color: #e6edf3;
 }
 .dash-panel {
   padding: 10px 12px;
@@ -974,6 +1011,27 @@
 .dash-finding-dot.is-warn { background: #e3b341; }
 .dash-finding-dot.is-good { background: #3fb950; }
 .dash-finding-dot.is-info { background: #58a6ff; }
+.dash-next-actions {
+  display: flex;
+  gap: 6px;
+  margin-top: 8px;
+}
+.dash-next-actions button {
+  flex: 1;
+  border: 1px solid rgba(88,166,255,0.22);
+  border-radius: 5px;
+  background: rgba(88,166,255,0.06);
+  color: #58a6ff;
+  padding: 5px 6px;
+  font-size: 8px;
+  font-weight: 800;
+}
+.dash-demo-note {
+  margin: 8px 0 0;
+  color: #484f58;
+  font-size: 9px;
+  line-height: 1.4;
+}
 
 /* ─── DEMO SECTION ───────────────────────────────────────────────── */
 .lp-demo-section { background: #07090e; }
