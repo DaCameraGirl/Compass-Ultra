@@ -142,7 +142,7 @@ function DashboardMock() {
       <div className="dash-body">
         {/* flag list */}
         <div className="dash-flags">
-          <div className="dash-panel-title">Feature Flags <span className="dash-count">{DEMO_FLAGS.length}</span></div>
+          <div className="dash-panel-title">Feature Flags <span className="dash-count">{DEMO_FLAGS.length}</span><span style={{marginLeft:'auto',fontSize:9,color:'#484f58',fontWeight:400,textTransform:'none',letterSpacing:0}}>click to inspect</span></div>
           {DEMO_FLAGS.map((flag, i) => (
             <div
               key={flag.key}
@@ -180,7 +180,7 @@ function DashboardMock() {
 
           {/* AI analyzer */}
           <div className="dash-panel dash-ai-panel">
-            <div className="dash-panel-title"><Brain size={12} color="#bc8cff" /> AI Risk Analyzer</div>
+            <div className="dash-panel-title"><Brain size={12} color="#bc8cff" /> AI Risk Analyzer<span style={{marginLeft:'auto',fontSize:9,color:'#484f58',fontWeight:400,textTransform:'none',letterSpacing:0}}>preview</span></div>
             {!showResult && !analyzing && (
               <button className="dash-analyze-btn" onClick={handleAnalyze}>
                 <Zap size={12} /> Run Analysis

@@ -928,6 +928,21 @@ export default function App() {
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
+
+    if (params.get('demo') === 'true') {
+      const demo = hydrateWorkspace({ flags: seedFlags, workspaceName: 'ShopFlow — Black Friday Release' });
+      setWorkspaceName(demo.workspaceName);
+      setRelease({ ...defaultRelease, changeTicket: 'SFW-1850', train: 'prod-2026.11', releaseCaptain: 'Angela Hudson' });
+      setTeam(demo.team);
+      setIntegrations(demo.integrations);
+      setContext(demo.context);
+      setFlags(demo.flags);
+      setSelectedKey(demo.flags[0]?.key || '');
+      record('Demo workspace auto-loaded');
+      window.history.replaceState({}, '', window.location.pathname);
+      return;
+    }
+
     const upgraded = params.get('upgraded');
     if (upgraded) {
       setUpgradeNotice(`You're now on the ${upgraded.charAt(0).toUpperCase() + upgraded.slice(1)} plan — welcome aboard!`);
