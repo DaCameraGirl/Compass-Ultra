@@ -367,11 +367,20 @@ export default function App() {
   const [showDiff, setShowDiff] = useState(false);
   const [showPricing, setShowPricing] = useState(false);
   const [demoMode, setDemoMode] = useState(() => new URLSearchParams(window.location.search).get('demo') === 'true');
-  const [userPlan, setUserPlan] = useState('free');
+  const [userPlan, setUserPlan] = useState(() => (
+    typeof window !== 'undefined'
+      ? new URLSearchParams(window.location.search).get('upgraded') || 'free'
+      : 'free'
+  ));
   const [upgradeNotice, setUpgradeNotice] = useState('');
   const [gateNotice, setGateNotice] = useState('');
   const [showOnboarding, setShowOnboarding] = useState(() => !localStorage.getItem('cu-onboarded'));
   const [onboardStep, setOnboardStep] = useState(1);
+  const checkoutPlanRef = useRef(
+    typeof window !== 'undefined'
+      ? new URLSearchParams(window.location.search).get('upgraded')
+      : null
+  );
 
   const finishOnboarding = () => {
     localStorage.setItem('cu-onboarded', '1');
@@ -387,6 +396,19 @@ export default function App() {
     setGateNotice(`${label} requires the ${needed} plan.`);
     setShowPricing(true);
     setTimeout(() => setGateNotice(''), 100);
+  };
+
+  const getPublicReturnUrl = () => (
+    window.location.hostname === 'localhost' ? window.location.origin : 'https://compassultra.com'
+  );
+
+  const handleLogout = () => {
+    checkoutPlanRef.current = null;
+    setUserPlan('free');
+    setCloudSnapshots([]);
+    setCloudNotice('');
+    setUpgradeNotice('');
+    logout({ logoutParams: { returnTo: getPublicReturnUrl() } });
   };
 
   const importRef = useRef(null);
@@ -938,13 +960,32 @@ export default function App() {
   }, [isAuthenticated]);
 
   useEffect(() => {
-    if (!isAuthenticated) return;
-    if (new URLSearchParams(window.location.search).get('upgraded')) return;
-    getAccessTokenSilently({ authorizationParams: { audience: import.meta.env.VITE_AUTH0_AUDIENCE } })
-      .then((token) => api.getPlan(token))
-      .then((data) => setUserPlan(data.plan || 'free'))
-      .catch(() => {});
-  }, [isAuthenticated]);
+    if (!isAuthenticated) return undefined;
+    let cancelled = false;
+    const expectedPlan = checkoutPlanRef.current;
+    const refreshPlan = async (attempt = 0) => {
+      try {
+        const token = await getAccessTokenSilently({ authorizationParams: { audience: import.meta.env.VITE_AUTH0_AUDIENCE } });
+        const data = await api.getPlan(token);
+        const nextPlan = data.plan || 'free';
+        if (cancelled) return;
+        if (expectedPlan && nextPlan === 'free' && attempt < 10) {
+          window.setTimeout(() => refreshPlan(attempt + 1), 1500);
+          return;
+        }
+        setUserPlan(nextPlan);
+        if (!expectedPlan || nextPlan !== 'free') checkoutPlanRef.current = null;
+      } catch {
+        if (!cancelled && expectedPlan && attempt < 10) {
+          window.setTimeout(() => refreshPlan(attempt + 1), 1500);
+        }
+      }
+    };
+    refreshPlan();
+    return () => {
+      cancelled = true;
+    };
+  }, [getAccessTokenSilently, isAuthenticated]);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -966,6 +1007,7 @@ export default function App() {
 
     const upgraded = params.get('upgraded');
     if (upgraded) {
+      checkoutPlanRef.current = upgraded;
       setUpgradeNotice(`You're now on the ${upgraded.charAt(0).toUpperCase() + upgraded.slice(1)} plan — welcome aboard!`);
       setUserPlan(upgraded);
       window.history.replaceState({}, '', window.location.pathname);
@@ -1159,7 +1201,7 @@ export default function App() {
             >{userPlan}</button>
           )}
           {isAuthenticated ? (
-            <button type="button" onClick={() => logout({ logoutParams: { returnTo: window.location.href } })} title={`Logout ${user?.email}`} aria-label="Logout">
+            <button type="button" onClick={handleLogout} title={`Logout ${user?.email}`} aria-label="Logout">
               <LogOut size={17} aria-hidden="true" />
             </button>
           ) : (

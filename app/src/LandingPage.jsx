@@ -88,6 +88,26 @@ const PRICING = [
   },
 ];
 
+const BUILT_FOR = ['LaunchDarkly', 'Unleash', 'Flagsmith', 'OpenFeature', 'Statsig', 'Firebase', 'Any JSON'];
+
+const TESTIMONIALS = [
+  {
+    quote: 'Saved us from a major incident during a Friday checkout rollout.',
+    name: 'Maya Chen',
+    role: 'Head of Platform, Fintech Co',
+  },
+  {
+    quote: 'Compass Ultra gave our release captain one place to see risk, policy gaps, and rollback notes.',
+    name: 'Jordan Ellis',
+    role: 'VP Engineering, CommerceOps',
+  },
+  {
+    quote: 'The AI review found a dependency issue our normal launch checklist missed.',
+    name: 'Priya Nair',
+    role: 'Staff DevOps Engineer, HealthCloud',
+  },
+];
+
 const DEMO_FLAGS = [
   { key: 'checkout.new_flow', name: 'New Checkout Flow', enabled: true, risk: 'high', rollout: 85 },
   { key: 'payments.stripe_v4', name: 'Stripe v4 Integration', enabled: true, risk: 'medium', rollout: 100 },
@@ -104,6 +124,134 @@ const POLICY_CHECKS = [
   { label: 'No circular dependencies', pass: true },
   { label: 'No production overrides', pass: true },
 ];
+
+const TOUR_STEPS = [
+  {
+    title: 'Change flag',
+    eyebrow: 'Step 1',
+    detail: 'Inspect checkout.new_flow and catch the risky EU dependency before launch.',
+    badge: 'HIGH',
+  },
+  {
+    title: 'Run AI analysis',
+    eyebrow: 'Step 2',
+    detail: 'Claude reviews the full flag workspace and returns a ship/no-ship assessment.',
+    badge: 'WITH CAUTION',
+  },
+  {
+    title: 'Review snapshot diff',
+    eyebrow: 'Step 3',
+    detail: 'Compare the release checkpoint against the last stable production snapshot.',
+    badge: '4 CHANGES',
+  },
+  {
+    title: 'Export PDF',
+    eyebrow: 'Step 4',
+    detail: 'Generate the release runbook with rollback notes, owners, and gate results.',
+    badge: 'READY',
+  },
+];
+
+function ProductTour() {
+  const [step, setStep] = useState(0);
+  const active = TOUR_STEPS[step];
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setStep((current) => (current + 1) % TOUR_STEPS.length);
+    }, 2800);
+    return () => clearInterval(interval);
+  }, []);
+
+  return (
+    <div className="lp-product-tour" aria-label="Compass Ultra product walkthrough">
+      <div className="lp-tour-screen">
+        <div className="lp-tour-bar">
+          <span className="lp-dot lp-dot--red" />
+          <span className="lp-dot lp-dot--yellow" />
+          <span className="lp-dot lp-dot--green" />
+          <span>Compass Ultra product tour</span>
+          <strong>0:{String((step + 1) * 12).padStart(2, '0')}</strong>
+        </div>
+        <div className="lp-tour-stage">
+          <div className="lp-tour-left">
+            <div className={`lp-tour-flag ${step === 0 ? 'is-active' : ''}`}>
+              <span>checkout.new_flow</span>
+              <strong>85% rollout</strong>
+            </div>
+            <div className={`lp-tour-flag ${step === 1 ? 'is-active' : ''}`}>
+              <span>AI risk analyzer</span>
+              <strong>Claude review</strong>
+            </div>
+            <div className={`lp-tour-flag ${step === 2 ? 'is-active' : ''}`}>
+              <span>Snapshot diff</span>
+              <strong>prod vs release</strong>
+            </div>
+            <div className={`lp-tour-flag ${step === 3 ? 'is-active' : ''}`}>
+              <span>PDF runbook</span>
+              <strong>CAB-ready export</strong>
+            </div>
+          </div>
+          <div className="lp-tour-main">
+            <div className="lp-tour-kicker">{active.eyebrow}</div>
+            <h3>{active.title}</h3>
+            <p>{active.detail}</p>
+            <span className={`lp-tour-badge lp-tour-badge--${step}`}>{active.badge}</span>
+            <div className="lp-tour-progress">
+              {TOUR_STEPS.map((item, index) => (
+                <button
+                  key={item.title}
+                  type="button"
+                  className={index === step ? 'is-active' : ''}
+                  onClick={() => setStep(index)}
+                  aria-label={`Show ${item.title}`}
+                />
+              ))}
+            </div>
+          </div>
+          <div className="lp-tour-side">
+            {step === 0 && (
+              <>
+                <AlertTriangle size={18} />
+                <strong>Dependency blocked</strong>
+                <span>payments.v2 disabled for EU users</span>
+              </>
+            )}
+            {step === 1 && (
+              <>
+                <Brain size={18} />
+                <strong>AI recommendation</strong>
+                <span>Fix 2 blockers before shipping</span>
+              </>
+            )}
+            {step === 2 && (
+              <>
+                <GitCompare size={18} />
+                <strong>Snapshot changes</strong>
+                <span>2 flags changed, 1 added, 1 removed</span>
+              </>
+            )}
+            {step === 3 && (
+              <>
+                <FileDown size={18} />
+                <strong>Runbook exported</strong>
+                <span>Rollback notes and policy gates included</span>
+              </>
+            )}
+          </div>
+        </div>
+      </div>
+      <div className="lp-video-flow">
+        {TOUR_STEPS.map((item, index) => (
+          <React.Fragment key={item.title}>
+            <span className={index === step ? 'is-active' : ''}>{item.title}</span>
+            {index < TOUR_STEPS.length - 1 && <ArrowRight size={14} />}
+          </React.Fragment>
+        ))}
+      </div>
+    </div>
+  );
+}
 
 function DashboardMock() {
   const [activeFlag, setActiveFlag] = useState(0);
@@ -409,6 +557,9 @@ export default function LandingPage() {
 
   const goToApp = () => navigate('/app');
   const goToDemo = () => navigate('/app?demo=true');
+  const bookDemo = () => {
+    window.location.href = 'mailto:hello@compassultra.com?subject=Book%20a%2015-min%20Compass%20Ultra%20demo';
+  };
 
   return (
     <div className="lp-root">
@@ -453,11 +604,11 @@ export default function LandingPage() {
             <div className="lp-hero-text">
               <div className="lp-badge">Release Intelligence Platform</div>
               <h1 className="lp-hero-headline">
-                Catch risky releases<br />
-                <span className="lp-gradient-text">before production.</span>
+                Ship faster.<br />
+                <span className="lp-gradient-text">Break nothing.</span>
               </h1>
               <p className="lp-hero-sub">
-                Compass Ultra turns feature flags, policy checks, AI review, snapshot diffs, and release runbooks into one pre-production command center.
+                Local-first React control room for feature flags, experiments, and safe production releases. Real-time policy checks plus Claude AI risk analysis before you deploy.
               </p>
               <div className="lp-hero-actions">
                 <button className="lp-btn-primary lp-btn-lg" onClick={goToDemo}>
@@ -466,14 +617,16 @@ export default function LandingPage() {
                 <button className="lp-btn-ghost lp-btn-lg" onClick={goToApp}>
                   Start Free <ArrowRight size={16} />
                 </button>
+                <button className="lp-btn-ghost lp-btn-lg" onClick={bookDemo}>
+                  Book a 15-min demo
+                </button>
               </div>
               <p className="lp-hero-note">No account needed for the demo. Free forever to get started.</p>
               <div className="lp-hero-logos">
                 <span>Works with</span>
-                <span className="lp-provider-pill">LaunchDarkly</span>
-                <span className="lp-provider-pill">Statsig</span>
-                <span className="lp-provider-pill">Firebase</span>
-                <span className="lp-provider-pill">Any JSON</span>
+                {BUILT_FOR.slice(0, 4).map((provider) => (
+                  <span key={provider} className="lp-provider-pill">{provider}</span>
+                ))}
               </div>
             </div>
             <div className="lp-hero-visual">
@@ -484,6 +637,17 @@ export default function LandingPage() {
       </section>
 
       {/* ── STATS BAR ── */}
+      <section className="lp-built-for">
+        <div className="lp-container">
+          <span>Built for teams already shipping with</span>
+          <div className="lp-built-for-grid">
+            {BUILT_FOR.map((provider) => (
+              <div key={provider} className="lp-provider-logo">{provider}</div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       <section className="lp-stats">
         <div className="lp-container">
           <div className="lp-stats-grid">
@@ -574,6 +738,9 @@ export default function LandingPage() {
               </div>
             </div>
           </div>
+          <div className="lp-video-panel">
+            <ProductTour />
+          </div>
         </div>
       </section>
 
@@ -620,6 +787,27 @@ export default function LandingPage() {
       </section>
 
       {/* ── AI SPOTLIGHT ── */}
+      <section className="lp-section lp-section--alt">
+        <div className="lp-container">
+          <div className="lp-section-header">
+            <div className="lp-badge">Social Proof</div>
+            <h2>Trusted by release teams before the launch rush</h2>
+            <p>Placeholder customer quotes for the public launch page. Swap these for real users as they come in.</p>
+          </div>
+          <div className="lp-testimonials-grid">
+            {TESTIMONIALS.map((item) => (
+              <article key={item.name} className="lp-testimonial-card">
+                <p>"{item.quote}"</p>
+                <div>
+                  <strong>{item.name}</strong>
+                  <span>{item.role}</span>
+                </div>
+              </article>
+            ))}
+          </div>
+        </div>
+      </section>
+
       <section className="lp-ai-spotlight">
         <div className="lp-ai-glow" />
         <div className="lp-container">
@@ -729,6 +917,9 @@ export default function LandingPage() {
             <button className="lp-btn-ghost lp-btn-lg" onClick={goToApp}>
               Start Free <ArrowRight size={16} />
             </button>
+            <button className="lp-btn-ghost lp-btn-lg" onClick={bookDemo}>
+              Book a 15-min demo for your team
+            </button>
           </div>
           <p className="lp-cta-note">No credit card required. Demo opens instantly.</p>
         </div>
@@ -750,6 +941,9 @@ export default function LandingPage() {
               <a href="#features">Features</a>
               <a href="#how">How It Works</a>
               <a href="#pricing">Pricing</a>
+              <a href="https://github.com/DaCameraGirl/Compass-Ultra">GitHub</a>
+              <a href="/privacy">Privacy</a>
+              <a href="/terms">Terms</a>
               <button className="lp-footer-app-link" onClick={goToApp}>Launch App →</button>
             </div>
           </div>

@@ -45,6 +45,44 @@ code {
   font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
 }
 
+.legal-page {
+  min-height: 100vh;
+  background: #07090e;
+  color: #e6edf3;
+  padding: 72px 24px;
+}
+
+.legal-page section {
+  max-width: 720px;
+  margin: 0 auto;
+  background: #0e1117;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  padding: 36px;
+}
+
+.legal-page h1 {
+  margin: 0 0 16px;
+  font-size: 36px;
+}
+
+.legal-page p {
+  color: #8b949e;
+  line-height: 1.7;
+}
+
+.legal-page a {
+  color: #58a6ff;
+}
+
+.legal-back {
+  display: block;
+  max-width: 720px;
+  margin: 0 auto 18px;
+  text-decoration: none;
+  font-weight: 800;
+}
+
 .app-shell {
   min-height: 100vh;
 }
