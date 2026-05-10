@@ -10,7 +10,7 @@
 [![Status](https://img.shields.io/badge/✅_STATUS-PRODUCTION-22c55e?style=for-the-badge)](https://compassultra.com)
 [![Demo](https://img.shields.io/badge/🎮_DEMO-No_Login_Required-58a6ff?style=for-the-badge)](https://compassultra.com/app?demo=true)
 [![Auth0](https://img.shields.io/badge/🔐_AUTH-Auth0-eb5424?style=for-the-badge)](https://auth0.com)
-[![AI](https://img.shields.io/badge/🤖_AI-Claude_Sonnet-f97316?style=for-the-badge)](https://anthropic.com)
+[![AI](https://img.shields.io/badge/🤖_AI-Optional_Risk_Engine-f97316?style=for-the-badge)](https://anthropic.com)
 [![Stripe](https://img.shields.io/badge/💳_PAYMENTS-Stripe-635bff?style=for-the-badge)](https://stripe.com)
 
 ---
@@ -28,7 +28,7 @@
 
 **Compass Ultra** is a **release intelligence platform** and **feature flag control room** for frontend, QA, DevOps, and platform teams.
 
-It helps teams inspect feature flags, targeting rules, rollout state, provider imports, overrides, policy gates, and AI release risk **before production**.
+It helps teams inspect feature flags, targeting rules, rollout state, provider imports, overrides, policy gates, and release risk **before production**.
 
 Instead of guessing whether a release is safe, Compass Ultra gives teams a reviewable control room for the messy part of release day.
 
@@ -54,7 +54,7 @@ The demo workspace simulates a blocked production release with:
 - 🚩 Feature flags
 - 🛡️ Policy gates
 - ⚠️ Rollout warnings
-- 🤖 AI risk findings
+- 🤖 Risk findings
 - 🔍 Snapshot comparison
 - 📄 PDF runbook export
 - 🔗 GitHub, Jira, and Slack payload generation
@@ -86,7 +86,7 @@ Sample flags include:
 The demo lets users:
 
 1. 🔁 Change a flag
-2. 🧠 Run AI analysis
+2. 🧠 Run risk analysis
 3. 🛡️ Watch policy gates update
 4. 🔍 Compare snapshots
 5. 📄 Export a release runbook
@@ -112,9 +112,9 @@ Compass Ultra turns that mess into a repeatable release review workflow.
 
 ---
 
-## 🧠 AI Release Risk Analyzer
+## 🧠 Release Risk Analyzer
 
-Compass Ultra reviews the active release workspace and returns a structured ship / no-ship assessment.
+Compass Ultra reviews the active release workspace and returns a structured ship / no-ship assessment. In demo mode it can use the local deterministic risk engine; when the backend AI service is configured, it can use the live AI analyzer.
 
 It can identify:
 
@@ -137,6 +137,7 @@ dark_mode_v3 requires canary rollout but is set to 100%.
 
 Recommendation: WITH CAUTION
 Fix 2 blockers before shipping.
+```
 🏴 Feature Flag Evaluation Engine
 
 Evaluate every flag against real user and release context.
@@ -174,7 +175,7 @@ The release score updates as the workspace changes. Shocking concept: changing r
 
 📊 Release Score
 
-Compass Ultra calculates a release readiness score based on flag health, policy results, risk level, and rollout state.
+Compass Ultra calculates a release readiness score based on flag health, policy results, and rollout state.
 
 Example:
 
@@ -270,19 +271,19 @@ Layer	Technology
 🎨 UI Icons	Lucide React
 📄 PDF Export	jsPDF
 🔐 Auth	Auth0
-🖥️ Backend	Node.js + Express
-🗄️ Database	PostgreSQL
-☁️ Hosting	Vercel frontend + Railway backend
-🤖 AI Engine	Claude Sonnet via Anthropic
+🖥️ Backend	Optional API backend configured through `VITE_API_URL`
+🗄️ Database	Backend-managed cloud snapshots when configured
+☁️ Hosting	Vercel frontend; backend URL is environment-configured
+🤖 AI Engine	Local deterministic risk engine; live AI analyzer when backend is configured
 💳 Payments	Stripe
 📈 Analytics	Vercel Analytics
 🌐 Domain	compassultra.com
 💸 Pricing
 Plan	Price	Best For
 🆓 Free	$0	Solo builders and teams trying local flag review
-⚡ Pro	$199/mo	Engineers and small teams needing AI analysis, cloud sync, snapshots, and diff review
+⚡ Pro	$199/mo	Engineers and small teams needing risk analysis, cloud sync, snapshots, and diff review
 👥 Team	$499/mo	Release teams needing RBAC, audit export, expiration alerts, Slack payloads, and org workflows
-🏢 Enterprise	Custom	SSO, SAML, custom security review, onboarding, SLA, and custom integrations
+🏢 Enterprise	Custom	Security review, onboarding, SLA targets, and custom integrations
 🚀 Run Locally
 Frontend
 git clone https://github.com/DaCameraGirl/Compass-Ultra.git
@@ -290,10 +291,7 @@ cd Compass-Ultra
 npm install
 npm run dev
 Backend
-git clone https://github.com/DaCameraGirl/compass-ultra-backend.git
-cd compass-ultra-backend
-npm install
-npm run dev
+Set `VITE_API_URL` to your deployed Compass Ultra backend when using cloud snapshots, authenticated AI analysis, provider proxy sync, or Stripe.
 🧪 Available Scripts
 npm run dev
 npm run build
@@ -303,7 +301,7 @@ npm run lint
 npm run test
 🔐 Environment Variables
 
-The frontend and backend expect environment variables for production features such as Auth0, backend API access, provider sync, Stripe, and AI analysis.
+The frontend expects environment variables for Auth0 and backend API access. Backend-only services such as provider sync, Stripe, and live AI analysis require the separate backend deployment to be configured.
 
 Frontend
 VITE_API_URL=
@@ -331,7 +329,7 @@ Compass Ultra is designed to be safe by default.
 👤 Authenticated cloud features are scoped to user accounts
 📸 Snapshots are tied to authenticated workspace access
 🧾 Audit logs preserve review activity
-🏢 Enterprise plans support SSO / SAML and security review
+🏢 Enterprise plans are intended for security review, onboarding, and custom integration needs
 🎯 Who It Is For
 
 Compass Ultra is built for:
@@ -349,7 +347,7 @@ Run a final release review before production deployment.
 
 Load current flag state
 Run policy gates
-Run AI risk analyzer
+Run risk analyzer
 Fix blockers
 Export PDF runbook
 Ship with proof

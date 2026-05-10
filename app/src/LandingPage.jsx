@@ -10,7 +10,7 @@ import './LandingPage.css';
 const FEATURES = [
   {
     icon: <Brain size={22} />, color: '#bc8cff',
-    title: 'AI Risk Analyzer',
+    title: 'Risk Analyzer',
     description: 'Provider-flexible ship/no-ship assessment with specific flag keys called out, dependency gap analysis, and concrete remediation steps before you deploy.',
   },
   {
@@ -49,7 +49,7 @@ const STEPS = [
   {
     number: '02',
     title: 'Find what can break',
-    description: 'Policy gates and AI analysis call out dependency gaps, risky rollouts, missing approvals, expired flags, and context-specific surprises.',
+    description: 'Policy gates and risk analysis call out dependency gaps, risky rollouts, missing approvals, expired flags, and context-specific surprises.',
   },
   {
     number: '03',
@@ -61,7 +61,7 @@ const STEPS = [
 const DEMO_TOUR_STEPS = [
   'Toggle a release flag',
   'Watch policy gates update',
-  'Run AI analysis',
+  'Run risk analysis',
   'Compare and export proof',
 ];
 
@@ -75,20 +75,20 @@ const PRICING = [
   {
     name: 'Pro', price: '$199', period: 'per month', color: '#58a6ff', highlight: false,
     description: 'For solo engineers, founders, and small teams managing release risk.',
-    features: ['7-day full-feature trial', 'Everything in Free', 'Unlimited snapshots', 'Cloud save & sync', 'Shareable public links', 'Snapshot diff viewer', 'AI risk analyzer'],
+    features: ['7-day full-feature trial', 'Everything in Free', 'Unlimited snapshots', 'Cloud save & sync', 'Shareable public links', 'Snapshot diff viewer', 'Risk analyzer'],
     cta: 'Start Free Trial',
   },
   {
     name: 'Team', price: '$499', period: 'per month', color: '#3fb950', highlight: true,
     badge: 'BEST FOR TEAMS',
     description: 'For release teams that need shared visibility and audit-ready workflows.',
-    features: ['Everything in Pro', 'AI risk analyzer', 'Flag expiration alerts', 'Team RBAC', 'Slack workflow payloads', 'Audit log export', 'Release readiness scoring', 'Shared team workspace', 'Priority support'],
+    features: ['Everything in Pro', 'Risk analyzer', 'Flag expiration alerts', 'Team RBAC', 'Slack workflow payloads', 'Audit log export', 'Release readiness scoring', 'Shared team workspace', 'Priority support'],
     cta: 'Start Free Trial',
   },
   {
     name: 'Enterprise', price: 'Custom', period: 'contact sales', color: '#bc8cff', highlight: false,
-    description: 'For organizations that need SSO, security review, onboarding, and custom workflows.',
-    features: ['Everything in Team', 'SSO / SAML', 'Custom security review', 'Real-time collaboration', 'SLA guarantee', 'Dedicated onboarding', 'Custom integrations'],
+    description: 'For organizations that need security review, onboarding, and custom workflows.',
+    features: ['Everything in Team', 'Custom security review', 'SLA targets', 'Dedicated onboarding', 'Custom workflows', 'Custom integrations'],
     cta: 'Talk to Sales',
   },
 ];
@@ -138,7 +138,7 @@ const TOUR_STEPS = [
     badge: 'HIGH',
   },
   {
-    title: 'Run AI analysis',
+    title: 'Run risk analysis',
     eyebrow: 'Step 2',
     detail: 'The risk engine reviews the full flag workspace and returns a ship/no-ship assessment.',
     badge: 'WITH CAUTION',
@@ -185,7 +185,7 @@ function ProductTour() {
               <strong>85% rollout</strong>
             </div>
             <div className={`lp-tour-flag ${step === 1 ? 'is-active' : ''}`}>
-              <span>AI risk analyzer</span>
+              <span>Risk analyzer</span>
               <strong>Risk review</strong>
             </div>
             <div className={`lp-tour-flag ${step === 2 ? 'is-active' : ''}`}>
@@ -340,7 +340,7 @@ function DashboardMock() {
 
           {/* AI analyzer */}
           <div className="dash-panel dash-ai-panel">
-            <div className="dash-panel-title"><Brain size={12} color="#bc8cff" /> AI Risk Analyzer<span style={{marginLeft:'auto',fontSize:9,color:'#484f58',fontWeight:400,textTransform:'none',letterSpacing:0}}>preview</span></div>
+            <div className="dash-panel-title"><Brain size={12} color="#bc8cff" /> Risk Analyzer<span style={{marginLeft:'auto',fontSize:9,color:'#484f58',fontWeight:400,textTransform:'none',letterSpacing:0}}>preview</span></div>
             {!showResult && !analyzing && (
               <button className="dash-analyze-btn" onClick={handleAnalyze}>
                 <Zap size={12} /> Run Analysis
@@ -513,7 +513,7 @@ function DashboardMockInteractive() {
           </div>
 
           <div className="dash-panel dash-ai-panel">
-            <div className="dash-panel-title"><Brain size={12} color="#bc8cff" /> AI Risk Analyzer<span style={{ marginLeft: 'auto', fontSize: 9, color: '#484f58', fontWeight: 400, textTransform: 'none', letterSpacing: 0 }}>interactive</span></div>
+            <div className="dash-panel-title"><Brain size={12} color="#bc8cff" /> Risk Analyzer<span style={{ marginLeft: 'auto', fontSize: 9, color: '#484f58', fontWeight: 400, textTransform: 'none', letterSpacing: 0 }}>interactive</span></div>
             {!showResult && !analyzing && (
               <button className="dash-analyze-btn" onClick={handleAnalyze}>
                 <Zap size={12} /> Run Analysis
@@ -690,7 +690,7 @@ export default function LandingPage() {
           <div className="lp-section-header">
             <div className="lp-badge lp-badge--green">Live Demo</div>
             <h2>Try the release review loop</h2>
-            <p>Change a flag, run AI analysis, compare snapshots, and export a runbook with no account required.</p>
+            <p>Change a flag, run risk analysis, compare snapshots, and export a runbook with no account required.</p>
           </div>
           <div className="lp-demo-cta-wrap">
             <div className="lp-demo-preview">
@@ -740,7 +740,7 @@ export default function LandingPage() {
               </div>
               <div className="lp-demo-feature-item">
                 <CheckCircle size={16} color="#3fb950" />
-                <span>AI risk analyzer calls the live backend when available</span>
+                <span>Risk analyzer uses the live backend when available</span>
               </div>
               <div className="lp-demo-feature-item">
                 <CheckCircle size={16} color="#3fb950" />
@@ -831,7 +831,7 @@ export default function LandingPage() {
           <div className="lp-ai-inner">
             <div className="lp-ai-text">
               <div className="lp-badge lp-badge--purple">AI Release Review</div>
-              <h2>The only release tool with an AI risk analyzer built in</h2>
+              <h2>Release risk analysis built into the control room</h2>
               <p>
                 Before every deploy, Compass Ultra reviews your complete flag configuration with a provider-neutral AI risk engine. You get back a structured risk assessment with specific flag keys called out, dependency conflicts identified, compliance risks flagged, and a direct ship/no-ship recommendation.
               </p>
@@ -847,14 +847,14 @@ export default function LandingPage() {
                 ))}
               </ul>
               <button className="lp-btn-primary" onClick={goToDemo}>
-                Try the AI Analyzer <ArrowRight size={16} />
+                Try the Risk Analyzer <ArrowRight size={16} />
               </button>
             </div>
             <div>
               <div className="lp-ai-card">
                 <div className="lp-ai-card-header">
                   <Brain size={16} color="#bc8cff" />
-                  <span>AI Risk Analysis</span>
+                  <span>Risk Analysis</span>
                   <span className="lp-risk-tag lp-risk-tag--high">HIGH RISK</span>
                 </div>
                 <div className="lp-ai-card-body">
@@ -887,7 +887,7 @@ export default function LandingPage() {
           <div className="lp-section-header">
             <div className="lp-badge">Pricing</div>
             <h2>Pricing for teams that can't afford messy releases</h2>
-            <p>Start free. Upgrade when you need AI risk analysis, audit exports, Slack-ready workflows, and release-readiness reporting.</p>
+            <p>Start free. Upgrade when you need risk analysis, audit exports, Slack-ready workflows, and release-readiness reporting.</p>
           </div>
           <div className="lp-pricing-roi">
             <strong>One bad rollout costs more than a month of Compass Ultra.</strong>

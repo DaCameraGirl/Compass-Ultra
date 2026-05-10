@@ -22,4 +22,4 @@ Compass Ultra is designed to inspect release state without requiring provider wr
 
 ## AI Analysis
 
-AI analysis may send workspace metadata to Anthropic. Do not include secrets or sensitive customer payloads in flag metadata.
+Live AI analysis may send workspace metadata to the configured backend AI provider. Do not include secrets or sensitive customer payloads in flag metadata.

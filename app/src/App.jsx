@@ -360,6 +360,7 @@ export default function App() {
   const [cloudLoading, setCloudLoading] = useState(false);
   const [cloudNotice, setCloudNotice] = useState('');
   const [aiAnalysis, setAiAnalysis] = useState('');
+  const [aiAnalysisSource, setAiAnalysisSource] = useState('');
   const [aiLoading, setAiLoading] = useState(false);
   const [aiRiskLevel, setAiRiskLevel] = useState('');
   const [showRollbackModal, setShowRollbackModal] = useState(false);
@@ -935,7 +936,7 @@ export default function App() {
     if (aiAnalysis) {
       addWrappedText(aiAnalysis.replace(/^#+\s*/gm, ''), 0, [230, 237, 243], 8);
     } else {
-      addWrappedText('No AI risk analysis has been run for this workspace session. Run AI Risk Analysis before exporting if this PDF will be used as final release evidence.');
+      addWrappedText('No release risk analysis has been run for this workspace session. Run Risk Analysis before exporting if this PDF will be used as final release evidence.');
     }
 
     y += 8;
@@ -1166,11 +1167,13 @@ export default function App() {
     if (demoMode && !isAuthenticated) {
       setAiLoading(true);
       setAiAnalysis('');
+      setAiAnalysisSource('');
       try {
         const { analysis } = await api.analyzeDemoFlags({ flags, context, release, policyChecks });
         setAiAnalysis(analysis);
         const riskMatch = analysis.match(/##\s*RISK LEVEL:\s*(LOW|MEDIUM|HIGH|CRITICAL)/i);
         setAiRiskLevel(riskMatch ? riskMatch[1].toUpperCase() : '');
+        setAiAnalysisSource('Live AI service');
         setAiLoading(false);
         record('Live demo AI risk analysis complete');
         return;
@@ -1182,28 +1185,36 @@ export default function App() {
         setAiAnalysis(analysis);
         const riskMatch = analysis.match(/##\s*RISK LEVEL:\s*(LOW|MEDIUM|HIGH|CRITICAL)/i);
         setAiRiskLevel(riskMatch ? riskMatch[1].toUpperCase() : '');
+        setAiAnalysisSource('Local deterministic risk engine');
         setAiLoading(false);
         record('State-aware demo AI risk analysis complete');
       }, 650);
       return;
     }
     if (!isAuthenticated) { loginWithRedirect(); return; }
-    if (!canUseAI) { requirePlan('Pro', 'AI risk analyzer'); return; }
+    if (!canUseAI) { requirePlan('Pro', 'risk analyzer'); return; }
     setAiLoading(true);
     setAiAnalysis('');
+    setAiAnalysisSource('');
     try {
       const token = await getAccessTokenSilently({ authorizationParams: { audience: import.meta.env.VITE_AUTH0_AUDIENCE } });
       const { analysis } = await api.analyzeFlags(token, { flags, context, release, policyChecks });
       setAiAnalysis(analysis);
       const riskMatch = analysis.match(/##\s*RISK LEVEL:\s*(LOW|MEDIUM|HIGH|CRITICAL)/i);
       setAiRiskLevel(riskMatch ? riskMatch[1].toUpperCase() : '');
+      setAiAnalysisSource('Live AI service');
       record('AI risk analysis complete');
     } catch (e) {
       if (e.error === 'login_required' || e.error === 'consent_required') {
         loginWithRedirect();
         return;
       }
-      setAiAnalysis('Analysis failed — check your connection and try again.');
+      const analysis = makeDemoAiAnalysis(workspaceName, release, context, flags, policyChecks);
+      setAiAnalysis(`${analysis}\n\nLive AI service unavailable; Compass Ultra generated this deterministic release-risk fallback from the current workspace state.`);
+      const riskMatch = analysis.match(/##\s*RISK LEVEL:\s*(LOW|MEDIUM|HIGH|CRITICAL)/i);
+      setAiRiskLevel(riskMatch ? riskMatch[1].toUpperCase() : '');
+      setAiAnalysisSource('Local deterministic risk engine');
+      record('AI risk analysis fallback used', e.message || '', 'warn');
     } finally {
       setAiLoading(false);
     }
@@ -1266,7 +1277,7 @@ export default function App() {
             <GitCompare size={17} aria-hidden="true" />
             {!canUseDiff && <LockKeyhole size={9} style={{ position: 'absolute', marginLeft: -7, marginTop: 8, color: '#ffb800' }} />}
           </button>
-          <button type="button" onClick={runAiAnalysis} title={demoMode ? 'Run demo AI risk analysis' : canUseAI ? 'AI risk analysis' : 'AI risk analysis (Pro)'} aria-label="AI risk analysis" style={{ color: aiLoading ? '#ffb800' : canUseAI ? '#bc8cff' : '#3d4451', position: 'relative' }}>
+          <button type="button" onClick={runAiAnalysis} title={demoMode ? 'Run demo risk analysis' : canUseAI ? 'Risk analysis' : 'Risk analysis (Pro)'} aria-label="Risk analysis" style={{ color: aiLoading ? '#ffb800' : canUseAI ? '#bc8cff' : '#3d4451', position: 'relative' }}>
             <BrainCircuit size={17} aria-hidden="true" />
             {!canUseAI && <LockKeyhole size={9} style={{ position: 'absolute', top: 0, right: 0, color: '#ffb800' }} />}
           </button>
@@ -1315,17 +1326,17 @@ export default function App() {
             <BrainCircuit size={22} aria-hidden="true" />
           </div>
           <div>
-            <span className="ai-risk-kicker">AI Release Risk Analyzer</span>
+            <span className="ai-risk-kicker">Release Risk Analyzer</span>
             <h1>
               {aiLoading
                 ? 'Risk engine is reviewing this release.'
                 : aiRiskLevel
                   ? `${aiRiskLevel} risk detected`
-                  : 'Run the AI risk check before deploy.'}
+                  : 'Run the risk check before deploy.'}
             </h1>
             <p>
               {aiAnalysis
-                ? 'Latest analysis is ready below with blockers, affected flags, and recommended actions.'
+                ? `Latest analysis is ready below with blockers, affected flags, and recommended actions. Source: ${aiAnalysisSource || 'risk engine'}.`
                 : releaseBlockSummary}
             </p>
           </div>
@@ -1337,7 +1348,7 @@ export default function App() {
         </div>
         <button type="button" className="ai-risk-cta" onClick={runAiAnalysis} disabled={aiLoading}>
           <BrainCircuit size={16} aria-hidden="true" />
-          {aiLoading ? 'Analyzing...' : aiRiskLevel ? 'Run Again' : 'Run AI Risk Analysis'}
+          {aiLoading ? 'Analyzing...' : aiRiskLevel ? 'Run Again' : 'Run Risk Analysis'}
         </button>
       </section>
 
@@ -1345,7 +1356,7 @@ export default function App() {
         <section className="demo-guide-bar" aria-label="Demo walkthrough">
           <div>
             <strong>Try the release review loop</strong>
-            <span>Toggle a risky flag, run AI analysis, compare snapshots, then export the runbook.</span>
+            <span>Toggle a risky flag, run risk analysis, compare snapshots, then export the runbook.</span>
           </div>
           <div className="demo-guide-actions">
             <button type="button" onClick={runAiAnalysis}>
@@ -1936,10 +1947,13 @@ export default function App() {
             <section className="panel code-panel">
               <div className="panel-heading">
                 <BrainCircuit size={18} aria-hidden="true" />
-                <h2>AI Risk Analysis</h2>
+                <h2>Risk Analysis</h2>
+                {aiAnalysisSource && (
+                  <span style={{ color: '#8b949e', fontSize: 10, marginLeft: 8 }}>{aiAnalysisSource}</span>
+                )}
                 {aiAnalysis && (
                   <>
-                    <button type="button" onClick={() => copyText(aiAnalysis, 'AI analysis copied!')} aria-label="Copy plain text" title="Copy plain text">
+                    <button type="button" onClick={() => copyText(aiAnalysis, 'Risk analysis copied!')} aria-label="Copy plain text" title="Copy plain text">
                       <Clipboard size={15} aria-hidden="true" />
                     </button>
                     <button type="button" onClick={() => copyText(`\`\`\`\n${aiAnalysis}\n\`\`\``, 'Copied as Slack markdown!')} aria-label="Copy as Slack markdown" title="Copy for Slack" style={{ fontSize: 10, background: 'none', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 3, color: '#8b949e', padding: '2px 5px', cursor: 'pointer' }}>
@@ -2134,7 +2148,7 @@ export default function App() {
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 28 }}>
                   {[
-                    { icon: '🔍', text: 'Click the brain icon (⚡) in the toolbar to run an AI risk analysis' },
+                    { icon: '🔍', text: 'Click the brain icon (⚡) in the toolbar to run risk analysis' },
                     { icon: '💾', text: 'Hit the cloud icon to save your first snapshot' },
                     { icon: '📄', text: 'Click the PDF icon to generate a release runbook' },
                     { icon: '💰', text: 'Click the $ icon to explore plan options' },
@@ -2180,21 +2194,21 @@ export default function App() {
                   name: 'Pro', price: '$199', period: 'per month',
                   color: '#58a6ff',
                   description: 'For solo engineers, founders, and small teams managing release risk.',
-                  features: ['7-day full-feature trial', 'Everything in Free', 'Unlimited snapshots', 'Cloud save & sync', 'Shareable public links', 'Snapshot diff viewer', 'AI risk analyzer'],
+                  features: ['7-day full-feature trial', 'Everything in Free', 'Unlimited snapshots', 'Cloud save & sync', 'Shareable public links', 'Snapshot diff viewer', 'Risk analyzer'],
                   cta: 'Start Free Trial', highlight: false, plan: 'pro',
                 },
                 {
                   name: 'Team', price: '$499', period: 'per month',
                   color: '#3fb950',
                   description: 'For release teams that need shared visibility and audit-ready workflows.',
-                  features: ['Everything in Pro', 'AI risk analyzer', 'Flag expiration alerts', 'Team RBAC', 'Slack workflow payloads', 'Audit log export', 'Release readiness scoring', 'Shared team workspace', 'Priority support'],
+                  features: ['Everything in Pro', 'Risk analyzer', 'Flag expiration alerts', 'Team RBAC', 'Slack workflow payloads', 'Audit log export', 'Release readiness scoring', 'Shared team workspace', 'Priority support'],
                   cta: 'Start Free Trial', highlight: true, plan: 'team',
                 },
                 {
                   name: 'Enterprise', price: 'Custom', period: 'contact sales',
                   color: '#bc8cff',
-                  description: 'For organizations that need SSO, security review, onboarding, and custom workflows.',
-                  features: ['Everything in Team', 'SSO / SAML', 'Custom security review', 'Real-time collaboration', 'SLA guarantee', 'Dedicated onboarding', 'Custom integrations'],
+                  description: 'For organizations that need security review, onboarding, and custom workflows.',
+                  features: ['Everything in Team', 'Custom security review', 'SLA targets', 'Dedicated onboarding', 'Custom workflows', 'Custom integrations'],
                   cta: 'Talk to Sales', highlight: false, plan: 'enterprise',
                 },
               ].map(tier => {
@@ -2305,7 +2319,7 @@ function WorkspaceGuide() {
       body: [
         'The flag table surfaces evaluated value, criticality, source provider, rollout percentage, and resolution reason for every flag in your release — in one view, before any change touches production.',
         'Policy Checks run automatically across your entire flag set: change ticket coverage, approver assignments, expiration date compliance, canary rollout thresholds, dependency chain integrity, and provider health.',
-        'The AI Risk Analyzer generates a structured release assessment powered by Claude — flagging dependency gaps, rollout mismatches, compliance exposures, and a direct ship/no-ship recommendation with specific flag keys called out.',
+        'The Risk Analyzer generates a structured release assessment from the current workspace state. It uses the live backend AI service when configured and falls back to a deterministic local risk engine when the service is unavailable.',
       ],
     },
     {
@@ -2453,7 +2467,7 @@ function makeDemoAiAnalysis(workspaceName, release, context, flags, policyChecks
   if (!actions.length) actions.push('Save a clean snapshot, export the runbook, and proceed with normal release approval.');
 
   return [
-    `# ${workspaceName || 'Demo Retail Release'} AI Risk Analysis`,
+    `# ${workspaceName || 'Demo Retail Release'} Risk Analysis`,
     '',
     `## RISK LEVEL: ${riskLevel}`,
     '',

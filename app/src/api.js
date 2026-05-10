@@ -7,18 +7,23 @@ const API_BASES = [
   .filter((base, index, all) => all.indexOf(base) === index);
 
 async function request(path, token, options = {}) {
+  const { timeoutMs = 8000, ...fetchOptions } = options;
   let lastError;
 
   for (const base of API_BASES) {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), timeoutMs);
     try {
       const res = await fetch(`${base}${path}`, {
-        ...options,
+        ...fetchOptions,
+        signal: controller.signal,
         headers: {
           'Content-Type': 'application/json',
           ...(token ? { Authorization: `Bearer ${token}` } : {}),
-          ...(options.headers || {}),
+          ...(fetchOptions.headers || {}),
         },
       });
+      clearTimeout(timer);
       if (!res.ok) {
         const body = await res.json().catch(() => ({}));
         const err = new Error(body.error || `API error ${res.status}`);
@@ -31,6 +36,7 @@ async function request(path, token, options = {}) {
       }
       return res.json();
     } catch (err) {
+      clearTimeout(timer);
       lastError = err;
     }
   }
@@ -54,11 +60,13 @@ export const api = {
     request('/api/v1/analyze', token, {
       method: 'POST',
       body: JSON.stringify(payload),
+      timeoutMs: 12000,
     }),
   analyzeDemoFlags: (payload) =>
     request('/api/v1/analyze/demo', null, {
       method: 'POST',
       body: JSON.stringify(payload),
+      timeoutMs: 2500,
     }),
   getPlan: (token) => request('/api/v1/stripe/plan', token),
   createCheckout: (token, plan) =>
