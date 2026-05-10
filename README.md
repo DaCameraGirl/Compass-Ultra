@@ -42,7 +42,7 @@ No more 2AM pages because someone forgot to expire a flag. No more "it worked in
 | Database | PostgreSQL on Railway |
 | Auth | Auth0 (JWT bearer tokens) |
 | AI Engine | Claude Sonnet (Anthropic) |
-| Payments | Stripe (Pro $99/mo · Team $499/mo · Enterprise — contact sales) |
+| Payments | Stripe (Pro $199/mo · Team $499/mo · Enterprise — contact sales) |
 | Domain | compassultra.com |
 
 ---
@@ -111,7 +111,7 @@ Not ready to connect a live provider? Load a sample pack and explore instantly:
 | Plan | Price | Includes |
 |---|---|---|
 | **Free** | $0 | Core flag evaluation, context editor, policy checks |
-| **Pro** | $99/mo | + Unlimited snapshots, cloud sync, diff viewer, share links |
+| **Pro** | $199/mo | + Unlimited snapshots, cloud sync, diff viewer, share links |
 | **Team** | $499/mo | + AI analyzer, expiration alerts, RBAC, audit export |
 | **Enterprise** | Contact sales | hello@compassultra.com |
 
