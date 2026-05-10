@@ -86,7 +86,7 @@ const defaultIntegrations = [
   { id: 'firebase', name: 'Firebase Remote Config', kind: 'provider', status: 'ready', endpoint: '', apiKey: '', projectId: '', secretHint: 'Paste your Firebase access token + project ID to sync live', lastSync: 'sample loaded' },
   { id: 'github', name: 'GitHub Issues', kind: 'outbound', status: 'not configured', endpoint: '', secretHint: 'repo issue proxy or GitHub app endpoint', lastSync: 'payload ready' },
   { id: 'jira', name: 'Jira Change', kind: 'outbound', status: 'not configured', endpoint: '', secretHint: 'Jira automation webhook', lastSync: 'payload ready' },
-  { id: 'slack', name: 'Slack War Room', kind: 'outbound', status: 'not configured', endpoint: '', secretHint: 'Slack workflow webhook', lastSync: 'payload ready' },
+  { id: 'slack', name: 'Slack War Room', kind: 'outbound', status: 'not configured', endpoint: '', secretHint: 'Slack workflow/proxy endpoint', lastSync: 'payload ready' },
 ];
 
 const sampleContexts = [
@@ -1650,7 +1650,9 @@ export default function App() {
                       ['launchdarkly','statsig','firebase'].includes(integration.id)
                         ? 'Paste your API key — flags sync directly via secure server proxy'
                         : 'Read provider JSON through a secure proxy/export URL'
-                    ) : 'Copy or post the generated release payload'}</span>
+                    ) : integration.id === 'slack'
+                      ? 'Copy Slack-ready blocks or post through a configured workflow/proxy endpoint'
+                      : 'Copy or post the generated release payload'}</span>
                   </div>
                   {['launchdarkly','statsig','firebase'].includes(integration.id) ? (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
@@ -2320,7 +2322,7 @@ function WorkspaceGuide() {
       icon: <Rocket size={17} aria-hidden="true" />,
       body: [
         'PDF Release Runbooks include gate status, policy check results, active flag evaluations, and per-flag rollback procedures. Formatted for management review, CAB submission, or incident war room reference.',
-        'Integration payloads for GitHub Issues, Jira change tickets, and Slack workflow webhooks are generated from live workspace state. POST directly via a configured proxy or copy the JSON for manual submission. A full installed Slack bot can come later.',
+        'Integration payloads for GitHub Issues, Jira change tickets, and Slack workflow-compatible updates are generated from live workspace state. POST via a configured workflow/proxy endpoint or copy the JSON for manual submission. A full installed Slack app can come later.',
         'The SDK Payload delivers machine-readable evaluated flag values with ownership, ticket references, criticality ratings, and evaluation reasons attached — ready for downstream applications and deployment pipelines.',
       ],
     },

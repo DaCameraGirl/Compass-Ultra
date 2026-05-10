@@ -1,6 +1,11 @@
-# Slack Alerts
+# Slack Workflows
 
-Compass Ultra backend can send Slack alerts for customer lifecycle events and future release-risk events.
+Compass Ultra supports Slack-ready release updates in two ways:
+
+- The frontend generates a Slack-compatible `text` + `blocks` payload from the current release workspace.
+- A configured backend/proxy endpoint can forward that payload to Slack, which avoids browser CORS issues with direct incoming webhook calls.
+
+Compass Ultra does not currently ship an installed Slack app or `/compass check` slash command. That is a roadmap item.
 
 ## Setup
 

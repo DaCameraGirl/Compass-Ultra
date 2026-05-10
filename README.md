@@ -240,7 +240,7 @@ Compass Ultra can generate workflow payloads for:
 🎟️ Jira change tickets
 💬 Slack war room updates
 
-Teams can copy payloads or send them directly to configured webhooks.
+Teams can copy payloads or post them to configured webhook/proxy endpoints. Slack uses a Slack-compatible `text` + `blocks` payload; direct Slack incoming webhooks should be routed through the backend/proxy when browser CORS blocks direct posting.
 
 🧩 Supported Providers
 
@@ -400,7 +400,7 @@ Planned upgrades include:
 
 📬 Email flag expiration digest
 🧪 What-if simulator for rollout/risk score changes
-💬 Slack bot: /compass check
+💬 Future installed Slack app: /compass check
 🐙 GitHub Actions integration
 🚦 CI failure on HIGH or CRITICAL risk
 🏢 Multi-workspace organization support
