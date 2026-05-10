@@ -15,7 +15,7 @@ Compass Ultra is a local-first React control room for feature flags, experiments
 
 - Provider-neutral release review layer for LaunchDarkly, Statsig, Firebase, Unleash, Flagsmith, OpenFeature, and JSON exports
 - Real-time feature flag evaluation against user context
-- 8 automated enterprise policy checks
+- 9 automated enterprise policy checks
 - AI release risk analysis with concrete remediation steps
 - GitHub Actions release gate for CI/CD deploy checks
 - Snapshot diffing for before/after release review

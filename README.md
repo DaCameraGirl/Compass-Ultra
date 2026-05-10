@@ -63,6 +63,19 @@ The demo workspace simulates a blocked production release with:
 
 **Demo Retail — Peak Sale Release**
 
+### 🛡️ Enterprise Policy Checks
+9 automated checks run on every workspace:
+
+- Change ticket present?
+- Required approvers assigned?
+- Every flag has traceability?
+- Flags have expiration dates?
+- Canary limits respected?
+- Dependencies enabled?
+- No unauthorized production overrides?
+- Live provider adapters configured?
+- Outbound release hooks configured?
+
 Sample flags include:
 
 - `checkout.new_flow`
@@ -150,10 +163,10 @@ Policy checks include:
 
 ✅ Change ticket attached
 ✅ Required approvers assigned
+✅ Every flag has traceability
 ✅ Expiration dates set
 ✅ Canary limits respected
 ✅ No dependency gaps
-✅ No circular dependencies
 ✅ No unauthorized production overrides
 ✅ Provider and outbound workflow configuration
 
@@ -269,7 +282,7 @@ Plan	Price	Best For
 🆓 Free	$0	Solo builders and teams trying local flag review
 ⚡ Pro	$199/mo	Engineers and small teams needing AI analysis, cloud sync, snapshots, and diff review
 👥 Team	$499/mo	Release teams needing RBAC, audit export, expiration alerts, Slack payloads, and org workflows
-🏢 Enterprise	Contact sales	SSO, SAML, custom security review, onboarding, SLA, and real-time collaboration
+🏢 Enterprise	Custom	SSO, SAML, custom security review, onboarding, SLA, and custom integrations
 🚀 Run Locally
 Frontend
 git clone https://github.com/DaCameraGirl/Compass-Ultra.git

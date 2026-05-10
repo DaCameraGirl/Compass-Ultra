@@ -593,6 +593,37 @@
   gap: 16px;
 }
 
+.lp-pricing-roi {
+  margin: 0 0 26px;
+  padding: 22px;
+  border: 1px solid rgba(255,184,0,0.22);
+  border-radius: 12px;
+  background: linear-gradient(135deg, rgba(255,184,0,0.08), rgba(88,166,255,0.04));
+  display: grid;
+  grid-template-columns: 1.2fr 1.7fr auto;
+  align-items: center;
+  gap: 18px;
+}
+
+.lp-pricing-roi strong {
+  color: #e6edf3;
+  font-size: 18px;
+  line-height: 1.25;
+}
+
+.lp-pricing-roi span {
+  color: #8b949e;
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.lp-pricing-roi-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
 .lp-pricing-card {
   background: #0e1117;
   border: 1px solid rgba(255,255,255,0.07);
@@ -637,6 +668,14 @@
   margin-top: -6px;
 }
 
+.lp-pricing-description {
+  margin: 2px 0 4px;
+  min-height: 58px;
+  color: #8b949e;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
 .lp-pricing-features {
   list-style: none;
   padding: 0;
@@ -652,6 +691,116 @@
   gap: 8px;
   font-size: 12px;
   color: #8b949e;
+}
+
+.lp-pricing-proof {
+  margin-top: 22px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+.lp-pricing-proof > div,
+.lp-pricing-value > div {
+  background: #0e1117;
+  border: 1px solid rgba(255,255,255,0.07);
+  border-radius: 10px;
+  padding: 16px 18px;
+}
+
+.lp-pricing-proof span {
+  display: block;
+  color: #8b949e;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 6px;
+}
+
+.lp-pricing-proof strong {
+  color: #e6edf3;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.lp-risk-report-preview {
+  margin-top: 22px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px;
+  align-items: stretch;
+  padding: 24px;
+  background: radial-gradient(circle at 10% 10%, rgba(88,166,255,0.12), transparent 35%), #0e1117;
+  border: 1px solid rgba(88,166,255,0.18);
+  border-radius: 14px;
+}
+
+.lp-risk-report-copy h3 {
+  color: #e6edf3;
+  font-size: 26px;
+  line-height: 1.15;
+  margin: 12px 0 10px;
+}
+
+.lp-risk-report-copy p {
+  color: #8b949e;
+  font-size: 14px;
+  line-height: 1.6;
+  max-width: 460px;
+}
+
+.lp-risk-report-card {
+  background: #07090e;
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 12px;
+  padding: 18px;
+  display: grid;
+  gap: 10px;
+}
+
+.lp-risk-report-card div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 9px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+
+.lp-risk-report-card span {
+  color: #8b949e;
+  font-size: 12px;
+}
+
+.lp-risk-report-card strong {
+  color: #ffb800;
+  font-size: 20px;
+}
+
+.lp-risk-report-card footer {
+  color: #3fb950;
+  font-size: 12px;
+  font-weight: 700;
+  margin-top: 4px;
+}
+
+.lp-pricing-value {
+  margin-top: 22px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+}
+
+.lp-pricing-value h3 {
+  margin: 0 0 8px;
+  color: #e6edf3;
+  font-size: 15px;
+}
+
+.lp-pricing-value p {
+  margin: 0;
+  color: #8b949e;
+  font-size: 12px;
+  line-height: 1.55;
 }
 
 /* ─── CTA BANNER ────────────────────────────────────────────────── */
@@ -1508,6 +1657,11 @@
   .lp-hero-headline    { font-size: 42px; }
   .lp-ai-inner         { grid-template-columns: 1fr; }
   .lp-pricing-grid     { grid-template-columns: repeat(2, 1fr); }
+  .lp-pricing-roi      { grid-template-columns: 1fr; }
+  .lp-pricing-roi-actions { justify-content: flex-start; }
+  .lp-pricing-proof,
+  .lp-risk-report-preview,
+  .lp-pricing-value    { grid-template-columns: 1fr; }
   .lp-stats-grid       { grid-template-columns: repeat(2, 1fr); }
   .lp-stat             { border-right: none; border-bottom: 1px solid rgba(255,255,255,0.06); }
   .lp-nav-links        { display: none; }

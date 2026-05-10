@@ -2105,7 +2105,7 @@ export default function App() {
                   {[
                     { icon: '🏁', title: 'Release Control', desc: 'Set your change ticket, release train, captain, and deploy window. Every artifact auto-fills from here.' },
                     { icon: '⚡', title: 'Flag Evaluation', desc: 'Your flags are evaluated live against a real user context — plan, role, region, device. See exactly what each user gets.' },
-                    { icon: '🛡️', title: 'Policy Checks', desc: '8 automated checks run continuously. They tell you if your release is safe to ship or needs review.' },
+                    { icon: '🛡️', title: 'Policy Checks', desc: '9 automated checks run continuously. They tell you if your release is safe to ship or needs review.' },
                   ].map(item => (
                     <div key={item.title} style={{ display: 'flex', gap: 14, alignItems: 'flex-start' }}>
                       <span style={{ fontSize: 22, flexShrink: 0 }}>{item.icon}</span>
@@ -2159,10 +2159,10 @@ export default function App() {
             <button onClick={() => setShowPricing(false)} style={{ position: 'absolute', top: 16, right: 16, background: 'none', border: 'none', color: '#8b949e', cursor: 'pointer', fontSize: 20 }}>✕</button>
             <div style={{ textAlign: 'center', marginBottom: 36 }}>
               <span style={{ color: '#ffb800', fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: 'uppercase' }}>Compass Ultra</span>
-              <h2 style={{ color: '#e6edf3', fontSize: 28, margin: '8px 0 12px' }}>Simple, transparent pricing</h2>
+              <h2 style={{ color: '#e6edf3', fontSize: 28, margin: '8px 0 12px' }}>Pricing for teams that can't afford messy releases</h2>
               {gateNotice
                 ? <p style={{ color: '#ffb800', fontSize: 14, fontWeight: 600 }}>🔒 {gateNotice} Upgrade to unlock it.</p>
-                : <p style={{ color: '#8b949e', fontSize: 14 }}>Start free. Upgrade when your team needs more.</p>
+                : <p style={{ color: '#8b949e', fontSize: 14 }}>One bad rollout costs more than a month of Compass Ultra.</p>
               }
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 16 }}>
@@ -2170,26 +2170,30 @@ export default function App() {
                 {
                   name: 'Free', price: '$0', period: 'forever',
                   color: '#3d4451',
+                  description: 'For demos, onboarding, and evaluating local release workflows.',
                   features: ['3 saved snapshots', 'Local workspace', 'PDF runbook export', 'Flag evaluation engine', 'Policy checks'],
                   cta: 'Get started', highlight: false,
                 },
                 {
                   name: 'Pro', price: '$199', period: 'per month',
                   color: '#58a6ff',
+                  description: 'For solo engineers, founders, and small teams managing release risk.',
                   features: ['7-day full-feature trial', 'Everything in Free', 'Unlimited snapshots', 'Cloud save & sync', 'Shareable public links', 'Snapshot diff viewer', 'AI risk analyzer'],
                   cta: 'Start Free Trial', highlight: false, plan: 'pro',
                 },
                 {
                   name: 'Team', price: '$499', period: 'per month',
                   color: '#3fb950',
-                  features: ['7-day full-feature trial', 'Everything in Pro', 'Flag expiration alerts', 'Team RBAC', 'Slack workflow payloads', 'Audit log export', 'Multi-workspace', 'Org management'],
+                  description: 'For release teams that need shared visibility and audit-ready workflows.',
+                  features: ['Everything in Pro', 'AI risk analyzer', 'Flag expiration alerts', 'Team RBAC', 'Slack workflow payloads', 'Audit log export', 'Release readiness scoring', 'Shared team workspace', 'Priority support'],
                   cta: 'Start Free Trial', highlight: true, plan: 'team',
                 },
                 {
-                  name: 'Enterprise', price: 'Contact sales', period: '',
+                  name: 'Enterprise', price: 'Custom', period: 'contact sales',
                   color: '#bc8cff',
-                  features: ['Everything in Team', 'SSO / SAML', 'Custom security review', 'Real-time collaboration', 'SLA guarantee', 'Dedicated onboarding'],
-                  cta: 'Contact Sales', highlight: false, plan: 'enterprise',
+                  description: 'For organizations that need SSO, security review, onboarding, and custom workflows.',
+                  features: ['Everything in Team', 'SSO / SAML', 'Custom security review', 'Real-time collaboration', 'SLA guarantee', 'Dedicated onboarding', 'Custom integrations'],
+                  cta: 'Talk to Sales', highlight: false, plan: 'enterprise',
                 },
               ].map(tier => {
                 const isCurrent = tier.plan === userPlan || (!tier.plan && userPlan === 'free');
@@ -2201,11 +2205,12 @@ export default function App() {
                 return (
                 <div key={tier.name} style={{ background: isCurrent ? 'rgba(88,166,255,0.05)' : tier.highlight ? 'rgba(63,185,80,0.05)' : '#161b22', border: `1px solid ${isCurrent ? '#58a6ff' : tier.highlight ? tier.color : 'rgba(255,255,255,0.07)'}`, borderRadius: 8, padding: 24, display: 'flex', flexDirection: 'column', gap: 12, position: 'relative' }}>
                   {isCurrent && <span style={{ position: 'absolute', top: -11, left: '50%', transform: 'translateX(-50%)', background: '#58a6ff', color: '#000', fontSize: 10, fontWeight: 700, padding: '2px 10px', borderRadius: 10, letterSpacing: 1 }}>YOUR PLAN</span>}
-                  {!isCurrent && tier.highlight && <span style={{ position: 'absolute', top: -11, left: '50%', transform: 'translateX(-50%)', background: '#3fb950', color: '#07090e', fontSize: 10, fontWeight: 700, padding: '2px 10px', borderRadius: 10, letterSpacing: 1 }}>MOST POPULAR</span>}
+                  {!isCurrent && tier.highlight && <span style={{ position: 'absolute', top: -11, left: '50%', transform: 'translateX(-50%)', background: '#3fb950', color: '#07090e', fontSize: 10, fontWeight: 700, padding: '2px 10px', borderRadius: 10, letterSpacing: 1 }}>BEST FOR TEAMS</span>}
                   <div>
                     <div style={{ color: tier.color, fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: 1, marginBottom: 6 }}>{tier.name}</div>
                     <div style={{ color: '#e6edf3', fontSize: 28, fontWeight: 800 }}>{tier.price}</div>
                     <div style={{ color: '#8b949e', fontSize: 11 }}>{tier.period}</div>
+                    <div style={{ color: '#8b949e', fontSize: 12, lineHeight: 1.45, marginTop: 10 }}>{tier.description}</div>
                   </div>
                   <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: 7, flex: 1 }}>
                     {tier.features.map(f => (

@@ -16,7 +16,7 @@ const FEATURES = [
   {
     icon: <Shield size={22} />, color: '#58a6ff',
     title: 'Automated Policy Checks',
-    description: '8 enterprise gates run automatically — change ticket coverage, approver assignments, expiration dates, canary limits, and dependency chain integrity.',
+    description: '9 enterprise gates run automatically — change ticket coverage, approver assignments, traceability, expiration dates, canary limits, dependency health, and provider readiness.',
   },
   {
     icon: <Cloud size={22} />, color: '#58a6ff',
@@ -68,23 +68,28 @@ const DEMO_TOUR_STEPS = [
 const PRICING = [
   {
     name: 'Free', price: '$0', period: 'forever', color: '#3d4451', highlight: false,
+    description: 'For demos, onboarding, and evaluating local release workflows.',
     features: ['3 saved snapshots', 'Local workspace', 'PDF runbook export', 'Flag evaluation engine', 'Policy checks'],
     cta: 'Get Started',
   },
   {
     name: 'Pro', price: '$199', period: 'per month', color: '#58a6ff', highlight: false,
+    description: 'For solo engineers, founders, and small teams managing release risk.',
     features: ['7-day full-feature trial', 'Everything in Free', 'Unlimited snapshots', 'Cloud save & sync', 'Shareable public links', 'Snapshot diff viewer', 'AI risk analyzer'],
     cta: 'Start Free Trial',
   },
   {
     name: 'Team', price: '$499', period: 'per month', color: '#3fb950', highlight: true,
-    features: ['7-day full-feature trial', 'Everything in Pro', 'Flag expiration alerts', 'Team RBAC', 'Slack workflow payloads', 'Audit log export', 'Multi-workspace', 'Org management'],
+    badge: 'BEST FOR TEAMS',
+    description: 'For release teams that need shared visibility and audit-ready workflows.',
+    features: ['Everything in Pro', 'AI risk analyzer', 'Flag expiration alerts', 'Team RBAC', 'Slack workflow payloads', 'Audit log export', 'Release readiness scoring', 'Shared team workspace', 'Priority support'],
     cta: 'Start Free Trial',
   },
   {
-    name: 'Enterprise', price: 'Contact sales', period: '', color: '#bc8cff', highlight: false,
-    features: ['Everything in Team', 'SSO / SAML', 'Custom security review', 'Real-time collaboration', 'SLA guarantee', 'Dedicated onboarding'],
-    cta: 'Contact Sales',
+    name: 'Enterprise', price: 'Custom', period: 'contact sales', color: '#bc8cff', highlight: false,
+    description: 'For organizations that need SSO, security review, onboarding, and custom workflows.',
+    features: ['Everything in Team', 'SSO / SAML', 'Custom security review', 'Real-time collaboration', 'SLA guarantee', 'Dedicated onboarding', 'Custom integrations'],
+    cta: 'Talk to Sales',
   },
 ];
 
@@ -116,10 +121,13 @@ const DEMO_FLAGS = [
 const POLICY_CHECKS = [
   { label: 'Change ticket attached', pass: true },
   { label: 'Approvers assigned', pass: true },
+  { label: 'Every flag traceable', pass: true },
   { label: 'Expiration dates set', pass: false },
   { label: 'Canary limits respected', pass: false },
-  { label: 'No circular dependencies', pass: true },
+  { label: 'Dependencies enabled', pass: true },
   { label: 'No production overrides', pass: true },
+  { label: 'Provider adapters ready', pass: true },
+  { label: 'Outbound hooks configured', pass: false },
 ];
 
 const TOUR_STEPS = [
@@ -662,7 +670,7 @@ export default function LandingPage() {
         <div className="lp-container">
           <div className="lp-stats-grid">
             {[
-              { value: '8', label: 'Policy gates before deploy' },
+              { value: '9', label: 'Policy gates before deploy' },
               { value: 'AI', label: 'Risk explanation for each release' },
               { value: 'Diff', label: 'Snapshot comparison' },
               { value: 'PDF', label: 'Runbook handoff' },
@@ -728,7 +736,7 @@ export default function LandingPage() {
               </div>
               <div className="lp-demo-feature-item">
                 <CheckCircle size={16} color="#3fb950" />
-                <span>8 automated enterprise policy checks running live</span>
+                <span>9 automated enterprise policy checks running live</span>
               </div>
               <div className="lp-demo-feature-item">
                 <CheckCircle size={16} color="#3fb950" />
@@ -878,8 +886,16 @@ export default function LandingPage() {
         <div className="lp-container">
           <div className="lp-section-header">
             <div className="lp-badge">Pricing</div>
-            <h2>Simple, transparent pricing</h2>
-            <p>Start free. Upgrade when your team needs more.</p>
+            <h2>Pricing for teams that can't afford messy releases</h2>
+            <p>Start free. Upgrade when you need AI risk analysis, audit exports, Slack-ready workflows, and release-readiness reporting.</p>
+          </div>
+          <div className="lp-pricing-roi">
+            <strong>One bad rollout costs more than a month of Compass Ultra.</strong>
+            <span>Compass Ultra helps teams catch stale flags, risky releases, missing ownership, and audit gaps before they become production problems.</span>
+            <div className="lp-pricing-roi-actions">
+              <button className="lp-btn-primary" onClick={goToDemo}>Roast My Flags</button>
+              <button className="lp-btn-outline" onClick={goToDemo}>Run Demo Scan</button>
+            </div>
           </div>
           <div className="lp-pricing-grid">
             {PRICING.map(tier => (
@@ -888,10 +904,11 @@ export default function LandingPage() {
                 className={`lp-pricing-card ${tier.highlight ? 'lp-pricing-card--featured' : ''}`}
                 style={{ borderColor: tier.highlight ? tier.color : undefined }}
               >
-                {tier.highlight && <div className="lp-popular-badge">MOST POPULAR</div>}
+                {tier.highlight && <div className="lp-popular-badge">{tier.badge || 'BEST FOR TEAMS'}</div>}
                 <div className="lp-pricing-name" style={{ color: tier.color }}>{tier.name}</div>
                 <div className="lp-pricing-price">{tier.price}</div>
                 <div className="lp-pricing-period">{tier.period}</div>
+                <p className="lp-pricing-description">{tier.description}</p>
                 <ul className="lp-pricing-features">
                   {tier.features.map(f => (
                     <li key={f}>
@@ -909,6 +926,45 @@ export default function LandingPage() {
                 </button>
               </div>
             ))}
+          </div>
+          <div className="lp-pricing-proof">
+            <div>
+              <span>Designed for teams using</span>
+              <strong>React · Next.js · LaunchDarkly-style workflows · CI/CD · Slack · GitHub</strong>
+            </div>
+            <div>
+              <span>Use Compass Ultra before</span>
+              <strong>Major releases · Cleanup sprints · Flag migrations · Security reviews · Production launches</strong>
+            </div>
+          </div>
+          <div className="lp-risk-report-preview">
+            <div className="lp-risk-report-copy">
+              <span className="lp-badge lp-badge--green">Example Release Risk Report</span>
+              <h3>Your feature flags are a release surface. Treat them like one.</h3>
+              <p>Compass Ultra turns scattered flag state into a concrete release decision your team can review, export, and defend.</p>
+            </div>
+            <div className="lp-risk-report-card">
+              <div><span>Release Readiness</span><strong>72%</strong></div>
+              <div><span>Blockers found</span><strong>3</strong></div>
+              <div><span>Stale flags</span><strong>8</strong></div>
+              <div><span>Missing owners</span><strong>2</strong></div>
+              <div><span>Risky rollout patterns</span><strong>1</strong></div>
+              <footer>PDF audit export ready</footer>
+            </div>
+          </div>
+          <div className="lp-pricing-value">
+            <div>
+              <h3>Prevent release risk</h3>
+              <p>Find blockers and risky rollout patterns before production.</p>
+            </div>
+            <div>
+              <h3>Reduce flag debt</h3>
+              <p>Identify stale, expired, ownerless, and forgotten flags.</p>
+            </div>
+            <div>
+              <h3>Create audit-ready reports</h3>
+              <p>Export clean summaries for engineering reviews, leadership, and compliance.</p>
+            </div>
           </div>
         </div>
       </section>
