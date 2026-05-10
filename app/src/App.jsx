@@ -81,9 +81,9 @@ const defaultTeam = {
 };
 
 const defaultIntegrations = [
-  { id: 'launchdarkly', name: 'LaunchDarkly', kind: 'provider', status: 'ready', endpoint: '', secretHint: 'read-only proxy endpoint', lastSync: 'sample loaded' },
-  { id: 'statsig', name: 'Statsig', kind: 'provider', status: 'ready', endpoint: '', secretHint: 'server SDK proxy endpoint', lastSync: 'sample loaded' },
-  { id: 'firebase', name: 'Firebase Remote Config', kind: 'provider', status: 'ready', endpoint: '', secretHint: 'template export endpoint', lastSync: 'sample loaded' },
+  { id: 'launchdarkly', name: 'LaunchDarkly', kind: 'provider', status: 'ready', endpoint: '', apiKey: '', projectKey: 'default', envKey: 'production', secretHint: 'Paste your LaunchDarkly API key to sync live', lastSync: 'sample loaded' },
+  { id: 'statsig', name: 'Statsig', kind: 'provider', status: 'ready', endpoint: '', apiKey: '', secretHint: 'Paste your Statsig Console API key to sync live', lastSync: 'sample loaded' },
+  { id: 'firebase', name: 'Firebase Remote Config', kind: 'provider', status: 'ready', endpoint: '', apiKey: '', projectId: '', secretHint: 'Paste your Firebase access token + project ID to sync live', lastSync: 'sample loaded' },
   { id: 'github', name: 'GitHub Issues', kind: 'outbound', status: 'not configured', endpoint: '', secretHint: 'repo issue proxy or GitHub app endpoint', lastSync: 'payload ready' },
   { id: 'jira', name: 'Jira Change', kind: 'outbound', status: 'not configured', endpoint: '', secretHint: 'Jira automation webhook', lastSync: 'payload ready' },
   { id: 'slack', name: 'Slack War Room', kind: 'outbound', status: 'not configured', endpoint: '', secretHint: 'Slack workflow webhook', lastSync: 'payload ready' },
@@ -639,7 +639,15 @@ export default function App() {
       return;
     }
 
-    if (!integration.endpoint) {
+    const proxyProviders = ['launchdarkly', 'statsig', 'firebase'];
+    const isProxyProvider = proxyProviders.includes(integration.id);
+
+    if (isProxyProvider && !integration.apiKey) {
+      record(`${integration.name} needs API key`, 'Enter your API key in the integration panel', 'warn');
+      return;
+    }
+
+    if (!isProxyProvider && !integration.endpoint) {
       record(`${integration.name} needs endpoint`, 'Configure a read-only proxy/export URL first', 'warn');
       return;
     }
@@ -647,10 +655,30 @@ export default function App() {
     setIntegrations((current) =>
       current.map((item) => (item.id === integration.id ? { ...item, status: 'syncing' } : item))
     );
+
     try {
-      const response = await fetch(integration.endpoint, { headers: { Accept: 'application/json' } });
-      if (!response.ok) throw new Error(`HTTP ${response.status}`);
-      const payload = await response.json();
+      let payload;
+      if (isProxyProvider) {
+        const apiBase = import.meta.env.VITE_API_URL;
+        const token = await getAccessTokenSilently({ authorizationParams: { audience: import.meta.env.VITE_AUTH0_AUDIENCE } });
+        const body = integration.id === 'launchdarkly'
+          ? { apiKey: integration.apiKey, projectKey: integration.projectKey || 'default', envKey: integration.envKey || 'production' }
+          : integration.id === 'firebase'
+          ? { apiKey: integration.apiKey, projectId: integration.projectId }
+          : { apiKey: integration.apiKey };
+        const response = await fetch(`${apiBase}/api/v1/proxy/${integration.id}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+          body: JSON.stringify(body),
+        });
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        payload = await response.json();
+      } else {
+        const response = await fetch(integration.endpoint, { headers: { Accept: 'application/json' } });
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        payload = await response.json();
+      }
+
       const hydrated = hydrateWorkspace({ flags: normalizeImportedFlags(payload), context, release });
       setFlags(hydrated.flags);
       setSelectedKey(hydrated.flags[0]?.key || '');
@@ -1553,17 +1581,61 @@ export default function App() {
                 <article className="integration-row" key={integration.id}>
                   <div>
                     <strong>{integration.name}</strong>
-                    <span>{integration.kind === 'provider' ? 'Read provider JSON through a secure proxy/export URL' : 'Copy or post the generated release payload'}</span>
+                    <span>{integration.kind === 'provider' ? (
+                      ['launchdarkly','statsig','firebase'].includes(integration.id)
+                        ? 'Paste your API key — flags sync directly via secure server proxy'
+                        : 'Read provider JSON through a secure proxy/export URL'
+                    ) : 'Copy or post the generated release payload'}</span>
                   </div>
-                  <label>
-                    endpoint
-                    <input
-                      value={integration.endpoint}
-                      disabled={!canAdmin}
-                      onChange={(event) => updateIntegration(integration.id, { endpoint: event.target.value, status: event.target.value ? 'configured' : 'not configured' })}
-                      placeholder={integration.secretHint}
-                    />
-                  </label>
+                  {['launchdarkly','statsig','firebase'].includes(integration.id) ? (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                      <label>
+                        API key
+                        <input
+                          type="password"
+                          value={integration.apiKey || ''}
+                          disabled={!canAdmin}
+                          onChange={(e) => updateIntegration(integration.id, { apiKey: e.target.value, status: e.target.value ? 'configured' : 'ready' })}
+                          placeholder={integration.secretHint}
+                        />
+                      </label>
+                      {integration.id === 'launchdarkly' && (
+                        <label>
+                          project / env
+                          <input
+                            value={`${integration.projectKey || 'default'} / ${integration.envKey || 'production'}`}
+                            disabled={!canAdmin}
+                            onChange={(e) => {
+                              const [proj, env] = e.target.value.split('/').map(s => s.trim());
+                              updateIntegration(integration.id, { projectKey: proj || 'default', envKey: env || 'production' });
+                            }}
+                            placeholder="default / production"
+                          />
+                        </label>
+                      )}
+                      {integration.id === 'firebase' && (
+                        <label>
+                          project ID
+                          <input
+                            value={integration.projectId || ''}
+                            disabled={!canAdmin}
+                            onChange={(e) => updateIntegration(integration.id, { projectId: e.target.value })}
+                            placeholder="your-firebase-project-id"
+                          />
+                        </label>
+                      )}
+                    </div>
+                  ) : (
+                    <label>
+                      endpoint
+                      <input
+                        value={integration.endpoint}
+                        disabled={!canAdmin}
+                        onChange={(event) => updateIntegration(integration.id, { endpoint: event.target.value, status: event.target.value ? 'configured' : 'not configured' })}
+                        placeholder={integration.secretHint}
+                      />
+                    </label>
+                  )}
                   <span className={`connector-status ${slugKey(integration.status)}`}>{integration.status}</span>
                   <small>{integration.lastSync}</small>
                   <div className="connector-actions">
