@@ -72,6 +72,8 @@ Send your full flag workspace to the AI and get back:
 - Canary limits respected?
 - No circular dependencies?
 - No unauthorized production overrides?
+- Live provider adapters configured?
+- Outbound release hooks configured?
 
 ### 📊 Release State Meter
 0–100% release readiness score based on policy compliance, flag health, and risk level.
@@ -111,7 +113,7 @@ Not ready to connect a live provider? Load a sample pack and explore instantly:
 | Plan | Price | Includes |
 |---|---|---|
 | **Free** | $0 | Core flag evaluation, context editor, policy checks |
-| **Pro** | $199/mo | + Unlimited snapshots, cloud sync, diff viewer, share links, AI analyzer |
+| **Pro** | $199/mo | + 7-day full-feature trial, unlimited snapshots, cloud sync, diff viewer, share links, AI analyzer |
 | **Team** | $499/mo | + Expiration alerts, RBAC, audit export, multi-workspace, org management |
 | **Enterprise** | Contact sales | hello@compassultra.com |
 

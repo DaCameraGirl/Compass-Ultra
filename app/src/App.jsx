@@ -388,7 +388,7 @@ export default function App() {
     setShowOnboarding(false);
   };
 
-  const canUseAI   = demoMode || userPlan === 'team';
+  const canUseAI   = demoMode || userPlan === 'pro' || userPlan === 'team';
   const canUseDiff = demoMode || userPlan === 'pro' || userPlan === 'team';
   const canExportAudit = userPlan === 'team';
   const snapshotCap = userPlan === 'free' ? 3 : Infinity;
@@ -443,6 +443,12 @@ export default function App() {
   const releaseState = getReleaseState(policyChecks);
   const policyBlockers = policyChecks.filter((check) => check.status === 'block').length;
   const policyWarnings = policyChecks.filter((check) => check.status === 'warn').length;
+  const connectedProviders = integrations.filter((item) => item.kind === 'provider' && item.endpoint).length;
+  const releaseBlockSummary = policyBlockers
+    ? `Blocked because ${release.changeTicket || 'this release'} has ${policyBlockers} unresolved policy violation${policyBlockers === 1 ? '' : 's'} and ${policyWarnings} rollout warning${policyWarnings === 1 ? '' : 's'}.`
+    : policyWarnings
+      ? `Needs review because ${release.changeTicket || 'this release'} has ${policyWarnings} rollout warning${policyWarnings === 1 ? '' : 's'}.`
+      : 'All policy gates are clear. Export the proof package before shipping.';
 
   const visibleEvaluations = evaluations.filter(({ flag }) => {
     const text = `${flag.key} ${flag.name} ${flag.owner} ${flag.source} ${flag.criticality} ${flag.jira} ${flag.tags?.join(' ')}`.toLowerCase();
@@ -780,6 +786,27 @@ export default function App() {
 
     const addPage = () => { doc.addPage(); y = margin; };
     const checkY = (needed = 20) => { if (y + needed > doc.internal.pageSize.getHeight() - margin) addPage(); };
+    const addSectionTitle = (title) => {
+      checkY(28);
+      doc.setFontSize(11);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(255, 184, 0);
+      doc.text(title, margin, y);
+      y += 16;
+    };
+    const addWrappedText = (text, indent = 0, color = [139, 148, 158], fontSize = 9) => {
+      doc.setFontSize(fontSize);
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(...color);
+      String(text || '').split('\n').forEach((paragraph) => {
+        const lines = doc.splitTextToSize(paragraph || ' ', maxW - indent);
+        lines.forEach((line) => {
+          checkY(13);
+          doc.text(line, margin + indent, y);
+          y += 13;
+        });
+      });
+    };
 
     // Header bar
     doc.setFillColor(7, 9, 14);
@@ -902,6 +929,44 @@ export default function App() {
       lines.forEach(line => { checkY(13); doc.text(line, margin + 14, y += 13); });
       y += 6;
     });
+
+    y += 8;
+    addSectionTitle('AI RISK ANALYSIS');
+    if (aiAnalysis) {
+      addWrappedText(aiAnalysis.replace(/^#+\s*/gm, ''), 0, [230, 237, 243], 8);
+    } else {
+      addWrappedText('No AI risk analysis has been run for this workspace session. Run AI Risk Analysis before exporting if this PDF will be used as final release evidence.');
+    }
+
+    y += 8;
+    addSectionTitle('PROOF SUMMARY');
+    [
+      `Readiness: ${releaseState.score}%`,
+      `Gate status: ${gateLabel}`,
+      `Blockers: ${blocked}`,
+      `Warnings: ${warnings}`,
+      `Enabled flags: ${enabledFlags}/${flags.length}`,
+      `Critical active paths: ${criticalActive}`,
+      `Live providers configured: ${connectedProviders}`,
+      `Snapshot evidence available: ${diffSnapshots.length}`,
+    ].forEach((line) => addWrappedText(`- ${line}`, 8, [230, 237, 243]));
+
+    y += 8;
+    addSectionTitle('PROVIDER STATUS');
+    integrations.forEach((integration) => {
+      addWrappedText(`- ${integration.name}: ${integration.status}; last sync: ${integration.lastSync || 'not recorded'}`, 8);
+    });
+
+    y += 8;
+    addSectionTitle('AUDIT TRAIL');
+    const auditRows = audit.slice(0, 10);
+    if (!auditRows.length) {
+      addWrappedText('No audit events recorded in this workspace.');
+    } else {
+      auditRows.forEach((event) => {
+        addWrappedText(`- ${event.message}${event.meta ? ` (${event.meta})` : ''}`, 8);
+      });
+    }
 
     // Footer
     const pages = doc.internal.getNumberOfPages();
@@ -1123,7 +1188,7 @@ export default function App() {
       return;
     }
     if (!isAuthenticated) { loginWithRedirect(); return; }
-    if (!canUseAI) { requirePlan('Team', 'AI risk analyzer'); return; }
+    if (!canUseAI) { requirePlan('Pro', 'AI risk analyzer'); return; }
     setAiLoading(true);
     setAiAnalysis('');
     try {
@@ -1201,11 +1266,11 @@ export default function App() {
             <GitCompare size={17} aria-hidden="true" />
             {!canUseDiff && <LockKeyhole size={9} style={{ position: 'absolute', marginLeft: -7, marginTop: 8, color: '#ffb800' }} />}
           </button>
-          <button type="button" onClick={runAiAnalysis} title={demoMode ? 'Run demo AI risk analysis' : canUseAI ? 'AI risk analysis' : 'AI risk analysis (Team)'} aria-label="AI risk analysis" style={{ color: aiLoading ? '#ffb800' : canUseAI ? '#bc8cff' : '#3d4451', position: 'relative' }}>
+          <button type="button" onClick={runAiAnalysis} title={demoMode ? 'Run demo AI risk analysis' : canUseAI ? 'AI risk analysis' : 'AI risk analysis (Pro)'} aria-label="AI risk analysis" style={{ color: aiLoading ? '#ffb800' : canUseAI ? '#bc8cff' : '#3d4451', position: 'relative' }}>
             <BrainCircuit size={17} aria-hidden="true" />
             {!canUseAI && <LockKeyhole size={9} style={{ position: 'absolute', top: 0, right: 0, color: '#ffb800' }} />}
           </button>
-          <button type="button" onClick={exportPDF} title="Export PDF runbook" aria-label="Export PDF runbook">
+          <button type="button" onClick={exportPDF} title="Export proof PDF" aria-label="Export proof PDF">
             <FileDown size={17} aria-hidden="true" />
           </button>
           <button type="button" onClick={saveToCloud} title={isAuthenticated ? 'Save to cloud' : 'Login to save to cloud'} aria-label="Save to cloud" style={{ color: isAuthenticated ? '#3fb950' : '#8b949e' }}>
@@ -1253,7 +1318,7 @@ export default function App() {
             <span className="ai-risk-kicker">AI Release Risk Analyzer</span>
             <h1>
               {aiLoading
-                ? 'Claude is reviewing this release.'
+                ? 'Risk engine is reviewing this release.'
                 : aiRiskLevel
                   ? `${aiRiskLevel} risk detected`
                   : 'Run the AI risk check before deploy.'}
@@ -1261,7 +1326,7 @@ export default function App() {
             <p>
               {aiAnalysis
                 ? 'Latest analysis is ready below with blockers, affected flags, and recommended actions.'
-                : 'Send the current flags, policy gates, release context, and rollout data for a ship/no-ship review.'}
+                : releaseBlockSummary}
             </p>
           </div>
         </div>
@@ -1293,7 +1358,7 @@ export default function App() {
             </button>
             <button type="button" onClick={exportPDF}>
               <FileDown size={15} aria-hidden="true" />
-              Export Runbook
+              Export Proof
             </button>
           </div>
         </section>
@@ -1440,7 +1505,7 @@ export default function App() {
             <Metric icon={<GitBranch />} label="Rule matches" value={matchedRules} />
             <Metric icon={<LockKeyhole />} label="Critical active" value={criticalActive} />
             <Metric icon={<Gauge />} label="Provider flags" value={flags.filter((flag) => flag.source !== 'Local').length} />
-            <Metric icon={<Webhook />} label="Connected" value={integrations.filter((item) => item.endpoint).length} />
+            <Metric icon={<Webhook />} label={connectedProviders ? 'Live providers' : 'Demo mode'} value={connectedProviders || 'sample data'} />
           </div>
 
           <section className="release-board">
@@ -2111,13 +2176,13 @@ export default function App() {
                 {
                   name: 'Pro', price: '$199', period: 'per month',
                   color: '#58a6ff',
-                  features: ['7-day full-feature trial', 'Everything in Free', 'Unlimited snapshots', 'Cloud save & sync', 'Shareable public links', 'Snapshot diff viewer'],
+                  features: ['7-day full-feature trial', 'Everything in Free', 'Unlimited snapshots', 'Cloud save & sync', 'Shareable public links', 'Snapshot diff viewer', 'AI risk analyzer'],
                   cta: 'Start Free Trial', highlight: false, plan: 'pro',
                 },
                 {
                   name: 'Team', price: '$499', period: 'per month',
                   color: '#3fb950',
-                  features: ['7-day full-feature trial', 'Everything in Pro', 'AI risk analyzer', 'Flag expiration alerts', 'Team RBAC', 'Slack workflow payloads', 'Audit log export', 'Priority support'],
+                  features: ['7-day full-feature trial', 'Everything in Pro', 'Flag expiration alerts', 'Team RBAC', 'Slack workflow payloads', 'Audit log export', 'Multi-workspace', 'Org management'],
                   cta: 'Start Free Trial', highlight: true, plan: 'team',
                 },
                 {

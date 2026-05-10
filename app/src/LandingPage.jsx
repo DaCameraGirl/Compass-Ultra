@@ -11,7 +11,7 @@ const FEATURES = [
   {
     icon: <Brain size={22} />, color: '#bc8cff',
     title: 'AI Risk Analyzer',
-    description: 'Claude-powered ship/no-ship assessment with specific flag keys called out, dependency gap analysis, and concrete remediation steps before you deploy.',
+    description: 'Provider-flexible ship/no-ship assessment with specific flag keys called out, dependency gap analysis, and concrete remediation steps before you deploy.',
   },
   {
     icon: <Shield size={22} />, color: '#58a6ff',
@@ -73,12 +73,12 @@ const PRICING = [
   },
   {
     name: 'Pro', price: '$199', period: 'per month', color: '#58a6ff', highlight: false,
-    features: ['7-day full-feature trial', 'Everything in Free', 'Unlimited snapshots', 'Cloud save & sync', 'Shareable public links', 'Snapshot diff viewer'],
+    features: ['7-day full-feature trial', 'Everything in Free', 'Unlimited snapshots', 'Cloud save & sync', 'Shareable public links', 'Snapshot diff viewer', 'AI risk analyzer'],
     cta: 'Start Free Trial',
   },
   {
     name: 'Team', price: '$499', period: 'per month', color: '#3fb950', highlight: true,
-    features: ['7-day full-feature trial', 'Everything in Pro', 'AI risk analyzer', 'Flag expiration alerts', 'Team RBAC', 'Slack workflow payloads', 'Audit log export', 'Priority support'],
+    features: ['7-day full-feature trial', 'Everything in Pro', 'Flag expiration alerts', 'Team RBAC', 'Slack workflow payloads', 'Audit log export', 'Multi-workspace', 'Org management'],
     cta: 'Start Free Trial',
   },
   {
@@ -90,21 +90,18 @@ const PRICING = [
 
 const BUILT_FOR = ['LaunchDarkly', 'Unleash', 'Flagsmith', 'OpenFeature', 'Statsig', 'Firebase', 'Any JSON'];
 
-const TESTIMONIALS = [
+const TRUST_SIGNALS = [
   {
-    quote: 'Saved us from a major incident during a Friday checkout rollout.',
-    name: 'Maya Chen',
-    role: 'Head of Platform, Fintech Co',
+    title: 'Blocked release demo',
+    detail: 'Demo workspace ships with one unresolved policy violation and rollout warnings so teams can inspect the decision path immediately.',
   },
   {
-    quote: 'Compass Ultra gave our release captain one place to see risk, policy gaps, and rollback notes.',
-    name: 'Jordan Ellis',
-    role: 'VP Engineering, CommerceOps',
+    title: 'Audit-ready exports',
+    detail: 'Runbooks, audit logs, snapshot diffs, and integration payloads are generated from the same release state.',
   },
   {
-    quote: 'The AI review found a dependency issue our normal launch checklist missed.',
-    name: 'Priya Nair',
-    role: 'Staff DevOps Engineer, HealthCloud',
+    title: 'Local-first review loop',
+    detail: 'Try the release control room without an account, then connect live providers when the team is ready.',
   },
 ];
 
@@ -135,7 +132,7 @@ const TOUR_STEPS = [
   {
     title: 'Run AI analysis',
     eyebrow: 'Step 2',
-    detail: 'Claude reviews the full flag workspace and returns a ship/no-ship assessment.',
+    detail: 'The risk engine reviews the full flag workspace and returns a ship/no-ship assessment.',
     badge: 'WITH CAUTION',
   },
   {
@@ -181,7 +178,7 @@ function ProductTour() {
             </div>
             <div className={`lp-tour-flag ${step === 1 ? 'is-active' : ''}`}>
               <span>AI risk analyzer</span>
-              <strong>Claude review</strong>
+              <strong>Risk review</strong>
             </div>
             <div className={`lp-tour-flag ${step === 2 ? 'is-active' : ''}`}>
               <span>Snapshot diff</span>
@@ -409,7 +406,7 @@ function DashboardMockInteractive() {
   const handleAnalyze = () => {
     setAnalyzing(true);
     setShowResult(false);
-    setDemoAction('AI is reviewing the current flag state.');
+    setDemoAction('Risk engine is reviewing the current flag state.');
     setTimeout(() => {
       setAnalyzing(false);
       setShowResult(true);
@@ -608,7 +605,7 @@ export default function LandingPage() {
                 <span className="lp-gradient-text">Break nothing.</span>
               </h1>
               <p className="lp-hero-sub">
-                Local-first React control room for feature flags, experiments, and safe production releases. Real-time policy checks plus Claude AI risk analysis before you deploy.
+                Local-first React control room for feature flags, experiments, and safe production releases. Run the review, export the proof, and ship with confidence.
               </p>
               <div className="lp-hero-actions">
                 <button className="lp-btn-primary lp-btn-lg" onClick={goToDemo}>
@@ -803,17 +800,16 @@ export default function LandingPage() {
       <section className="lp-section lp-section--alt">
         <div className="lp-container">
           <div className="lp-section-header">
-            <div className="lp-badge">Social Proof</div>
-            <h2>Trusted by release teams before the launch rush</h2>
-            <p>Placeholder customer quotes for the public launch page. Swap these for real users as they come in.</p>
+            <div className="lp-badge">Launch Proof</div>
+            <h2>Built for release teams before the launch rush</h2>
+            <p>Concrete demo evidence, exportable artifacts, and a blocked production gate you can inspect before connecting live providers.</p>
           </div>
           <div className="lp-testimonials-grid">
-            {TESTIMONIALS.map((item) => (
-              <article key={item.name} className="lp-testimonial-card">
-                <p>"{item.quote}"</p>
+            {TRUST_SIGNALS.map((item) => (
+              <article key={item.title} className="lp-testimonial-card">
                 <div>
-                  <strong>{item.name}</strong>
-                  <span>{item.role}</span>
+                  <strong>{item.title}</strong>
+                  <span>{item.detail}</span>
                 </div>
               </article>
             ))}
@@ -826,10 +822,10 @@ export default function LandingPage() {
         <div className="lp-container">
           <div className="lp-ai-inner">
             <div className="lp-ai-text">
-              <div className="lp-badge lp-badge--purple">Powered by Claude AI</div>
+              <div className="lp-badge lp-badge--purple">AI Release Review</div>
               <h2>The only release tool with an AI risk analyzer built in</h2>
               <p>
-                Before every deploy, Compass Ultra sends your complete flag configuration to Claude — one of the world's most advanced AI systems. You get back a structured risk assessment with specific flag keys called out, dependency conflicts identified, compliance risks flagged, and a direct ship/no-ship recommendation.
+                Before every deploy, Compass Ultra reviews your complete flag configuration with a provider-neutral AI risk engine. You get back a structured risk assessment with specific flag keys called out, dependency conflicts identified, compliance risks flagged, and a direct ship/no-ship recommendation.
               </p>
               <ul className="lp-ai-list">
                 {[
@@ -963,7 +959,7 @@ export default function LandingPage() {
           </div>
           <div className="lp-footer-bottom">
             <span>© 2026 Compass Ultra. All rights reserved.</span>
-            <span>Powered by Claude AI</span>
+            <span>AI-assisted release risk review</span>
           </div>
         </div>
       </footer>
