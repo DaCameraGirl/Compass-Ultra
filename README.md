@@ -1,21 +1,22 @@
 <div align="center">
 
-# ⚡ COMPASS ULTRA
+# ⚡ Compass Ultra
 
-### The Enterprise Feature Flag Command Center
+## 🧭 Feature Flag Control Room for Safer Releases
 
-**Debug. Simulate. Deploy with Confidence.**
+### 🚀 Run the review. Catch the risk. Export the proof. Ship with confidence.
 
-[![Live App](https://img.shields.io/badge/LIVE_APP-compassultra.com-6366f1?style=for-the-badge)](https://compassultra.com)
-[![Status](https://img.shields.io/badge/STATUS-PRODUCTION-22c55e?style=for-the-badge)](https://compassultra.com)
-[![Auth0](https://img.shields.io/badge/AUTH-Auth0-eb5424?style=for-the-badge)](https://auth0.com)
-[![AI](https://img.shields.io/badge/AI-Claude_Sonnet-f97316?style=for-the-badge)](https://anthropic.com)
-[![Stripe](https://img.shields.io/badge/PAYMENTS-Stripe-635bff?style=for-the-badge)](https://stripe.com)
+[![Live App](https://img.shields.io/badge/🚀_LIVE_APP-compassultra.com-6366f1?style=for-the-badge)](https://compassultra.com)
+[![Status](https://img.shields.io/badge/✅_STATUS-PRODUCTION-22c55e?style=for-the-badge)](https://compassultra.com)
+[![Demo](https://img.shields.io/badge/🎮_DEMO-No_Login_Required-58a6ff?style=for-the-badge)](https://compassultra.com/app?demo=true)
+[![Auth0](https://img.shields.io/badge/🔐_AUTH-Auth0-eb5424?style=for-the-badge)](https://auth0.com)
+[![AI](https://img.shields.io/badge/🤖_AI-Claude_Sonnet-f97316?style=for-the-badge)](https://anthropic.com)
+[![Stripe](https://img.shields.io/badge/💳_PAYMENTS-Stripe-635bff?style=for-the-badge)](https://stripe.com)
 
 ---
 
-![JS](https://img.shields.io/badge/JavaScript-61.6%25-f7df1e?style=flat-square&logo=javascript&logoColor=black)
-![TS](https://img.shields.io/badge/TypeScript-22.6%25-3178c6?style=flat-square&logo=typescript&logoColor=white)
+![JavaScript](https://img.shields.io/badge/JavaScript-61.6%25-f7df1e?style=flat-square&logo=javascript&logoColor=black)
+![TypeScript](https://img.shields.io/badge/TypeScript-22.6%25-3178c6?style=flat-square&logo=typescript&logoColor=white)
 ![CSS](https://img.shields.io/badge/CSS-15.2%25-264de4?style=flat-square&logo=css3&logoColor=white)
 ![HTML](https://img.shields.io/badge/HTML-0.6%25-e34f26?style=flat-square&logo=html5&logoColor=white)
 
@@ -23,159 +24,394 @@
 
 ---
 
-## What Is This
+## ✨ What Is Compass Ultra?
 
-Compass Ultra is a **release intelligence platform** for frontend, QA, and platform teams.
+**Compass Ultra** is a **release intelligence platform** and **feature flag control room** for frontend, QA, DevOps, and platform teams.
 
-Stop flying blind on deploy day. Load your feature flags, set your user context, run the AI risk check, and know *before* you ship whether you're about to cause an incident.
+It helps teams inspect feature flags, targeting rules, rollout state, provider imports, overrides, policy gates, and AI release risk **before production**.
 
-No more 2AM pages because someone forgot to expire a flag. No more "it worked in staging" disasters. No more five-person Slack threads trying to figure out who approved what.
+Instead of guessing whether a release is safe, Compass Ultra gives teams a reviewable control room for the messy part of release day.
 
----
-
-## The Stack
-
-| Layer | Tech |
-|---|---|
-| Frontend | React + Vite, deployed on Vercel |
-| Backend | Node.js + Express, deployed on Railway |
-| Database | PostgreSQL on Railway |
-| Auth | Auth0 (JWT bearer tokens) |
-| AI Engine | Claude Sonnet (Anthropic) |
-| Payments | Stripe (Pro $199/mo · Team $499/mo · Enterprise — contact sales) |
-| Domain | compassultra.com |
+Because apparently shipping software still involves humans, flags, Slack panic, and one forgotten rollout setting hiding in the bushes. 🌲
 
 ---
 
-## What It Does
+## 🔥 The One-Line Pitch
 
-### 🏴 Live Flag Evaluation Engine
-Load flags from LaunchDarkly, Statsig, Firebase Remote Config, or any JSON export. Compass Ultra evaluates every flag against a real user context — plan, role, region, device — and shows you exactly what each user sees.
-
-### 🎛️ Evaluation Context Editor
-Set user attributes (plan, role, region, device type) and watch flag values update live. No code changes. No deployments. Just answers.
-
-### 🤖 AI Risk Analyzer (Claude Sonnet)
-Send your full flag workspace to the AI and get back:
-
-- **Risk level** — LOW / MEDIUM / HIGH / CRITICAL
-- **Financial impact forecast** — estimated revenue at risk, percentage of users affected
-- **Step-by-step deployment recommendations**
-- **Auto-triggered rollback modal** if the risk is HIGH or CRITICAL
-
-### 🛡️ Enterprise Policy Checks
-8 automated checks run on every workspace:
-
-- Change ticket present?
-- Required approvers assigned?
-- Flags have expiration dates?
-- Canary limits respected?
-- No circular dependencies?
-- No unauthorized production overrides?
-- Live provider adapters configured?
-- Outbound release hooks configured?
-
-### 📊 Release State Meter
-0–100% release readiness score based on policy compliance, flag health, and risk level.
-
-### 👥 Team RBAC
-Admin / Approver / Operator / Viewer roles with write controls baked in.
-
-### 📸 Cloud Snapshots
-Named snapshots saved to PostgreSQL. Compare any two snapshots side by side with the diff viewer. Share snapshots via public URL. Restore any saved state with one click.
-
-### 🔗 Integration Payloads
-Auto-generate GitHub Issues, Jira tickets, and Slack war room messages. Copy the payload or POST it directly to your webhook.
-
-### 📄 PDF Runbook Export
-Generate a full release runbook from your active workspace — flag evaluations, rollback steps, approvers, everything — as a downloadable PDF.
-
-### 🔒 Audit Log
-Last 60 actions logged with actor, role, action type, and full detail. Know exactly who changed what and when.
+> **Compass Ultra finds risky feature flags before production does.**
 
 ---
 
-## Sample Packs
+## 🎮 Live Demo
 
-Not ready to connect a live provider? Load a sample pack and explore instantly:
+The live demo works with **no account required**.
 
-| Pack | What It Simulates |
-|---|---|
-| **Enterprise** | 12-flag B2B SaaS release with approvals and canary limits |
-| **LaunchDarkly** | Realistic LD-shaped flag export |
-| **Statsig** | Gate + experiment + dynamic config combo |
-| **Firebase** | Remote Config with rollout percentages |
+👉 **Try it here:**  
+[https://compassultra.com/app?demo=true](https://compassultra.com/app?demo=true)
+
+The demo workspace simulates a blocked production release with:
+
+- 🚩 Feature flags
+- 🛡️ Policy gates
+- ⚠️ Rollout warnings
+- 🤖 AI risk findings
+- 🔍 Snapshot comparison
+- 📄 PDF runbook export
+- 🔗 GitHub, Jira, and Slack payload generation
+
+### 🧪 Demo Scenario
+
+**Demo Retail — Peak Sale Release**
+
+Sample flags include:
+
+- `checkout.new_flow`
+- `payments.stripe_v4`
+- `eu.gdpr_consent_v2`
+- `flash_sale_engine`
+
+The demo lets users:
+
+1. 🔁 Change a flag
+2. 🧠 Run AI analysis
+3. 🛡️ Watch policy gates update
+4. 🔍 Compare snapshots
+5. 📄 Export a release runbook
+6. 🔗 Generate GitHub, Jira, and Slack payloads
 
 ---
 
-## Pricing
+## 💥 Why It Exists
 
-| Plan | Price | Includes |
-|---|---|---|
-| **Free** | $0 | Core flag evaluation, context editor, policy checks |
-| **Pro** | $199/mo | + 7-day full-feature trial, unlimited snapshots, cloud sync, diff viewer, share links, AI analyzer |
-| **Team** | $499/mo | + Expiration alerts, RBAC, audit export, multi-workspace, org management |
-| **Enterprise** | Contact sales | hello@compassultra.com |
+Feature flags make releases safer until they become their own source of release risk.
+
+Teams often ship with:
+
+- 🧟 Old flags nobody owns
+- ⏰ Expired rollout experiments
+- 👻 Missing approval records
+- 🚨 Risky production overrides
+- 🕸️ Dependency chains nobody checked
+- 🌍 Region-specific targeting surprises
+- 💬 Slack threads pretending to be audit trails
+
+Compass Ultra turns that mess into a repeatable release review workflow.
 
 ---
 
-## Run Locally
+## 🧠 AI Release Risk Analyzer
 
-```bash
+Compass Ultra reviews the active release workspace and returns a structured ship / no-ship assessment.
+
+It can identify:
+
+- 🔴 High-risk flags
+- 🧩 Dependency conflicts
+- 🏛️ Compliance-sensitive rollout issues
+- 👥 Missing approvals
+- ⏳ Expired flags
+- 📈 Risky rollout percentages
+- 🛠️ Suggested remediation steps
+
+### Example Output
+
+```txt
+HIGH RISK
+
+checkout.new_flow depends on payments.v2, which is disabled for EU users.
+eu.gdpr_consent_v2 expires in 48 hours with no renewal ticket.
+dark_mode_v3 requires canary rollout but is set to 100%.
+
+Recommendation: WITH CAUTION
+Fix 2 blockers before shipping.
+🏴 Feature Flag Evaluation Engine
+
+Evaluate every flag against real user and release context.
+
+Supported context fields include:
+
+👤 User key
+📧 Email
+🏢 Tenant
+💼 Plan
+🧑‍💻 Role
+🌎 Region
+🇺🇸 Country
+📱 Device
+🚀 Environment
+
+Compass Ultra shows exactly why each flag is on or off for a specific user context.
+
+🛡️ Automated Policy Gates
+
+Compass Ultra runs enterprise-style release checks before deployment.
+
+Policy checks include:
+
+✅ Change ticket attached
+✅ Required approvers assigned
+✅ Expiration dates set
+✅ Canary limits respected
+✅ No dependency gaps
+✅ No circular dependencies
+✅ No unauthorized production overrides
+✅ Provider and outbound workflow configuration
+
+The release score updates as the workspace changes. Shocking concept: changing risky things changes the risk score. Revolutionary. 🫠
+
+📊 Release Score
+
+Compass Ultra calculates a release readiness score based on flag health, policy results, risk level, and rollout state.
+
+Example:
+
+Release Score: 62%
+Risk Level: HIGH
+Policy Blockers: 2
+Warnings: 3
+Recommendation: Fix before production
+🔍 Snapshot Diff
+
+Save release checkpoints and compare them against previous states.
+
+Use snapshot diff to answer:
+
+What changed since the last safe release?
+Which flags were added?
+Which flags changed rollout percentage?
+Which risky flags became active?
+Which policies regressed?
+📄 PDF Release Runbooks
+
+Export release proof as a PDF runbook.
+
+Runbooks include:
+
+🚀 Release metadata
+🏴 Flag evaluations
+🛡️ Policy gate results
+🔁 Rollback notes
+👥 Approvers
+⚠️ Risk summaries
+🧭 Active rollout context
+
+Useful for CAB review, QA handoff, launch review, leadership reporting, or internal audit trails.
+
+👥 Team RBAC & Audit Log
+
+Compass Ultra supports role-based release workflows.
+
+Roles include:
+
+👑 Admin
+✅ Approver
+🎛️ Operator
+👀 Viewer
+
+Every workspace action is logged with:
+
+Actor
+Role
+Action
+Timestamp
+Detail
+Severity
+
+No more “who changed this?” mysteries, which is great because production incidents are already enough detective work. 🕵️‍♀️
+
+🔗 Integration Payloads
+
+Compass Ultra can generate workflow payloads for:
+
+🐙 GitHub Issues
+🎟️ Jira change tickets
+💬 Slack war room updates
+
+Teams can copy payloads or send them directly to configured webhooks.
+
+🧩 Supported Providers
+
+Compass Ultra is provider-flexible.
+
+Provider	Support
+🚩 LaunchDarkly	Supported through import / adapter flow
+📊 Statsig	Supported through import / adapter flow
+🔥 Firebase Remote Config	Supported through import / adapter flow
+🧱 Unleash	Compatible via JSON-style workflows
+🏁 Flagsmith	Compatible via JSON-style workflows
+🧭 OpenFeature	Compatible with provider-neutral flag state
+📦 Any JSON export	Supported
+📦 Sample Packs
+
+Compass Ultra includes sample packs so teams can explore without connecting a live provider.
+
+Pack	What It Simulates
+🛒 Demo Retail — Peak Sale Release	High-risk production release with dependency gaps and rollout warnings
+🚩 LaunchDarkly Import	LaunchDarkly-shaped flag export
+📊 Statsig Gates	Gates, experiments, and dynamic config review
+🔥 Firebase Config	Remote Config parameters and rollout checks
+🧱 Tech Stack
+Layer	Technology
+⚛️ Frontend	React + Vite
+🧭 Routing	React Router
+🎨 UI Icons	Lucide React
+📄 PDF Export	jsPDF
+🔐 Auth	Auth0
+🖥️ Backend	Node.js + Express
+🗄️ Database	PostgreSQL
+☁️ Hosting	Vercel frontend + Railway backend
+🤖 AI Engine	Claude Sonnet via Anthropic
+💳 Payments	Stripe
+📈 Analytics	Vercel Analytics
+🌐 Domain	compassultra.com
+💸 Pricing
+Plan	Price	Best For
+🆓 Free	$0	Solo builders and teams trying local flag review
+⚡ Pro	$199/mo	Engineers and small teams needing AI analysis, cloud sync, snapshots, and diff review
+👥 Team	$499/mo	Release teams needing RBAC, audit export, expiration alerts, Slack payloads, and org workflows
+🏢 Enterprise	Contact sales	SSO, SAML, custom security review, onboarding, SLA, and real-time collaboration
+🚀 Run Locally
+Frontend
 git clone https://github.com/DaCameraGirl/Compass-Ultra.git
 cd Compass-Ultra
 npm install
 npm run dev
-```
-
-For the full stack with cloud saves and AI analysis, you'll also need the backend running:
-
-```bash
+Backend
 git clone https://github.com/DaCameraGirl/compass-ultra-backend.git
 cd compass-ultra-backend
 npm install
 npm run dev
-```
+🧪 Available Scripts
+npm run dev
+npm run build
+npm run preview
+npm run typecheck
+npm run lint
+npm run test
+🔐 Environment Variables
 
----
+The frontend and backend expect environment variables for production features such as Auth0, backend API access, provider sync, Stripe, and AI analysis.
 
-## Who This Is For
+Frontend
+VITE_API_URL=
+VITE_AUTH0_DOMAIN=
+VITE_AUTH0_CLIENT_ID=
+VITE_AUTH0_AUDIENCE=
+Backend
+DATABASE_URL=
+AUTH0_DOMAIN=
+AUTH0_AUDIENCE=
+ANTHROPIC_API_KEY=
+STRIPE_SECRET_KEY=
+STRIPE_WEBHOOK_SECRET=
 
-- Frontend platform teams managing 50+ flags across environments
-- QA teams that need shareable, reproducible flag states for bug reports
-- DevOps teams that get paged when a forgotten flag breaks prod
-- Engineering orgs on LaunchDarkly, Statsig, Optimizely, or Firebase Remote Config
+⚠️ Do not commit real secrets. The internet is already a cursed enough place.
 
----
+🔒 Security Model
 
-## Security Model
+Compass Ultra is designed to be safe by default.
 
-Compass Ultra is designed to be **read-only by default**:
+🔍 Read-only provider review by default
+🚫 No forced writes back to flag providers
+🔐 Provider credentials are not committed to the repo
+🎮 Local demo works without login
+👤 Authenticated cloud features are scoped to user accounts
+📸 Snapshots are tied to authenticated workspace access
+🧾 Audit logs preserve review activity
+🏢 Enterprise plans support SSO / SAML and security review
+🎯 Who It Is For
 
-- No writes back to your flag provider
-- Override state is local to your workspace
-- Provider credentials never committed to code
-- Adapters inspect state before anything mutates
-- Snapshots are scoped to your authenticated account
+Compass Ultra is built for:
 
----
+Frontend platform teams managing feature flags across environments
+QA teams that need repeatable release states
+DevOps teams responsible for production launch safety
+Product engineering teams shipping behind flags
+Teams using LaunchDarkly, Statsig, Firebase Remote Config, OpenFeature, or JSON-based flag exports
+Organizations that need proof before production changes
+🧭 Example Use Cases
+🚀 Release Preflight
 
-## Roadmap
+Run a final release review before production deployment.
 
-- [ ] Flag expiration email alerts (daily digest via Resend)
-- [ ] What-if simulator — toggle flags in a sandbox, see risk score change live
-- [ ] Slack bot — `/compass check` returns current readiness score
-- [ ] GitHub Actions integration — fail CI if risk is HIGH or CRITICAL
-- [ ] Multi-workspace / org support
-- [ ] Real-time collaboration (WebSockets)
-- [ ] CVE / security scanning against OWASP patterns
+Load current flag state
+Run policy gates
+Run AI risk analyzer
+Fix blockers
+Export PDF runbook
+Ship with proof
+🧪 QA Reproduction
 
----
+Create a shareable state for QA.
 
-<div align="center">
+Set user context
+Evaluate flags
+Save snapshot
+Share public link
+Attach runbook to bug report
+🚨 Incident Prevention
 
-**Built for teams that ship fast and sleep at night.**
+Catch risky rollout conditions before launch.
 
-[![compassultra.com](https://img.shields.io/badge/compassultra.com-Visit_Now-6366f1?style=for-the-badge)](https://compassultra.com)
+Detect expired flags
+Find dependency gaps
+Check rollout limits
+Review production overrides
+Generate Slack war room payload
+🧾 Audit Handoff
 
-</div>
+Give leadership, QA, or compliance a readable release package.
+
+Snapshot diff
+Policy gate status
+Approver list
+Risk summary
+Rollback steps
+PDF export
+🧠 Product Positioning
+
+Compass Ultra is not just a feature flag list.
+
+It is a release control room for teams that need to know:
+
+What is enabled?
+Who is affected?
+What can break?
+Who approved it?
+What changed since the last safe release?
+What should we fix before shipping?
+What proof can we hand to QA, DevOps, leadership, or compliance?
+🛣️ Roadmap
+
+Planned upgrades include:
+
+📬 Email flag expiration digest
+🧪 What-if simulator for rollout/risk score changes
+💬 Slack bot: /compass check
+🐙 GitHub Actions integration
+🚦 CI failure on HIGH or CRITICAL risk
+🏢 Multi-workspace organization support
+👯 Real-time collaboration
+🔌 Expanded provider adapters
+🛡️ OWASP-style security pattern scanning
+📤 More export formats
+✅ Status
+
+Compass Ultra is live in production:
+
+https://compassultra.com
+
+Live demo:
+
+https://compassultra.com/app?demo=true
+
+🔒 Private Repository Notice
+
+This repository may be private or restricted.
+
+Public-facing users should use the live Compass Ultra app and demo links.
+
+For access, contact the project owner.
+
+⚡ Built for teams that ship fast and still want to sleep.
+
