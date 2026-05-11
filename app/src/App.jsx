@@ -965,7 +965,7 @@ export default function App() {
       addWrappedText('No audit events recorded in this workspace.');
     } else {
       auditRows.forEach((event) => {
-        addWrappedText(`- ${event.message}${event.meta ? ` (${event.meta})` : ''}`, 8);
+        addWrappedText(`- [${event.time}] ${event.action}${event.detail ? ` — ${event.detail}` : ''} (${event.actor})`, 8);
       });
     }
 
@@ -2102,7 +2102,7 @@ export default function App() {
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                   <button
-                    onClick={() => { applySamplePack('dcg'); setOnboardStep(2); }}
+                    onClick={() => { applySamplePack('dcg'); setDemoMode(true); setOnboardStep(2); }}
                     style={{ background: '#58a6ff', color: '#000', border: 'none', borderRadius: 8, padding: '12px 0', fontWeight: 700, fontSize: 14, cursor: 'pointer' }}
                   >Load the Demo — See It in Action</button>
                   <button
@@ -2148,7 +2148,7 @@ export default function App() {
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 28 }}>
                   {[
-                    { icon: '🔍', text: 'Click the brain icon (⚡) in the toolbar to run risk analysis' },
+                    { icon: '🔍', text: 'Click the brain circuit icon in the toolbar to run risk analysis' },
                     { icon: '💾', text: 'Hit the cloud icon to save your first snapshot' },
                     { icon: '📄', text: 'Click the PDF icon to generate a release runbook' },
                     { icon: '💰', text: 'Click the $ icon to explore plan options' },
@@ -2667,7 +2667,7 @@ function evaluateFlag(flag, context) {
 }
 
 function makePolicyChecks(flags, evaluations, context, release, integrations = defaultIntegrations) {
-  const today = new Date('2026-05-05T00:00:00');
+  const today = new Date();
   const activeCritical = evaluations.filter(({ flag, result }) => ['critical', 'high'].includes(flag.criticality) && Boolean(result.value));
   const missingChange = flags.filter((flag) => !flag.jira || flag.jira === 'DCG-untracked');
   const expired = flags.filter((flag) => flag.enabled && new Date(`${flag.expiresAt}T00:00:00`) < today);
@@ -2688,7 +2688,7 @@ function makePolicyChecks(flags, evaluations, context, release, integrations = d
     },
     {
       id: 'critical-approvals',
-      status: activeCritical.every(({ flag }) => flag.approver) ? 'pass' : 'block',
+      status: activeCritical.every(({ flag }) => flag.approver && flag.approver !== 'Release Captain') ? 'pass' : 'block',
       title: 'Critical flags have approvers',
       detail: `${activeCritical.length} high or critical active evaluation paths checked.`,
     },
