@@ -475,7 +475,6 @@ export default function App() {
       integrations,
       context,
       flags,
-      exportedAt: new Date().toISOString(),
     }),
     [context, flags, integrations, release, team, workspaceName]
   );
@@ -768,7 +767,8 @@ export default function App() {
   };
 
   const exportWorkspace = () => {
-    const blob = new Blob([workspaceText], { type: 'application/json' });
+    const stamped = JSON.stringify({ ...workspace, exportedAt: new Date().toISOString() }, null, 2);
+    const blob = new Blob([stamped], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
@@ -995,7 +995,7 @@ export default function App() {
 
   const copyShareLink = async () => {
     const url = new URL(window.location.href);
-    url.searchParams.set('workspace', encodeWorkspace(workspace));
+    url.searchParams.set('workspace', encodeWorkspace({ ...workspace, exportedAt: new Date().toISOString() }));
     await copyText(url.toString(), 'Share link copied');
   };
 
@@ -1956,11 +1956,8 @@ export default function App() {
                     <button type="button" onClick={() => copyText(aiAnalysis, 'Risk analysis copied!')} aria-label="Copy plain text" title="Copy plain text">
                       <Clipboard size={15} aria-hidden="true" />
                     </button>
-                    <button type="button" onClick={() => copyText(`\`\`\`\n${aiAnalysis}\n\`\`\``, 'Copied as Slack markdown!')} aria-label="Copy as Slack markdown" title="Copy for Slack" style={{ fontSize: 10, background: 'none', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 3, color: '#8b949e', padding: '2px 5px', cursor: 'pointer' }}>
+                    <button type="button" onClick={() => copyText(toSlackMrkdwn(aiAnalysis), 'Copied for Slack!')} aria-label="Copy as Slack mrkdwn" title="Copy for Slack (mrkdwn format)" style={{ fontSize: 10, background: 'none', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 3, color: '#8b949e', padding: '2px 5px', cursor: 'pointer' }}>
                       Slack
-                    </button>
-                    <button type="button" onClick={() => copyText(aiAnalysis, 'Copied as Markdown!')} aria-label="Copy as Markdown" title="Copy for Notion/GitHub" style={{ fontSize: 10, background: 'none', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 3, color: '#8b949e', padding: '2px 5px', cursor: 'pointer' }}>
-                      MD
                     </button>
                     <button type="button" onClick={() => setAiAnalysis('')} aria-label="Close analysis" style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#8b949e' }}>
                       ✕
@@ -2965,6 +2962,15 @@ function uniqueValues(values) {
 
 function timeNow() {
   return new Date().toLocaleTimeString('en-US', { hour12: false });
+}
+
+function toSlackMrkdwn(text) {
+  return text
+    .replace(/^# (.+)$/gm, '*$1*')
+    .replace(/^## (.+)$/gm, '*$1*')
+    .replace(/^### (.+)$/gm, '_$1_')
+    .replace(/^- /gm, '• ')
+    .replace(/\*\*(.+?)\*\*/g, '*$1*');
 }
 
 function encodeWorkspace(workspace) {
