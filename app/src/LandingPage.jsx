@@ -630,7 +630,7 @@ export default function LandingPage() {
               <div className="lp-hero-ai-card">
                 <div className="lp-hero-ai-head">
                   <Brain size={16} />
-                  <strong>AI Release Risk Analyzer</strong>
+                  <strong>Release Risk Analyzer</strong>
                   <span>HIGH RISK</span>
                 </div>
                 <p><strong>checkout.new_flow</strong> depends on disabled payments.v2 for EU paid users.</p>
