@@ -359,6 +359,8 @@ export default function App() {
   const [cloudSnapshots, setCloudSnapshots] = useState([]);
   const [cloudLoading, setCloudLoading] = useState(false);
   const [cloudNotice, setCloudNotice] = useState('');
+  const [showSnapshotModal, setShowSnapshotModal] = useState(false);
+  const [snapshotDraftName, setSnapshotDraftName] = useState('');
   const [aiAnalysis, setAiAnalysis] = useState('');
   const [aiAnalysisSource, setAiAnalysisSource] = useState('');
   const [aiLoading, setAiLoading] = useState(false);
@@ -1118,14 +1120,20 @@ export default function App() {
     }).catch(() => {});
   }, []);
 
-  const saveToCloud = async () => {
+  const saveToCloud = () => {
     if (!isAuthenticated) { loginWithRedirect(); return; }
     if (cloudSnapshots.length >= snapshotCap) {
       requirePlan('Pro', `Free plan is limited to ${snapshotCap} snapshots`);
       return;
     }
-    const name = window.prompt('Name this snapshot:', workspaceName);
+    setSnapshotDraftName(workspaceName);
+    setShowSnapshotModal(true);
+  };
+
+  const confirmSnapshotSave = async () => {
+    const name = snapshotDraftName.trim();
     if (!name) return;
+    setShowSnapshotModal(false);
     setCloudLoading(true);
     try {
       const token = await getAccessTokenSilently({ authorizationParams: { audience: import.meta.env.VITE_AUTH0_AUDIENCE } });
@@ -2010,6 +2018,32 @@ export default function App() {
                         ))}
                       </div>
                     )}
+                  </div>
+                </div>
+              )}
+
+              {showSnapshotModal && (
+                <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.75)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }} onClick={() => setShowSnapshotModal(false)}>
+                  <div style={{ background: '#0e1117', border: '1px solid rgba(88,166,255,0.25)', borderRadius: 12, padding: 28, maxWidth: 420, width: '100%', position: 'relative' }} onClick={e => e.stopPropagation()}>
+                    <button onClick={() => setShowSnapshotModal(false)} style={{ position: 'absolute', top: 12, right: 12, background: 'none', border: 'none', color: '#8b949e', cursor: 'pointer', fontSize: 18 }}>✕</button>
+                    <div style={{ color: '#58a6ff', fontSize: 13, fontWeight: 700, marginBottom: 4 }}>
+                      <Cloud size={14} style={{ display: 'inline', verticalAlign: 'middle', marginRight: 6 }} />
+                      Save Snapshot
+                    </div>
+                    <div style={{ color: '#8b949e', fontSize: 12, marginBottom: 16 }}>Give this snapshot a name so you can find it later.</div>
+                    <input
+                      type="text"
+                      value={snapshotDraftName}
+                      onChange={e => setSnapshotDraftName(e.target.value)}
+                      onKeyDown={e => { if (e.key === 'Enter') confirmSnapshotSave(); if (e.key === 'Escape') setShowSnapshotModal(false); }}
+                      autoFocus
+                      placeholder="Snapshot name"
+                      style={{ width: '100%', boxSizing: 'border-box', background: '#161b22', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 8, padding: '9px 12px', color: '#e6edf3', fontSize: 13, outline: 'none', marginBottom: 16 }}
+                    />
+                    <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
+                      <button type="button" onClick={() => setShowSnapshotModal(false)} style={{ background: 'none', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 7, padding: '7px 16px', color: '#8b949e', fontSize: 12, cursor: 'pointer' }}>Cancel</button>
+                      <button type="button" onClick={confirmSnapshotSave} disabled={!snapshotDraftName.trim()} style={{ background: snapshotDraftName.trim() ? '#1f6feb' : '#1f6feb44', border: 'none', borderRadius: 7, padding: '7px 16px', color: snapshotDraftName.trim() ? '#fff' : '#8b949e', fontSize: 12, fontWeight: 600, cursor: snapshotDraftName.trim() ? 'pointer' : 'default', transition: 'background 0.15s' }}>Save</button>
+                    </div>
                   </div>
                 </div>
               )}
