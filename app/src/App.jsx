@@ -2672,7 +2672,7 @@ function makePolicyChecks(flags, evaluations, context, release, integrations = d
   const missingChange = flags.filter((flag) => !flag.jira || flag.jira === 'DCG-untracked');
   const expired = flags.filter((flag) => flag.enabled && new Date(`${flag.expiresAt}T00:00:00`) < today);
   const prodOverrides = context.environment === 'production' ? flags.filter((flag) => flag.overrideValue !== null) : [];
-  const canaryBreaches = flags.filter((flag) => flag.canaryRequired && flag.rollout > 50 && context.environment === 'production');
+  const canaryBreaches = flags.filter((flag) => flag.enabled && flag.canaryRequired && flag.rollout > 50 && context.environment === 'production');
   const brokenDeps = flags.filter((flag) =>
     flag.enabled && flag.dependencies.some((dependency) => !flags.find((item) => item.key === dependency && item.enabled))
   );
