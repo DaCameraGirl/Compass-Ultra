@@ -66,7 +66,7 @@ export const api = {
     request('/api/v1/analyze/demo', null, {
       method: 'POST',
       body: JSON.stringify(payload),
-      timeoutMs: 2500,
+      timeoutMs: 8000,
     }),
   getPlan: (token) => request('/api/v1/stripe/plan', token),
   createCheckout: (token, plan) =>

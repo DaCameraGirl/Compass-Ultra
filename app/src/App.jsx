@@ -444,7 +444,7 @@ export default function App() {
   const releaseState = getReleaseState(policyChecks);
   const policyBlockers = policyChecks.filter((check) => check.status === 'block').length;
   const policyWarnings = policyChecks.filter((check) => check.status === 'warn').length;
-  const connectedProviders = integrations.filter((item) => item.kind === 'provider' && item.endpoint).length;
+  const connectedProviders = integrations.filter((item) => item.kind === 'provider' && (item.endpoint || item.apiKey)).length;
   const releaseBlockSummary = policyBlockers
     ? `Blocked because ${release.changeTicket || 'this release'} has ${policyBlockers} unresolved policy violation${policyBlockers === 1 ? '' : 's'} and ${policyWarnings} rollout warning${policyWarnings === 1 ? '' : 's'}.`
     : policyWarnings
@@ -2040,7 +2040,7 @@ export default function App() {
                   <p style={{ fontSize: 11, color: '#8b949e' }}>No cloud snapshots yet. Hit the cloud icon in the toolbar to save one.</p>
                 )}
                 {cloudSnapshots.map((snap) => (
-                  <article className="audit-item" key={snap.id} style={{ cursor: 'pointer' }}>
+                  <article className="audit-item snapshot-card" key={snap.id} style={{ cursor: 'pointer' }}>
                     <span>{new Date(snap.created_at).toLocaleDateString()}</span>
                     <div style={{ flex: 1 }}>
                       <strong>{snap.name}</strong>
@@ -2673,7 +2673,7 @@ function makePolicyChecks(flags, evaluations, context, release, integrations = d
   const brokenDeps = flags.filter((flag) =>
     flag.enabled && flag.dependencies.some((dependency) => !flags.find((item) => item.key === dependency && item.enabled))
   );
-  const configuredProviders = integrations.filter((integration) => integration.kind === 'provider' && integration.endpoint).length;
+  const configuredProviders = integrations.filter((integration) => integration.kind === 'provider' && (integration.endpoint || integration.apiKey)).length;
   const configuredOutbound = integrations.filter((integration) => integration.kind === 'outbound' && integration.endpoint).length;
 
   return [

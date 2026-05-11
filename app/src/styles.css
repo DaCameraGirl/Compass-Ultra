@@ -861,7 +861,7 @@ input[type="range"] {
 
 .flag-row {
   display: grid;
-  grid-template-columns: minmax(230px, 1fr) 92px 112px minmax(90px, 140px) 98px 38px;
+  grid-template-columns: minmax(230px, 1fr) 92px 112px minmax(90px, 140px) 98px 38px 38px;
   gap: 10px;
   align-items: center;
   border-bottom: 1px solid var(--line);
@@ -1204,6 +1204,10 @@ input[type="range"] {
   border: 1px solid var(--line);
   border-radius: 8px;
   padding: 8px;
+}
+
+.audit-item.snapshot-card {
+  grid-template-columns: 76px minmax(0, 1fr) 26px 26px 26px;
 }
 
 .audit-item span {
