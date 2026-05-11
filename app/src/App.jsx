@@ -39,10 +39,11 @@ import {
   Upload,
   UserRound,
   Users,
+  Volume2,
+  VolumeX,
   Webhook,
   XCircle,
 } from 'lucide-react';
-import { Analytics } from '@vercel/analytics/react';
 import { api } from './api.js';
 
 const storageKey = 'compass-ultra-workspace-v4';
@@ -354,6 +355,68 @@ const emptyDraft = {
   defaultValue: 'false',
 };
 
+let riskAudioContext;
+
+function getRiskLevelFromAnalysis(analysis) {
+  const riskMatch = analysis.match(/##\s*RISK LEVEL:\s*(LOW|MEDIUM|HIGH|CRITICAL)/i);
+  return riskMatch ? riskMatch[1].toUpperCase() : '';
+}
+
+function getRiskAudioContext() {
+  if (typeof window === 'undefined') return null;
+  const AudioContextCtor = window.AudioContext || window.webkitAudioContext;
+  if (!AudioContextCtor) return null;
+  if (!riskAudioContext) riskAudioContext = new AudioContextCtor();
+  return riskAudioContext;
+}
+
+function primeRiskAudio() {
+  const ctx = getRiskAudioContext();
+  if (ctx?.state === 'suspended') ctx.resume().catch(() => {});
+}
+
+function playRiskTone(level) {
+  const ctx = getRiskAudioContext();
+  if (!ctx) return;
+  if (ctx.state === 'suspended') ctx.resume().catch(() => {});
+
+  const patterns = {
+    LOW: [
+      [660, 0.00, 0.10],
+      [880, 0.14, 0.12],
+    ],
+    MEDIUM: [
+      [440, 0.00, 0.12],
+      [440, 0.18, 0.12],
+    ],
+    HIGH: [
+      [330, 0.00, 0.10],
+      [330, 0.16, 0.10],
+      [330, 0.32, 0.16],
+    ],
+    CRITICAL: [
+      [220, 0.00, 0.11],
+      [180, 0.15, 0.11],
+      [220, 0.30, 0.11],
+      [180, 0.45, 0.16],
+    ],
+  };
+
+  const start = ctx.currentTime + 0.02;
+  (patterns[level] || patterns.MEDIUM).forEach(([frequency, offset, duration]) => {
+    const oscillator = ctx.createOscillator();
+    const gain = ctx.createGain();
+    oscillator.type = level === 'LOW' ? 'sine' : 'square';
+    oscillator.frequency.setValueAtTime(frequency, start + offset);
+    gain.gain.setValueAtTime(0.0001, start + offset);
+    gain.gain.exponentialRampToValueAtTime(0.045, start + offset + 0.02);
+    gain.gain.exponentialRampToValueAtTime(0.0001, start + offset + duration);
+    oscillator.connect(gain).connect(ctx.destination);
+    oscillator.start(start + offset);
+    oscillator.stop(start + offset + duration + 0.03);
+  });
+}
+
 export default function App() {
   const { isAuthenticated, loginWithRedirect, logout, getAccessTokenSilently, user } = useAuth0();
   const [cloudSnapshots, setCloudSnapshots] = useState([]);
@@ -365,6 +428,7 @@ export default function App() {
   const [aiAnalysisSource, setAiAnalysisSource] = useState('');
   const [aiLoading, setAiLoading] = useState(false);
   const [aiRiskLevel, setAiRiskLevel] = useState('');
+  const [soundEnabled, setSoundEnabled] = useState(true);
   const [showRollbackModal, setShowRollbackModal] = useState(false);
   const [diffA, setDiffA] = useState(null);
   const [diffB, setDiffB] = useState(null);
@@ -1171,17 +1235,23 @@ export default function App() {
     }
   };
 
+  const applyRiskAnalysis = (analysis, source) => {
+    const level = getRiskLevelFromAnalysis(analysis);
+    setAiAnalysis(analysis);
+    setAiRiskLevel(level);
+    setAiAnalysisSource(source);
+    if (soundEnabled) playRiskTone(level);
+  };
+
   const runAiAnalysis = async () => {
+    if (soundEnabled) primeRiskAudio();
     if (demoMode && !isAuthenticated) {
       setAiLoading(true);
       setAiAnalysis('');
       setAiAnalysisSource('');
       try {
         const { analysis } = await api.analyzeDemoFlags({ flags, context, release, policyChecks });
-        setAiAnalysis(analysis);
-        const riskMatch = analysis.match(/##\s*RISK LEVEL:\s*(LOW|MEDIUM|HIGH|CRITICAL)/i);
-        setAiRiskLevel(riskMatch ? riskMatch[1].toUpperCase() : '');
-        setAiAnalysisSource('Live AI service');
+        applyRiskAnalysis(analysis, 'Live AI service');
         setAiLoading(false);
         record('Live demo AI risk analysis complete');
         return;
@@ -1190,10 +1260,7 @@ export default function App() {
       }
       window.setTimeout(() => {
         const analysis = makeDemoAiAnalysis(workspaceName, release, context, flags, policyChecks);
-        setAiAnalysis(analysis);
-        const riskMatch = analysis.match(/##\s*RISK LEVEL:\s*(LOW|MEDIUM|HIGH|CRITICAL)/i);
-        setAiRiskLevel(riskMatch ? riskMatch[1].toUpperCase() : '');
-        setAiAnalysisSource('Local deterministic risk engine');
+        applyRiskAnalysis(analysis, 'Local deterministic risk engine');
         setAiLoading(false);
         record('State-aware demo AI risk analysis complete');
       }, 650);
@@ -1207,10 +1274,7 @@ export default function App() {
     try {
       const token = await getAccessTokenSilently({ authorizationParams: { audience: import.meta.env.VITE_AUTH0_AUDIENCE } });
       const { analysis } = await api.analyzeFlags(token, { flags, context, release, policyChecks });
-      setAiAnalysis(analysis);
-      const riskMatch = analysis.match(/##\s*RISK LEVEL:\s*(LOW|MEDIUM|HIGH|CRITICAL)/i);
-      setAiRiskLevel(riskMatch ? riskMatch[1].toUpperCase() : '');
-      setAiAnalysisSource('Live AI service');
+      applyRiskAnalysis(analysis, 'Live AI service');
       record('AI risk analysis complete');
     } catch (e) {
       if (e.error === 'login_required' || e.error === 'consent_required') {
@@ -1218,10 +1282,10 @@ export default function App() {
         return;
       }
       const analysis = makeDemoAiAnalysis(workspaceName, release, context, flags, policyChecks);
-      setAiAnalysis(`${analysis}\n\nLive AI service unavailable; Compass Ultra generated this deterministic release-risk fallback from the current workspace state.`);
-      const riskMatch = analysis.match(/##\s*RISK LEVEL:\s*(LOW|MEDIUM|HIGH|CRITICAL)/i);
-      setAiRiskLevel(riskMatch ? riskMatch[1].toUpperCase() : '');
-      setAiAnalysisSource('Local deterministic risk engine');
+      applyRiskAnalysis(
+        `${analysis}\n\nLive AI service unavailable; Compass Ultra generated this deterministic release-risk fallback from the current workspace state.`,
+        'Local deterministic risk engine'
+      );
       record('AI risk analysis fallback used', e.message || '', 'warn');
     } finally {
       setAiLoading(false);
@@ -1354,11 +1418,65 @@ export default function App() {
           <span><strong>{policyBlockers}</strong> blockers</span>
           <span><strong>{policyWarnings}</strong> warnings</span>
         </div>
-        <button type="button" className="ai-risk-cta" onClick={runAiAnalysis} disabled={aiLoading}>
-          <BrainCircuit size={16} aria-hidden="true" />
-          {aiLoading ? 'Analyzing...' : aiRiskLevel ? 'Run Again' : 'Run Risk Analysis'}
-        </button>
+        <div className="ai-risk-actions">
+          <button type="button" className="ai-risk-cta" onClick={runAiAnalysis} disabled={aiLoading}>
+            <BrainCircuit size={16} aria-hidden="true" />
+            {aiLoading ? 'Analyzing...' : aiRiskLevel ? 'Run Again' : 'Run Risk Analysis'}
+          </button>
+          <button
+            type="button"
+            className="ai-sound-toggle"
+            onClick={() => setSoundEnabled((value) => !value)}
+            aria-label={soundEnabled ? 'Turn risk sounds off' : 'Turn risk sounds on'}
+            title={soundEnabled ? 'Risk sounds on' : 'Risk sounds off'}
+          >
+            {soundEnabled ? <Volume2 size={16} aria-hidden="true" /> : <VolumeX size={16} aria-hidden="true" />}
+          </button>
+        </div>
       </section>
+
+      {(aiAnalysis || aiLoading) && (
+        <section className="risk-analysis-panel" data-risk={aiRiskLevel ? aiRiskLevel.toLowerCase() : 'pending'}>
+          <div className="risk-analysis-heading">
+            <div>
+              <span className="ai-risk-kicker">Current Analysis</span>
+              <h2>Release Risk Analysis</h2>
+            </div>
+            <div className="risk-analysis-tools">
+              {aiAnalysisSource && <span>{aiAnalysisSource}</span>}
+              {aiAnalysis && (
+                <>
+                  <button type="button" onClick={() => copyText(aiAnalysis, 'Risk analysis copied!')} aria-label="Copy plain text" title="Copy plain text">
+                    <Clipboard size={15} aria-hidden="true" />
+                  </button>
+                  <button type="button" onClick={() => copyText(toSlackMrkdwn(aiAnalysis), 'Copied for Slack!')} aria-label="Copy as Slack mrkdwn" title="Copy for Slack (mrkdwn format)">
+                    Slack
+                  </button>
+                  <button type="button" onClick={() => setAiAnalysis('')} aria-label="Close analysis">
+                    ×
+                  </button>
+                </>
+              )}
+            </div>
+          </div>
+          {aiLoading && <p className="risk-analysis-loading">Analyzing the current workspace...</p>}
+          {aiAnalysis && <pre>{aiAnalysis}</pre>}
+          {aiAnalysis && (aiRiskLevel === 'HIGH' || aiRiskLevel === 'CRITICAL') && (
+            <div className="rollback-callout">
+              <div>
+                <strong>{aiRiskLevel} risk detected</strong>
+                <span>Rollback to a previous safe snapshot to undo recent changes.</span>
+              </div>
+              <button
+                type="button"
+                onClick={() => { if (!isAuthenticated) { loginWithRedirect(); return; } setShowRollbackModal(true); }}
+              >
+                Rollback to Safe State
+              </button>
+            </div>
+          )}
+        </section>
+      )}
 
       {demoMode && (
         <section className="demo-guide-bar" aria-label="Demo walkthrough">
@@ -1951,7 +2069,7 @@ export default function App() {
             </section>
           )}
 
-          {(aiAnalysis || aiLoading) && (
+          {false && (aiAnalysis || aiLoading) && (
             <section className="panel code-panel">
               <div className="panel-heading">
                 <BrainCircuit size={18} aria-hidden="true" />
@@ -2114,6 +2232,65 @@ export default function App() {
           </section>
         </aside>
       </section>
+
+      {showRollbackModal && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.75)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }} onClick={() => setShowRollbackModal(false)}>
+          <div style={{ background: '#0e1117', border: '1px solid rgba(248,81,73,0.3)', borderRadius: 12, padding: 28, maxWidth: 480, width: '100%', position: 'relative' }} onClick={e => e.stopPropagation()}>
+            <button onClick={() => setShowRollbackModal(false)} style={{ position: 'absolute', top: 12, right: 12, background: 'none', border: 'none', color: '#8b949e', cursor: 'pointer', fontSize: 18 }}>X</button>
+            <div style={{ color: '#f85149', fontSize: 13, fontWeight: 700, marginBottom: 4 }}>Rollback Workspace</div>
+            <div style={{ color: '#8b949e', fontSize: 12, marginBottom: 20 }}>Select a saved snapshot to restore. This replaces your current workspace state.</div>
+            {cloudSnapshots.length === 0 ? (
+              <div style={{ color: '#8b949e', fontSize: 12, textAlign: 'center', padding: '20px 0' }}>No saved snapshots found. Save a snapshot first to enable rollback.</div>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                {cloudSnapshots.map(snap => (
+                  <button
+                    key={snap.id}
+                    type="button"
+                    onClick={() => { restoreFromCloud(snap); setShowRollbackModal(false); setCloudNotice(`Rolled back to: ${snap.name}`); record(`Rollback to snapshot: ${snap.name}`); }}
+                    style={{ background: '#161b22', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 8, padding: '12px 14px', textAlign: 'left', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'space-between', transition: 'border-color 0.15s' }}
+                    onMouseOver={e => e.currentTarget.style.borderColor = 'rgba(88,166,255,0.4)'}
+                    onMouseOut={e => e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)'}
+                  >
+                    <div>
+                      <div style={{ color: '#e6edf3', fontSize: 13, fontWeight: 600 }}>{snap.name}</div>
+                      <div style={{ color: '#8b949e', fontSize: 11, marginTop: 2 }}>{new Date(snap.created_at).toLocaleString()}</div>
+                    </div>
+                    <span style={{ color: '#58a6ff', fontSize: 12, fontWeight: 700 }}>Restore -&gt;</span>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {showSnapshotModal && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.75)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }} onClick={() => setShowSnapshotModal(false)}>
+          <div style={{ background: '#0e1117', border: '1px solid rgba(88,166,255,0.25)', borderRadius: 12, padding: 28, maxWidth: 420, width: '100%', position: 'relative' }} onClick={e => e.stopPropagation()}>
+            <button onClick={() => setShowSnapshotModal(false)} style={{ position: 'absolute', top: 12, right: 12, background: 'none', border: 'none', color: '#8b949e', cursor: 'pointer', fontSize: 18 }}>X</button>
+            <div style={{ color: '#58a6ff', fontSize: 13, fontWeight: 700, marginBottom: 4 }}>
+              <Cloud size={14} style={{ display: 'inline', verticalAlign: 'middle', marginRight: 6 }} />
+              Save Snapshot
+            </div>
+            <div style={{ color: '#8b949e', fontSize: 12, marginBottom: 16 }}>Give this snapshot a name so you can find it later.</div>
+            <input
+              type="text"
+              value={snapshotDraftName}
+              onChange={e => setSnapshotDraftName(e.target.value)}
+              onKeyDown={e => { if (e.key === 'Enter') confirmSnapshotSave(); if (e.key === 'Escape') setShowSnapshotModal(false); }}
+              autoFocus
+              placeholder="Snapshot name"
+              style={{ width: '100%', boxSizing: 'border-box', background: '#161b22', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 8, padding: '9px 12px', color: '#e6edf3', fontSize: 13, outline: 'none', marginBottom: 16 }}
+            />
+            <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
+              <button type="button" onClick={() => setShowSnapshotModal(false)} style={{ background: 'none', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 7, padding: '7px 16px', color: '#8b949e', fontSize: 12, cursor: 'pointer' }}>Cancel</button>
+              <button type="button" onClick={confirmSnapshotSave} disabled={!snapshotDraftName.trim()} style={{ background: snapshotDraftName.trim() ? '#1f6feb' : '#1f6feb44', border: 'none', borderRadius: 7, padding: '7px 16px', color: snapshotDraftName.trim() ? '#fff' : '#8b949e', fontSize: 12, fontWeight: 600, cursor: snapshotDraftName.trim() ? 'pointer' : 'default', transition: 'background 0.15s' }}>Save</button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {showOnboarding && (
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.85)', zIndex: 2000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
           <div style={{ background: '#0e1117', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 16, padding: 40, maxWidth: 520, width: '100%', position: 'relative' }}>
@@ -2298,7 +2475,6 @@ export default function App() {
           </div>
         </div>
       )}
-      <Analytics />
     </main>
   );
 }

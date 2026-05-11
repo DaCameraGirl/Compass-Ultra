@@ -2,6 +2,7 @@ import React from 'react';
 import { createRoot } from 'react-dom/client';
 import { Auth0Provider } from '@auth0/auth0-react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { Analytics } from '@vercel/analytics/react';
 import App from './App.jsx';
 import LandingPage from './LandingPage.jsx';
 import './styles.css';
@@ -158,6 +159,7 @@ createRoot(document.getElementById('root')).render(
           <Route path="/terms" element={<LegalPage type="terms" />} />
           <Route path="/trust" element={<TrustPage />} />
         </Routes>
+        <Analytics />
       </BrowserRouter>
     </Auth0Provider>
   </React.StrictMode>
