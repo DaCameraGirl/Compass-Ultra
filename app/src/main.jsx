@@ -7,9 +7,9 @@ import App from './App.jsx';
 import LandingPage from './LandingPage.jsx';
 import './styles.css';
 
-const domain   = import.meta.env.VITE_AUTH0_DOMAIN   || 'dev-dacameragirl.us.auth0.com';
-const clientId = import.meta.env.VITE_AUTH0_CLIENT_ID || 'q2TOUmYqRvhQFW4kK5qqogrwJMG0R4w1';
-const audience = import.meta.env.VITE_AUTH0_AUDIENCE  || 'https://api.compass-ultra.com';
+const domain   = import.meta.env.VITE_AUTH0_DOMAIN;
+const clientId = import.meta.env.VITE_AUTH0_CLIENT_ID;
+const audience = import.meta.env.VITE_AUTH0_AUDIENCE;
 
 function LegalPage({ type }) {
   const isPrivacy = type === 'privacy';

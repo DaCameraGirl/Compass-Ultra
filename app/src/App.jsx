@@ -418,7 +418,7 @@ function playRiskTone(level) {
 }
 
 export default function App() {
-  const { isAuthenticated, loginWithRedirect, logout, getAccessTokenSilently, user } = useAuth0();
+  const { isAuthenticated, isLoading: authLoading, loginWithRedirect, logout, getAccessTokenSilently, user } = useAuth0();
   const [cloudSnapshots, setCloudSnapshots] = useState([]);
   const [cloudLoading, setCloudLoading] = useState(false);
   const [cloudNotice, setCloudNotice] = useState('');
@@ -434,7 +434,7 @@ export default function App() {
   const [diffB, setDiffB] = useState(null);
   const [showDiff, setShowDiff] = useState(false);
   const [showPricing, setShowPricing] = useState(false);
-  const [demoMode, setDemoMode] = useState(() => new URLSearchParams(window.location.search).get('demo') === 'true');
+  const [demoMode, setDemoMode] = useState(false);
   const [userPlan, setUserPlan] = useState(() => (
     typeof window !== 'undefined'
       ? new URLSearchParams(window.location.search).get('upgraded') || 'free'
@@ -449,6 +449,61 @@ export default function App() {
       ? new URLSearchParams(window.location.search).get('upgraded')
       : null
   );
+
+  const [showKillSwitch, setShowKillSwitch] = useState(false);
+  const [killToast, setKillToast] = useState('');
+
+  const executeKillSwitch = () => {
+    const checkpoint = JSON.stringify({ workspaceName, release, team, integrations, context, flags, audit });
+    localStorage.setItem('compass-ultra-emergency-checkpoint', checkpoint);
+
+    const safeState = localStorage.getItem('compass-ultra-last-known-good');
+    if (safeState) {
+      try {
+        const parsed = JSON.parse(safeState);
+        setWorkspaceName(parsed.workspaceName || 'Workspace');
+        setRelease(parsed.release || defaultRelease);
+        setTeam(parsed.team || defaultTeam);
+        setIntegrations(parsed.integrations || defaultIntegrations);
+        setContext(parsed.context || defaultContext);
+        setFlags(parsed.flags || []);
+        setSelectedKey((parsed.flags && parsed.flags[0]?.key) || '');
+        setAiAnalysis('');
+        setAiRiskLevel('');
+        record('KILL SWITCH ACTIVATED — rolled back to last known good state');
+      } catch { resetWorkspace(); }
+    } else {
+      resetWorkspace();
+    }
+
+    const lastGoodFlags = safeState ? (JSON.parse(safeState).flags || []) : [];
+    fetch(`${import.meta.env.VITE_API_URL || 'https://api.compassultra.com'}/api/v1/alerts/kill-switch`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        workspaceName,
+        release,
+        activeMember: activeMember?.name || 'Unknown',
+        changedFlags: flags.filter(f => {
+          const safe = lastGoodFlags.find(g => g.key === f.key);
+          return !safe || JSON.stringify(safe) !== JSON.stringify(f);
+        }).map(f => ({ key: f.key, rollout: f.rollout, enabled: f.enabled })),
+      }),
+    }).catch(() => {});
+
+    setShowKillSwitch(false);
+    setKillToast('Kill switch activated — rolled back to safe state. Slack notified.');
+    setTimeout(() => setKillToast(''), 5000);
+  };
+
+  const saveLastKnownGood = () => {
+    localStorage.setItem('compass-ultra-last-known-good', JSON.stringify({ workspaceName, release, team, integrations, context, flags, audit }));
+  };
+
+  useEffect(() => {
+    const interval = setInterval(saveLastKnownGood, 30000);
+    return () => clearInterval(interval);
+  }, [workspaceName, release, team, integrations, context, flags, audit]);
 
   const finishOnboarding = () => {
     localStorage.setItem('cu-onboarded', '1');
@@ -1091,10 +1146,10 @@ export default function App() {
     setShowDiff((current) => !current);
   };
 
-  const loadDemo = () => {
-    const demo = hydrateWorkspace({ flags: seedFlags, workspaceName: 'Demo Retail — Production Release' });
+  const loadDemo = (name = 'Demo Retail — Production Release', releaseOverrides = {}) => {
+    const demo = hydrateWorkspace({ flags: seedFlags, workspaceName: name });
     setWorkspaceName(demo.workspaceName);
-    setRelease({ ...defaultRelease, changeTicket: 'CHG-24051', train: 'prod-2026.05', releaseCaptain: 'Demo User' });
+    setRelease({ ...defaultRelease, changeTicket: 'CHG-24051', train: 'prod-2026.05', releaseCaptain: 'Demo User', ...releaseOverrides });
     setTeam(demo.team);
     setIntegrations(demo.integrations);
     setContext(demo.context);
@@ -1154,17 +1209,17 @@ export default function App() {
     const params = new URLSearchParams(window.location.search);
 
     if (params.get('demo') === 'true') {
-      const demo = hydrateWorkspace({ flags: seedFlags, workspaceName: 'Demo Retail — Peak Sale Release' });
-      setWorkspaceName(demo.workspaceName);
-      setRelease({ ...defaultRelease, changeTicket: 'CHG-1850', train: 'peak-sale-2026.11', releaseCaptain: 'Demo Release Lead' });
-      setTeam(demo.team);
-      setIntegrations(demo.integrations);
-      setContext(demo.context);
-      setFlags(demo.flags);
-      setSelectedKey(demo.flags[0]?.key || '');
-      setDemoMode(true);
-      record('Demo workspace auto-loaded');
-      window.history.replaceState({}, '', window.location.pathname);
+      loadDemo('Demo Retail — Peak Sale Release', { changeTicket: 'CHG-1850', train: 'peak-sale-2026.11', releaseCaptain: 'Demo Release Lead' });
+      return;
+    }
+
+    if (params.get('sandbox') === 'true') {
+      loadDemo('Demo Sandbox — Try Before You Sign In', { changeTicket: 'CHG-SANDBOX', train: 'sandbox-2026', releaseCaptain: 'Guest Explorer' });
+      return;
+    }
+
+    if (!authLoading && !isAuthenticated) {
+      loadDemo('Demo Retail — Peak Sale Release', { changeTicket: 'CHG-1850', train: 'peak-sale-2026.11', releaseCaptain: 'Demo Guest' });
       return;
     }
 
@@ -1478,7 +1533,25 @@ export default function App() {
         </section>
       )}
 
-      {demoMode && (
+      {!authLoading && !isAuthenticated && (
+        <section className="sandbox-banner">
+          <div className="sandbox-banner-content">
+            <span className="sandbox-badge">SANDBOX</span>
+            <span>Exploring Compass Ultra — no account needed. Toggle flags, run risk analysis, export PDFs.</span>
+          </div>
+          <div className="sandbox-banner-actions">
+            <button type="button" className="sandbox-login-btn" onClick={() => loginWithRedirect()}>
+              <LogIn size={15} />
+              Sign in to save
+            </button>
+            <button type="button" className="sandbox-dismiss-btn" onClick={() => setShowPricing(true)}>
+              View Pricing
+            </button>
+          </div>
+        </section>
+      )}
+
+      {demoMode && isAuthenticated && (
         <section className="demo-guide-bar" aria-label="Demo walkthrough">
           <div>
             <strong>Try the release review loop</strong>
@@ -2399,10 +2472,17 @@ export default function App() {
                   cta: 'Get started', highlight: false,
                 },
                 {
+                  name: 'Solo', price: '$29', period: 'per month',
+                  color: '#e3b341',
+                  description: 'For independent developers and freelancers managing production flags.',
+                  features: ['Everything in Free', 'Unlimited snapshots', 'Cloud save & sync', 'Risk analyzer', 'Snapshot diff viewer', 'Flag expiration alerts', 'Shareable public links', 'Audit log export'],
+                  cta: 'Start Free Trial', highlight: false, plan: 'solo',
+                },
+                {
                   name: 'Pro', price: '$199', period: 'per month',
                   color: '#58a6ff',
-                  description: 'For solo engineers, founders, and small teams managing release risk.',
-                  features: ['7-day full-feature trial', 'Everything in Free', 'Unlimited snapshots', 'Cloud save & sync', 'Shareable public links', 'Snapshot diff viewer', 'Risk analyzer'],
+                  description: 'For small teams managing release risk together.',
+                  features: ['Everything in Solo', '7-day full-feature trial', 'Team RBAC', 'Slack workflow payloads', 'Shared team workspace', 'Priority support'],
                   cta: 'Start Free Trial', highlight: false, plan: 'pro',
                 },
                 {
@@ -2421,7 +2501,7 @@ export default function App() {
                 },
               ].map(tier => {
                 const isCurrent = tier.plan === userPlan || (!tier.plan && userPlan === 'free');
-                const planOrder = { free: 0, pro: 1, team: 2, enterprise: 3 };
+                const planOrder = { free: 0, solo: 0.5, pro: 1, team: 2, enterprise: 3 };
                 const isUpgrade = tier.plan && planOrder[tier.plan] > planOrder[userPlan];
                 const isDowngrade = tier.plan && planOrder[tier.plan] < planOrder[userPlan];
                 const alreadyPaid = userPlan !== 'free';
@@ -2471,6 +2551,44 @@ export default function App() {
                 </div>
                 );
               })}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {killToast && <div className="kill-switch-toast">{killToast}</div>}
+
+      <button
+        type="button"
+        className="kill-switch-fab"
+        onClick={() => setShowKillSwitch(true)}
+        title="Emergency Kill Switch — roll back all flags to last known safe state"
+        aria-label="Emergency Kill Switch"
+      >
+        <AlertTriangle size={18} />
+        KILL SWITCH
+      </button>
+
+      {showKillSwitch && (
+        <div className="kill-switch-overlay" onClick={() => setShowKillSwitch(false)}>
+          <div className="kill-switch-modal" onClick={e => e.stopPropagation()}>
+            <button onClick={() => setShowKillSwitch(false)} style={{ position: 'absolute', top: 12, right: 12, background: 'none', border: 'none', color: '#8b949e', cursor: 'pointer', fontSize: 18 }}>×</button>
+            <h2>Emergency Kill Switch</h2>
+            <p>
+              This will immediately roll back all flags to the last known good state saved in your browser.
+              Current flags will be saved as an emergency checkpoint. A Slack alert will be sent.
+            </p>
+            <div className="kill-info" style={{ background: '#161b22', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 8, padding: 12, marginBottom: 20, fontSize: 12, color: '#8b949e' }}>
+              <div style={{ marginBottom: 4 }}>Active flags to revert: <strong style={{ color: '#e6edf3' }}>{flags.filter(f => f.enabled).length}</strong></div>
+              <div style={{ marginBottom: 4 }}>Critical flags active: <strong style={{ color: '#f85149' }}>{criticalActive}</strong></div>
+              <div>Last checkpoint: <strong style={{ color: '#e6edf3' }}>{localStorage.getItem('compass-ultra-last-known-good') ? 'Available' : 'Not saved yet — will reset workspace'}</strong></div>
+            </div>
+            <div className="kill-actions">
+              <button type="button" className="kill-cancel" onClick={() => setShowKillSwitch(false)}>Cancel</button>
+              <button type="button" className="kill-confirm" onClick={executeKillSwitch}>
+                <AlertTriangle size={15} />
+                Activate Kill Switch
+              </button>
             </div>
           </div>
         </div>
