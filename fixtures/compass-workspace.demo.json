@@ -1,0 +1,67 @@
+{
+  "workspaceName": "CI Release Gate",
+  "flags": [
+    {
+      "key": "checkout.new_flow",
+      "name": "New Checkout Flow",
+      "enabled": true,
+      "criticality": "high",
+      "rollout": 85,
+      "owner": "Growth",
+      "jira": "CHG-1842",
+      "approver": "Growth Lead",
+      "expiresAt": "2026-12-01",
+      "rollback": "Disable new_flow and revert to standard checkout.",
+      "canaryRequired": true,
+      "dependencies": ["payments.stripe_v4"]
+    },
+    {
+      "key": "payments.stripe_v4",
+      "name": "Stripe v4 Migration",
+      "enabled": true,
+      "criticality": "critical",
+      "rollout": 100,
+      "owner": "Payments",
+      "jira": "CHG-1801",
+      "approver": "Finance Ops",
+      "expiresAt": "2026-11-30",
+      "rollback": "Set payments.stripe_v4 false. Revert to v3 SDK.",
+      "canaryRequired": true,
+      "dependencies": []
+    },
+    {
+      "key": "ui.dark_mode",
+      "name": "Dark Mode Beta",
+      "enabled": true,
+      "criticality": "low",
+      "rollout": 10,
+      "owner": "Frontend",
+      "jira": "CHG-1788",
+      "approver": "Frontend Lead",
+      "expiresAt": "2027-03-01",
+      "rollback": "Disable dark_mode.",
+      "canaryRequired": false,
+      "dependencies": []
+    },
+    {
+      "key": "fraud.ml_scoring_v2",
+      "name": "ML Fraud Scoring v2",
+      "enabled": true,
+      "criticality": "critical",
+      "rollout": 100,
+      "owner": "Trust & Safety",
+      "jira": "CHG-1799",
+      "approver": "Security",
+      "expiresAt": "2026-12-31",
+      "rollback": "Revert model to rules_v1.",
+      "canaryRequired": false,
+      "dependencies": []
+    }
+  ],
+  "release": {
+    "changeTicket": "CHG-CI-2026",
+    "train": "ci-release",
+    "releaseCaptain": "CI Bot",
+    "window": "Anytime"
+  }
+}
