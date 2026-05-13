@@ -1,10 +1,9 @@
 const API_BASES = [
   import.meta.env.VITE_API_URL,
-  'https://api.compassultra.com',
-  'https://compass-ultra-backend.onrender.com',
 ]
   .filter(Boolean)
-  .filter((base, index, all) => all.indexOf(base) === index);
+  .filter((base, index, all) => all.indexOf(base) === index)
+  .map(base => base.replace(/\/+$/, ''));
 
 async function request(path, token, options = {}) {
   const { timeoutMs = 8000, ...fetchOptions } = options;
