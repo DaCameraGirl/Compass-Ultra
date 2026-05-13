@@ -909,8 +909,8 @@ export default function LandingPage() {
             <strong>One bad rollout costs more than a month of Compass Ultra.</strong>
             <span>Compass Ultra helps teams catch stale flags, risky releases, missing ownership, and audit gaps before they become production problems.</span>
             <div className="lp-pricing-roi-actions">
-              <button className="lp-btn-primary" onClick={goToDemo}>Roast My Flags</button>
-              <button className="lp-btn-outline" onClick={goToDemo}>Run Demo Scan</button>
+              <button className="lp-btn-primary" onClick={goToDemo}>Open Live Demo</button>
+              <button className="lp-btn-outline" onClick={goToDemo}>Try Demo Workspace</button>
             </div>
           </div>
           <div className="lp-pricing-grid">
