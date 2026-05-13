@@ -491,7 +491,7 @@ export default function App() {
     }
 
     const lastGoodFlags = safeState ? (JSON.parse(safeState).flags || []) : [];
-    fetch(`${import.meta.env.VITE_API_URL || 'https://api.compassultra.com'}/api/v1/alerts/kill-switch`, {
+    fetch(`${(import.meta.env.VITE_API_URL || 'https://compass-ultra-backend-production.up.railway.app').replace(/\/+$/, '')}/api/v1/alerts/kill-switch`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -787,7 +787,7 @@ export default function App() {
     try {
       let payload;
       if (isProxyProvider) {
-        const apiBase = import.meta.env.VITE_API_URL;
+        const apiBase = (import.meta.env.VITE_API_URL || '').replace(/\/+$/, '');
         const token = await getAccessTokenSilently({ authorizationParams: { audience: import.meta.env.VITE_AUTH0_AUDIENCE } });
         const body = integration.id === 'launchdarkly'
           ? { apiKey: integration.apiKey, projectKey: integration.projectKey || 'default', envKey: integration.envKey || 'production' }
@@ -2139,105 +2139,6 @@ export default function App() {
                     );
                   })()}
                 </>
-              )}
-            </section>
-          )}
-
-          {false && (aiAnalysis || aiLoading) && (
-            <section className="panel code-panel">
-              <div className="panel-heading">
-                <BrainCircuit size={18} aria-hidden="true" />
-                <h2>Risk Analysis</h2>
-                {aiAnalysisSource && (
-                  <span style={{ color: '#8b949e', fontSize: 10, marginLeft: 8 }}>{aiAnalysisSource}</span>
-                )}
-                {aiAnalysis && (
-                  <>
-                    <button type="button" onClick={() => copyText(aiAnalysis, 'Risk analysis copied!')} aria-label="Copy plain text" title="Copy plain text">
-                      <Clipboard size={15} aria-hidden="true" />
-                    </button>
-                    <button type="button" onClick={() => copyText(toSlackMrkdwn(aiAnalysis), 'Copied for Slack!')} aria-label="Copy as Slack mrkdwn" title="Copy for Slack (mrkdwn format)" style={{ fontSize: 10, background: 'none', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 3, color: '#8b949e', padding: '2px 5px', cursor: 'pointer' }}>
-                      Slack
-                    </button>
-                    <button type="button" onClick={() => setAiAnalysis('')} aria-label="Close analysis" style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#8b949e' }}>
-                      ✕
-                    </button>
-                  </>
-                )}
-              </div>
-              {aiLoading && <p style={{ color: '#bc8cff', fontSize: 11 }}>Analyzing your flags… ✨</p>}
-              {aiAnalysis && <pre style={{ whiteSpace: 'pre-wrap', fontSize: 10, lineHeight: 1.6 }}>{aiAnalysis}</pre>}
-              {aiAnalysis && (aiRiskLevel === 'HIGH' || aiRiskLevel === 'CRITICAL') && (
-                <div style={{ marginTop: 12, padding: '12px 14px', background: 'rgba(248,81,73,0.07)', border: '1px solid rgba(248,81,73,0.25)', borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
-                  <div>
-                    <div style={{ color: '#f85149', fontSize: 12, fontWeight: 700, marginBottom: 2 }}>⚠️ {aiRiskLevel} RISK DETECTED</div>
-                    <div style={{ color: '#8b949e', fontSize: 11 }}>Rollback to a previous safe snapshot to undo recent changes.</div>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => { if (!isAuthenticated) { loginWithRedirect(); return; } setShowRollbackModal(true); }}
-                    style={{ background: '#f85149', color: '#fff', border: 'none', borderRadius: 6, padding: '8px 14px', fontSize: 12, fontWeight: 700, cursor: 'pointer', whiteSpace: 'nowrap', flexShrink: 0 }}
-                  >
-                    🔄 Rollback to Safe State
-                  </button>
-                </div>
-              )}
-              {showRollbackModal && (
-                <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.75)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }} onClick={() => setShowRollbackModal(false)}>
-                  <div style={{ background: '#0e1117', border: '1px solid rgba(248,81,73,0.3)', borderRadius: 12, padding: 28, maxWidth: 480, width: '100%', position: 'relative' }} onClick={e => e.stopPropagation()}>
-                    <button onClick={() => setShowRollbackModal(false)} style={{ position: 'absolute', top: 12, right: 12, background: 'none', border: 'none', color: '#8b949e', cursor: 'pointer', fontSize: 18 }}>✕</button>
-                    <div style={{ color: '#f85149', fontSize: 13, fontWeight: 700, marginBottom: 4 }}>🔄 Rollback Workspace</div>
-                    <div style={{ color: '#8b949e', fontSize: 12, marginBottom: 20 }}>Select a saved snapshot to restore. This replaces your current workspace state.</div>
-                    {cloudSnapshots.length === 0 ? (
-                      <div style={{ color: '#8b949e', fontSize: 12, textAlign: 'center', padding: '20px 0' }}>No saved snapshots found. Save a snapshot first to enable rollback.</div>
-                    ) : (
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                        {cloudSnapshots.map(snap => (
-                          <button
-                            key={snap.id}
-                            type="button"
-                            onClick={() => { restoreFromCloud(snap); setShowRollbackModal(false); setCloudNotice(`Rolled back to: ${snap.name}`); record(`Rollback to snapshot: ${snap.name}`); }}
-                            style={{ background: '#161b22', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 8, padding: '12px 14px', textAlign: 'left', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'space-between', transition: 'border-color 0.15s' }}
-                            onMouseOver={e => e.currentTarget.style.borderColor = 'rgba(88,166,255,0.4)'}
-                            onMouseOut={e => e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)'}
-                          >
-                            <div>
-                              <div style={{ color: '#e6edf3', fontSize: 13, fontWeight: 600 }}>{snap.name}</div>
-                              <div style={{ color: '#8b949e', fontSize: 11, marginTop: 2 }}>{new Date(snap.created_at).toLocaleString()}</div>
-                            </div>
-                            <span style={{ color: '#58a6ff', fontSize: 12, fontWeight: 700 }}>Restore →</span>
-                          </button>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                </div>
-              )}
-
-              {showSnapshotModal && (
-                <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.75)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }} onClick={() => setShowSnapshotModal(false)}>
-                  <div style={{ background: '#0e1117', border: '1px solid rgba(88,166,255,0.25)', borderRadius: 12, padding: 28, maxWidth: 420, width: '100%', position: 'relative' }} onClick={e => e.stopPropagation()}>
-                    <button onClick={() => setShowSnapshotModal(false)} style={{ position: 'absolute', top: 12, right: 12, background: 'none', border: 'none', color: '#8b949e', cursor: 'pointer', fontSize: 18 }}>✕</button>
-                    <div style={{ color: '#58a6ff', fontSize: 13, fontWeight: 700, marginBottom: 4 }}>
-                      <Cloud size={14} style={{ display: 'inline', verticalAlign: 'middle', marginRight: 6 }} />
-                      Save Snapshot
-                    </div>
-                    <div style={{ color: '#8b949e', fontSize: 12, marginBottom: 16 }}>Give this snapshot a name so you can find it later.</div>
-                    <input
-                      type="text"
-                      value={snapshotDraftName}
-                      onChange={e => setSnapshotDraftName(e.target.value)}
-                      onKeyDown={e => { if (e.key === 'Enter') confirmSnapshotSave(); if (e.key === 'Escape') setShowSnapshotModal(false); }}
-                      autoFocus
-                      placeholder="Snapshot name"
-                      style={{ width: '100%', boxSizing: 'border-box', background: '#161b22', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 8, padding: '9px 12px', color: '#e6edf3', fontSize: 13, outline: 'none', marginBottom: 16 }}
-                    />
-                    <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
-                      <button type="button" onClick={() => setShowSnapshotModal(false)} style={{ background: 'none', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 7, padding: '7px 16px', color: '#8b949e', fontSize: 12, cursor: 'pointer' }}>Cancel</button>
-                      <button type="button" onClick={confirmSnapshotSave} disabled={!snapshotDraftName.trim()} style={{ background: snapshotDraftName.trim() ? '#1f6feb' : '#1f6feb44', border: 'none', borderRadius: 7, padding: '7px 16px', color: snapshotDraftName.trim() ? '#fff' : '#8b949e', fontSize: 12, fontWeight: 600, cursor: snapshotDraftName.trim() ? 'pointer' : 'default', transition: 'background 0.15s' }}>Save</button>
-                    </div>
-                  </div>
-                </div>
               )}
             </section>
           )}
