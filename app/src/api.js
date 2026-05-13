@@ -1,10 +1,15 @@
 const normalizeBase = (base) => base?.replace(/\/+$/, '');
 
+const isValidUrl = (base) => {
+  try { return base && new URL(base).protocol.startsWith('http'); }
+  catch { return false; }
+};
+
 const API_BASES = [
   normalizeBase(import.meta.env.VITE_API_URL),
   'https://compass-ultra-backend-production.up.railway.app',
 ]
-  .filter(Boolean)
+  .filter(isValidUrl)
   .filter((base, index, all) => all.indexOf(base) === index);
 
 async function request(path, token, options = {}) {
