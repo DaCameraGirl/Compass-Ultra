@@ -9,6 +9,11 @@ import './LandingPage.css';
 
 const FEATURES = [
   {
+    icon: <Shield size={22} />, color: '#3fb950',
+    title: 'CI Release Gate',
+    description: 'Block PRs that fail release policy. Add one GitHub Action to your workflow and every PR gets scanned — change ticket coverage, canary limits, dependency health, expiration dates. Merge only when the gate passes.',
+  },
+  {
     icon: <Brain size={22} />, color: '#bc8cff',
     title: 'Risk Analyzer',
     description: 'Provider-flexible ship/no-ship assessment with specific flag keys called out, dependency gap analysis, and concrete remediation steps before you deploy.',
@@ -20,8 +25,8 @@ const FEATURES = [
   },
   {
     icon: <Cloud size={22} />, color: '#58a6ff',
-    title: 'Cloud Snapshots',
-    description: 'Save named checkpoints of your full release state. Compare any two snapshots side by side to see exactly what changed between deploys.',
+    title: 'Cloud Snapshots & Env Diff',
+    description: 'Save named checkpoints of your full release state. Compare staging vs production in one click — see exactly what flags differ, what rollouts changed, and what is missing between environments.',
   },
   {
     icon: <FileDown size={22} />, color: '#3fb950',
@@ -32,6 +37,11 @@ const FEATURES = [
     icon: <BarChart3 size={22} />, color: '#f78166',
     title: 'Flag Evaluation Engine',
     description: 'Evaluate every flag against real user segments — environment, plan, role, region, device. See exactly why each flag is on or off for any given user.',
+  },
+  {
+    icon: <Zap size={22} />, color: '#ffb800',
+    title: 'Embeddable Dev HUD',
+    description: 'Drop <CompassUltra /> into any React app. Ctrl+Shift+D opens a full debug panel — toggle flags, inject latency, mock APIs, capture logs. Devs install it for debugging and discover the platform.',
   },
   {
     icon: <Users size={22} />, color: '#bc8cff',
@@ -73,10 +83,16 @@ const PRICING = [
     cta: 'Get Started',
   },
   {
+    name: 'Solo', price: '$29', period: 'per month', color: '#e3b341', highlight: false,
+    description: 'For independent developers and freelancers managing production flags.',
+    features: ['Everything in Free', 'Unlimited snapshots', 'Cloud save & sync', 'Risk analyzer', 'Snapshot diff viewer', 'Flag expiration alerts', 'Shareable public links', 'Audit log export'],
+    cta: 'Start Free Trial', plan: 'solo',
+  },
+  {
     name: 'Pro', price: '$199', period: 'per month', color: '#58a6ff', highlight: false,
-    description: 'For solo engineers, founders, and small teams managing release risk.',
-    features: ['7-day full-feature trial', 'Everything in Free', 'Unlimited snapshots', 'Cloud save & sync', 'Shareable public links', 'Snapshot diff viewer', 'Risk analyzer'],
-    cta: 'Start Free Trial',
+    description: 'For small teams managing release risk together.',
+    features: ['Everything in Solo', '7-day full-feature trial', 'Team RBAC', 'Slack workflow payloads', 'Shared team workspace', 'Priority support'],
+    cta: 'Start Free Trial', plan: 'pro',
   },
   {
     name: 'Team', price: '$499', period: 'per month', color: '#3fb950', highlight: true,
@@ -609,11 +625,11 @@ export default function LandingPage() {
             <div className="lp-hero-text">
               <div className="lp-badge">Release Intelligence Platform</div>
               <h1 className="lp-hero-headline">
-                Ship faster.<br />
-                <span className="lp-gradient-text">Break nothing.</span>
+                One control room for<br />
+                <span className="lp-gradient-text">every flag, every policy, every release.</span>
               </h1>
               <p className="lp-hero-sub">
-                Local-first React control room for feature flags, experiments, and safe production releases. Run the review, export the proof, and ship with confidence.
+                Block bad releases before they reach production. The HUD debugs running apps. The CI gate enforces policy on every PR. The dashboard proves compliance. <strong>Works in CI, in your app, and on your dashboard.</strong>
               </p>
               <div className="lp-hero-actions">
                 <button className="lp-btn-primary lp-btn-lg" onClick={goToDemo}>
@@ -670,10 +686,10 @@ export default function LandingPage() {
         <div className="lp-container">
           <div className="lp-stats-grid">
             {[
+              { value: 'CI', label: 'Gate blocks risky PRs' },
               { value: '9', label: 'Policy gates before deploy' },
               { value: 'AI', label: 'Risk explanation for each release' },
-              { value: 'Diff', label: 'Snapshot comparison' },
-              { value: 'PDF', label: 'Runbook handoff' },
+              { value: 'HUD', label: 'Embeddable dev debug panel' },
             ].map((s, i) => (
               <div key={i} className="lp-stat">
                 <strong>{s.value}</strong>
