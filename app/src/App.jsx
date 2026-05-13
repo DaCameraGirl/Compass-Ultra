@@ -453,6 +453,20 @@ export default function App() {
   const [showKillSwitch, setShowKillSwitch] = useState(false);
   const [killToast, setKillToast] = useState('');
 
+  const importRef = useRef(null);
+  const initial = useMemo(loadWorkspace, []);
+  const [workspaceName, setWorkspaceName] = useState(initial.workspaceName);
+  const [context, setContext] = useState(initial.context);
+  const [release, setRelease] = useState(initial.release);
+  const [team, setTeam] = useState(initial.team);
+  const [integrations, setIntegrations] = useState(initial.integrations);
+  const [flags, setFlags] = useState(initial.flags);
+  const [query, setQuery] = useState('');
+  const [selectedKey, setSelectedKey] = useState(initial.flags[0]?.key || '');
+  const [draft, setDraft] = useState(emptyDraft);
+  const [notice, setNotice] = useState('Saved locally');
+  const [audit, setAudit] = useState(initial.audit);
+
   const executeKillSwitch = () => {
     const checkpoint = JSON.stringify({ workspaceName, release, team, integrations, context, flags, audit });
     localStorage.setItem('compass-ultra-emergency-checkpoint', checkpoint);
@@ -534,19 +548,6 @@ export default function App() {
     logout({ logoutParams: { returnTo: getPublicReturnUrl() } });
   };
 
-  const importRef = useRef(null);
-  const initial = useMemo(loadWorkspace, []);
-  const [workspaceName, setWorkspaceName] = useState(initial.workspaceName);
-  const [context, setContext] = useState(initial.context);
-  const [release, setRelease] = useState(initial.release);
-  const [team, setTeam] = useState(initial.team);
-  const [integrations, setIntegrations] = useState(initial.integrations);
-  const [flags, setFlags] = useState(initial.flags);
-  const [query, setQuery] = useState('');
-  const [selectedKey, setSelectedKey] = useState(initial.flags[0]?.key || '');
-  const [draft, setDraft] = useState(emptyDraft);
-  const [notice, setNotice] = useState('Saved locally');
-  const [audit, setAudit] = useState(initial.audit);
   const selectedFlag = flags.find((flag) => flag.key === selectedKey) || flags[0];
   const activeMember = team.members.find((member) => member.id === team.activeMemberId) || team.members[0];
   const canEdit = ['admin', 'operator'].includes(activeMember?.role);
