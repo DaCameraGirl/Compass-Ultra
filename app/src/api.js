@@ -1,9 +1,11 @@
+const normalizeBase = (base) => base?.replace(/\/+$/, '');
+
 const API_BASES = [
-  import.meta.env.VITE_API_URL,
+  normalizeBase(import.meta.env.VITE_API_URL),
+  'https://compass-ultra-backend-production.up.railway.app',
 ]
   .filter(Boolean)
-  .filter((base, index, all) => all.indexOf(base) === index)
-  .map(base => base.replace(/\/+$/, ''));
+  .filter((base, index, all) => all.indexOf(base) === index);
 
 async function request(path, token, options = {}) {
   const { timeoutMs = 8000, ...fetchOptions } = options;
@@ -13,7 +15,7 @@ async function request(path, token, options = {}) {
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), timeoutMs);
     try {
-      const res = await fetch(`${base}${path}`, {
+      const res = await fetch(`${base}${path.startsWith('/') ? path : `/${path}`}`, {
         ...fetchOptions,
         signal: controller.signal,
         headers: {
