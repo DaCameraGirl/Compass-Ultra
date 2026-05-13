@@ -2471,13 +2471,13 @@ export default function App() {
                   features: ['3 saved snapshots', 'Local workspace', 'PDF runbook export', 'Flag evaluation engine', 'Policy checks'],
                   cta: 'Get started', highlight: false,
                 },
-                {
-                  name: 'Solo', price: '$29', period: 'per month',
-                  color: '#e3b341',
-                  description: 'For independent developers and freelancers managing production flags.',
-                  features: ['Everything in Free', 'Unlimited snapshots', 'Cloud save & sync', 'Risk analyzer', 'Snapshot diff viewer', 'Flag expiration alerts', 'Shareable public links', 'Audit log export'],
-                  cta: 'Start Free Trial', highlight: false, plan: 'solo',
-                },
+{
+                   name: 'Solo', price: '$99', period: 'per month',
+                   color: '#e3b341',
+                   description: 'For independent developers and freelancers managing production flags.',
+                   features: ['Everything in Free', 'Unlimited snapshots', 'Cloud save & sync', 'Risk analyzer', 'Snapshot diff viewer', 'Flag expiration alerts', 'Shareable public links', 'Audit log export'],
+                   cta: 'Start Free Trial', highlight: false, plan: 'solo',
+                 },
                 {
                   name: 'Pro', price: '$199', period: 'per month',
                   color: '#58a6ff',

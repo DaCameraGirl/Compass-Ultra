@@ -83,7 +83,7 @@ const PRICING = [
     cta: 'Get Started',
   },
   {
-    name: 'Solo', price: '$29', period: 'per month', color: '#e3b341', highlight: false,
+    name: 'Solo', price: '$99', period: 'per month', color: '#e3b341', highlight: false,
     description: 'For independent developers and freelancers managing production flags.',
     features: ['Everything in Free', 'Unlimited snapshots', 'Cloud save & sync', 'Risk analyzer', 'Snapshot diff viewer', 'Flag expiration alerts', 'Shareable public links', 'Audit log export'],
     cta: 'Start Free Trial', plan: 'solo',
