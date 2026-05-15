@@ -430,6 +430,7 @@ export default function App() {
   const [aiRiskLevel, setAiRiskLevel] = useState('');
   const [soundEnabled, setSoundEnabled] = useState(true);
   const [showRollbackModal, setShowRollbackModal] = useState(false);
+  const [showNotifyModal, setShowNotifyModal] = useState(false);
   const [diffA, setDiffA] = useState(null);
   const [diffB, setDiffB] = useState(null);
   const [showDiff, setShowDiff] = useState(false);
@@ -1303,6 +1304,8 @@ export default function App() {
     setAiRiskLevel(level);
     setAiAnalysisSource(source);
     if (soundEnabled) playRiskTone(level);
+    const webhook = localStorage.getItem('cu-slack-webhook');
+    if (webhook) sendSlackNotification(webhook, analysis, level).catch(() => {});
   };
 
   const runAiAnalysis = async () => {
@@ -1514,6 +1517,9 @@ export default function App() {
                   <button type="button" onClick={() => copyText(toSlackMrkdwn(aiAnalysis), 'Copied for Slack!')} aria-label="Copy as Slack mrkdwn" title="Copy for Slack (mrkdwn format)">
                     Slack
                   </button>
+                  <button type="button" onClick={() => setShowNotifyModal(true)} aria-label="Send analysis via Slack or Email" title="Send via Slack / Email">
+                    <Send size={15} aria-hidden="true" />
+                  </button>
                   <button type="button" onClick={() => setAiAnalysis('')} aria-label="Close analysis">
                     ×
                   </button>
@@ -1538,6 +1544,14 @@ export default function App() {
             </div>
           )}
         </section>
+      )}
+
+      {showNotifyModal && aiAnalysis && (
+        <NotifyModal
+          analysis={aiAnalysis}
+          riskLevel={aiRiskLevel}
+          onClose={() => setShowNotifyModal(false)}
+        />
       )}
 
       {!authLoading && !isAuthenticated && (
@@ -3306,6 +3320,101 @@ function toSlackMrkdwn(text) {
     .replace(/^### (.+)$/gm, '_$1_')
     .replace(/^- /gm, '• ')
     .replace(/\*\*(.+?)\*\*/g, '*$1*');
+}
+
+async function sendSlackNotification(webhookUrl, analysis, riskLevel) {
+  const emoji = { LOW: '🟢', MEDIUM: '🟡', HIGH: '🟠', CRITICAL: '🔴' }[riskLevel] || '⚪';
+  await fetch(webhookUrl, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      text: `${emoji} *Compass Ultra — Release Risk: ${riskLevel || 'UNKNOWN'}*\n\n${toSlackMrkdwn(analysis)}`,
+    }),
+  });
+}
+
+function openEmailNotification(analysis, riskLevel, to = '') {
+  const subject = encodeURIComponent(`Release Risk Analysis: ${riskLevel || 'UNKNOWN'}`);
+  const body = encodeURIComponent(analysis);
+  window.open(`mailto:${to}?subject=${subject}&body=${body}`, '_self');
+}
+
+function NotifyModal({ analysis, riskLevel, onClose }) {
+  const [webhook, setWebhook] = useState(() => localStorage.getItem('cu-slack-webhook') || '');
+  const [email, setEmail] = useState(() => localStorage.getItem('cu-notify-email') || '');
+  const [status, setStatus] = useState('');
+  const [sending, setSending] = useState(false);
+
+  const handleSendSlack = async () => {
+    const url = webhook.trim();
+    if (!url) return;
+    localStorage.setItem('cu-slack-webhook', url);
+    setSending(true);
+    setStatus('');
+    try {
+      await sendSlackNotification(url, analysis, riskLevel);
+      setStatus('✓ Sent to Slack!');
+    } catch {
+      setStatus('✗ Slack send failed — check your webhook URL');
+    } finally {
+      setSending(false);
+    }
+  };
+
+  const handleOpenEmail = () => {
+    const addr = email.trim();
+    if (addr) localStorage.setItem('cu-notify-email', addr);
+    openEmailNotification(analysis, riskLevel, addr);
+    setStatus('✓ Opening mail client…');
+  };
+
+  return (
+    <div
+      style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.75)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}
+      onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
+    >
+      <div className="notify-modal">
+        <div className="notify-modal-header">
+          <h3>Send Analysis Report</h3>
+          <button type="button" className="notify-close" onClick={onClose}>✕</button>
+        </div>
+        <div className="notify-section">
+          <label className="notify-label">
+            <span className="notify-channel-badge">Slack</span>
+            Incoming webhook URL
+          </label>
+          <input
+            type="url"
+            className="notify-input"
+            placeholder="https://hooks.slack.com/services/…"
+            value={webhook}
+            onChange={(e) => setWebhook(e.target.value)}
+          />
+          <button type="button" className="notify-send-btn" onClick={handleSendSlack} disabled={!webhook.trim() || sending}>
+            {sending ? 'Sending…' : 'Send to Slack'}
+          </button>
+        </div>
+        <div className="notify-section">
+          <label className="notify-label">
+            <span className="notify-channel-badge notify-email-badge">Email</span>
+            Recipient address (optional)
+          </label>
+          <input
+            type="email"
+            className="notify-input"
+            placeholder="team@yourcompany.com"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+          />
+          <button type="button" className="notify-send-btn notify-email-btn" onClick={handleOpenEmail}>
+            Open in Mail
+          </button>
+        </div>
+        {status && <p className="notify-status-msg">{status}</p>}
+        <p className="notify-hint">Webhook URL and email are saved locally for next time. If a webhook is set, Compass Ultra auto-sends to Slack on every analysis.</p>
+      </div>
+    </div>
+  );
 }
 
 function AnalysisMarkdown({ text }) {
