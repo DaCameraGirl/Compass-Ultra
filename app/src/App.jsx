@@ -69,6 +69,29 @@ const defaultRelease = {
   window: 'Thu 23:00-01:00 ET',
 };
 
+const releaseFieldLabels = {
+  train: 'Release train',
+  changeTicket: 'Change ticket',
+  incidentChannel: 'Incident channel',
+  releaseCaptain: 'Release captain',
+  approver: 'Approver',
+  window: 'Deploy window',
+};
+
+const contextFieldLabels = {
+  key: 'User key',
+  email: 'Email',
+  tenant: 'Tenant',
+  plan: 'Plan',
+  role: 'Role',
+  region: 'Region',
+  country: 'Country',
+  device: 'Device',
+  environment: 'Environment',
+};
+
+const fieldLabel = (key, labels) => labels[key] || key.replace(/([A-Z])/g, ' $1').replace(/^./, (value) => value.toUpperCase());
+
 const defaultTeam = {
   workspaceId: 'demo-retail-prod',
   authMode: 'Local RBAC session',
@@ -1582,12 +1605,13 @@ export default function App() {
           <section className="panel">
             <div className="panel-heading">
               <Rocket size={18} aria-hidden="true" />
-              <h2>Release Control</h2>
+              <h2>Release Setup</h2>
             </div>
+            <p className="panel-note">Set the release metadata that fills reports, tickets, and integration payloads.</p>
             <div className="field-grid">
               {Object.entries(release).map(([key, value]) => (
                 <label key={key}>
-                  {key}
+                  {fieldLabel(key, releaseFieldLabels)}
                   <input value={value} onChange={(event) => updateRelease(key, event.target.value)} />
                 </label>
               ))}
@@ -1597,10 +1621,11 @@ export default function App() {
           <section className="panel">
             <div className="panel-heading">
               <Users size={18} aria-hidden="true" />
-              <h2>Team Auth</h2>
+              <h2>Seats & Roles</h2>
             </div>
+            <p className="panel-note">Switch the active seat and audit who can edit, approve, or view this release.</p>
             <label>
-              active actor
+              Active seat
               <select value={team.activeMemberId} onChange={(event) => setTeam((current) => ({ ...current, activeMemberId: event.target.value }))}>
                 {team.members.map((member) => (
                   <option key={member.id} value={member.id}>
@@ -1637,7 +1662,7 @@ export default function App() {
           <section className="panel">
             <div className="panel-heading">
               <CloudCog size={18} aria-hidden="true" />
-              <h2>Sample Packs</h2>
+              <h2>Import Sample Data</h2>
             </div>
             <div className="sample-grid">
               {Object.entries(samplePacks).map(([key, pack]) => (
@@ -1652,8 +1677,9 @@ export default function App() {
           <section className="panel">
             <div className="panel-heading">
               <UserRound size={18} aria-hidden="true" />
-              <h2>Evaluation Context</h2>
+              <h2>Test Context</h2>
             </div>
+            <p className="panel-note">Choose the user, plan, device, and environment used for flag evaluation.</p>
             <div className="context-pills">
               {sampleContexts.map((item) => (
                 <button type="button" key={item.name} onClick={() => applySampleContext(item.context)}>
@@ -1664,7 +1690,7 @@ export default function App() {
             <div className="field-grid">
               {Object.entries(context).map(([key, value]) => (
                 <label key={key}>
-                  {key}
+                  {fieldLabel(key, contextFieldLabels)}
                   <input value={value} onChange={(event) => updateContext(key, event.target.value)} />
                 </label>
               ))}
@@ -1674,7 +1700,7 @@ export default function App() {
           <section className="panel">
             <div className="panel-heading">
               <Plus size={18} aria-hidden="true" />
-              <h2>Add Flag</h2>
+              <h2>Add Feature Flag</h2>
             </div>
             <div className="field-grid">
               <label>
