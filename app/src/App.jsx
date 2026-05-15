@@ -477,6 +477,7 @@ export default function App() {
   const [aiAnalysisSource, setAiAnalysisSource] = useState('');
   const [aiLoading, setAiLoading] = useState(false);
   const [aiRiskLevel, setAiRiskLevel] = useState('');
+  const [aiLiveError, setAiLiveError] = useState('');
   const [soundEnabled, setSoundEnabled] = useState(true);
   const [showRollbackModal, setShowRollbackModal] = useState(false);
   const [diffA, setDiffA] = useState(null);
@@ -505,6 +506,7 @@ export default function App() {
       : null
   );
   const riskInputFingerprintRef = useRef('');
+  const demoLoadedRef = useRef(false);
 
   const [showKillSwitch, setShowKillSwitch] = useState(false);
   const [killToast, setKillToast] = useState('');
@@ -1398,19 +1400,30 @@ export default function App() {
     const params = new URLSearchParams(window.location.search);
 
     if (params.get('demo') === 'true') {
-      loadDemo('Demo Retail — Peak Sale Release', { changeTicket: 'CHG-1850', train: 'peak-sale-2026.11', releaseCaptain: 'Demo Release Lead' });
+      if (!demoLoadedRef.current) {
+        demoLoadedRef.current = true;
+        loadDemo('Demo Retail — Peak Sale Release', { changeTicket: 'CHG-1850', train: 'peak-sale-2026.11', releaseCaptain: 'Demo Release Lead' });
+      }
       return;
     }
 
     if (params.get('sandbox') === 'true') {
-      loadDemo('Demo Sandbox — Try Before You Sign In', { changeTicket: 'CHG-SANDBOX', train: 'sandbox-2026', releaseCaptain: 'Guest Explorer' });
+      if (!demoLoadedRef.current) {
+        demoLoadedRef.current = true;
+        loadDemo('Demo Sandbox — Try Before You Sign In', { changeTicket: 'CHG-SANDBOX', train: 'sandbox-2026', releaseCaptain: 'Guest Explorer' });
+      }
       return;
     }
 
     if (!authLoading && !isAuthenticated) {
-      loadDemo('Demo Retail — Peak Sale Release', { changeTicket: 'CHG-1850', train: 'peak-sale-2026.11', releaseCaptain: 'Demo Guest' });
+      if (!demoLoadedRef.current) {
+        demoLoadedRef.current = true;
+        loadDemo('Demo Retail — Peak Sale Release', { changeTicket: 'CHG-1850', train: 'peak-sale-2026.11', releaseCaptain: 'Demo Guest' });
+      }
       return;
     }
+
+    if (authLoading) return;
 
     const upgraded = params.get('upgraded');
     if (upgraded) {
@@ -1423,10 +1436,11 @@ export default function App() {
     const snapId = params.get('snapshot');
     if (!snapId) return;
     api.getSnapshot(snapId).then((snap) => {
+      demoLoadedRef.current = true;
       restoreFromCloud(snap);
       window.history.replaceState({}, '', window.location.pathname);
     }).catch(() => {});
-  }, []);
+  }, [authLoading, isAuthenticated]);
 
   const saveToCloud = () => {
     if (!isAuthenticated) { loginWithEmail(); return; }
@@ -1494,6 +1508,7 @@ export default function App() {
       setAiLoading(true);
       setAiAnalysis('');
       setAiAnalysisSource('');
+      setAiLiveError('');
       try {
         const { analysis } = await api.analyzeDemoFlags({ flags, context, release, policyChecks });
         applyRiskAnalysis(analysis, 'Live AI service');
@@ -1501,6 +1516,15 @@ export default function App() {
         record('Live demo AI risk analysis complete');
         return;
       } catch (e) {
+        const isTimeout = e.name === 'AbortError' || /aborted/i.test(e.message || '');
+        const base = isTimeout
+          ? 'Live AI took too long to respond (>30s) and was cancelled. Showing local analysis.'
+          : e.status === 429
+            ? 'Demo rate limit reached — try again in a minute.'
+            : e.status === 503
+              ? 'AI service is not configured on this server. Showing local analysis.'
+              : `Live AI unavailable (${e.status || 'network'}): ${e.message || 'unknown error'}. Showing local analysis.`;
+        setAiLiveError(e.hint ? `${base} — ${e.hint}` : base);
         record('Live demo AI unavailable; using state-aware fallback', e.message || '', 'warn');
       }
       window.setTimeout(() => {
@@ -1516,6 +1540,7 @@ export default function App() {
     setAiLoading(true);
     setAiAnalysis('');
     setAiAnalysisSource('');
+    setAiLiveError('');
     try {
       const token = await getAccessTokenSilently({ authorizationParams: { audience: import.meta.env.VITE_AUTH0_AUDIENCE } });
       const { analysis } = await api.analyzeFlags(token, { flags, context, release, policyChecks });
@@ -1526,6 +1551,10 @@ export default function App() {
         loginWithEmail();
         return;
       }
+      const base = e.status === 503
+        ? 'AI service is not configured on this server. Showing local analysis.'
+        : `Live AI unavailable (${e.status || 'network'}): ${e.message || 'unknown error'}. Showing local analysis.`;
+      setAiLiveError(e.hint ? `${base} — ${e.hint}` : base);
       const analysis = makeDemoAiAnalysis(workspaceName, release, context, flags, policyChecks);
       applyRiskAnalysis(
         `${analysis}\n\nLive AI service unavailable; Compass Ultra generated this deterministic release-risk fallback from the current workspace state.`,
@@ -1789,6 +1818,11 @@ export default function App() {
               )}
             </div>
           </div>
+          {aiLiveError && (
+            <div className="ai-live-error-notice" role="alert">
+              ⚠️ {aiLiveError}
+            </div>
+          )}
           {aiLoading && <p className="risk-analysis-loading">Analyzing the current workspace...</p>}
           {aiAnalysis && <pre>{aiAnalysis}</pre>}
           {aiAnalysis && (aiRiskLevel === 'HIGH' || aiRiskLevel === 'CRITICAL') && (

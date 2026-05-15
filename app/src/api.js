@@ -34,6 +34,7 @@ async function request(path, token, options = {}) {
         const body = await res.json().catch(() => ({}));
         const err = new Error(body.error || `API error ${res.status}`);
         err.status = res.status;
+        err.hint = body.hint;
         if (res.status === 404 && !token) {
           lastError = err;
           continue;
@@ -66,13 +67,13 @@ export const api = {
     request('/api/v1/analyze', token, {
       method: 'POST',
       body: JSON.stringify(payload),
-      timeoutMs: 12000,
+      timeoutMs: 45000,
     }),
   analyzeDemoFlags: (payload) =>
     request('/api/v1/analyze/demo', null, {
       method: 'POST',
       body: JSON.stringify(payload),
-      timeoutMs: 8000,
+      timeoutMs: 30000,
     }),
   syncUser: (token, profile = {}) =>
     request('/api/v1/users/me', token, {
