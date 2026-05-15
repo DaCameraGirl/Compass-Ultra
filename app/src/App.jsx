@@ -1206,7 +1206,13 @@ export default function App() {
     };
   }, [getAccessTokenSilently, isAuthenticated]);
 
+  const authReadyRef = useRef(false);
+
   useEffect(() => {
+    if (authLoading) return;
+    if (authReadyRef.current) return;
+    authReadyRef.current = true;
+
     const params = new URLSearchParams(window.location.search);
 
     if (params.get('demo') === 'true') {
@@ -1219,7 +1225,7 @@ export default function App() {
       return;
     }
 
-    if (!authLoading && !isAuthenticated) {
+    if (!isAuthenticated) {
       loadDemo('Demo Retail — Peak Sale Release', { changeTicket: 'CHG-1850', train: 'peak-sale-2026.11', releaseCaptain: 'Demo Guest' });
       return;
     }
@@ -1238,7 +1244,7 @@ export default function App() {
       restoreFromCloud(snap);
       window.history.replaceState({}, '', window.location.pathname);
     }).catch(() => {});
-  }, []);
+  }, [authLoading, isAuthenticated]);
 
   const saveToCloud = () => {
     if (!isAuthenticated) { loginWithRedirect(); return; }
@@ -1516,7 +1522,7 @@ export default function App() {
             </div>
           </div>
           {aiLoading && <p className="risk-analysis-loading">Analyzing the current workspace...</p>}
-          {aiAnalysis && <pre>{aiAnalysis}</pre>}
+          {aiAnalysis && <AnalysisMarkdown text={aiAnalysis} />}
           {aiAnalysis && (aiRiskLevel === 'HIGH' || aiRiskLevel === 'CRITICAL') && (
             <div className="rollback-callout">
               <div>
@@ -2473,31 +2479,31 @@ export default function App() {
                   cta: 'Get started', highlight: false,
                 },
 {
-                   name: 'Solo', price: '$99', period: 'per month',
+                   name: 'Solo', price: '$49', period: 'per month',
                    color: '#e3b341',
                    description: 'For independent developers and freelancers managing production flags.',
-                   features: ['Everything in Free', 'Unlimited snapshots', 'Cloud save & sync', 'Risk analyzer', 'Snapshot diff viewer', 'Flag expiration alerts', 'Shareable public links', 'Audit log export'],
+                   features: ['7-day free trial, no credit card', 'Downgrades to Free automatically', 'Everything in Free', '1 user seat', 'Unlimited snapshots', 'Cloud save & sync', 'Risk analyzer', 'Snapshot diff viewer', 'Flag expiration alerts', 'Shareable public links', 'Audit log export'],
                    cta: 'Start Free Trial', highlight: false, plan: 'solo',
                  },
                 {
-                  name: 'Pro', price: '$199', period: 'per month',
+                  name: 'Pro', price: '$149', period: 'per month',
                   color: '#58a6ff',
                   description: 'For small teams managing release risk together.',
-                  features: ['Everything in Solo', '7-day full-feature trial', 'Team RBAC', 'Slack workflow payloads', 'Shared team workspace', 'Priority support'],
+                  features: ['7-day free trial, no credit card', 'Downgrades to Free automatically', 'Everything in Solo', 'Up to 5 team seats', 'Team RBAC', 'Slack workflow payloads', 'Shared team workspace', 'Priority support'],
                   cta: 'Start Free Trial', highlight: false, plan: 'pro',
                 },
                 {
-                  name: 'Team', price: '$499', period: 'per month',
+                  name: 'Team', price: '$299', period: 'per month',
                   color: '#3fb950',
                   description: 'For release teams that need shared visibility and audit-ready workflows.',
-                  features: ['Everything in Pro', 'Risk analyzer', 'Flag expiration alerts', 'Team RBAC', 'Slack workflow payloads', 'Audit log export', 'Release readiness scoring', 'Shared team workspace', 'Priority support'],
+                  features: ['7-day free trial, no credit card', 'Downgrades to Free automatically', 'Everything in Pro', 'Up to 15 team seats', 'Risk analyzer', 'Flag expiration alerts', 'Team RBAC', 'Slack workflow payloads', 'Audit log export', 'Release readiness scoring', 'Shared team workspace', 'Priority support'],
                   cta: 'Start Free Trial', highlight: true, plan: 'team',
                 },
                 {
                   name: 'Enterprise', price: 'Custom', period: 'contact sales',
                   color: '#bc8cff',
                   description: 'For organizations that need security review, onboarding, and custom workflows.',
-                  features: ['Everything in Team', 'Custom security review', 'SLA targets', 'Dedicated onboarding', 'Custom workflows', 'Custom integrations'],
+                  features: ['Everything in Team', 'Custom seats', 'Custom security review', 'SLA targets', 'Dedicated onboarding', 'Custom workflows', 'Custom integrations'],
                   cta: 'Talk to Sales', highlight: false, plan: 'enterprise',
                 },
               ].map(tier => {
@@ -2763,7 +2769,7 @@ function makeDemoAiAnalysis(workspaceName, release, context, flags, policyChecks
   const staleOrMissingExpiry = flags.filter((flag) => flag.enabled && !flag.expiresAt);
   const ruleMatches = evaluations.filter(({ result }) => result.reason === 'rule');
   const rolloutMatches = evaluations.filter(({ result }) => result.reason === 'rollout');
-  const blockerScore = blocked.length * 3 + brokenDeps.length * 3 + prodOverrides.length * 2 + canaryBreaches.length + warnings.length;
+  const blockerScore = blocked.length * 3 + brokenDeps.length * 3 + prodOverrides.length * 2 + canaryBreaches.length + warnings.length + Math.floor(staleOrMissingExpiry.length / 3);
   const riskLevel = blockerScore >= 8 || (activeHighRisk.length >= 5 && canaryBreaches.length >= 2)
     ? 'CRITICAL'
     : blockerScore >= 4 || brokenDeps.length > 0 || blocked.length > 0
@@ -3302,8 +3308,51 @@ function toSlackMrkdwn(text) {
     .replace(/\*\*(.+?)\*\*/g, '*$1*');
 }
 
+function AnalysisMarkdown({ text }) {
+  const elements = [];
+  const lines = text.split('\n');
+  let i = 0;
+  let key = 0;
+
+  while (i < lines.length) {
+    const line = lines[i];
+
+    if (line.startsWith('# ')) {
+      elements.push(<h2 key={key++} className="am-h1">{line.slice(2)}</h2>);
+    } else if (line.startsWith('## ')) {
+      elements.push(<h3 key={key++} className="am-h2">{line.slice(3)}</h3>);
+    } else if (line.startsWith('- ') || line.startsWith('• ')) {
+      const items = [];
+      while (i < lines.length && (lines[i].startsWith('- ') || lines[i].startsWith('• '))) {
+        items.push(<li key={i}>{lines[i].startsWith('- ') ? lines[i].slice(2) : lines[i].slice(2)}</li>);
+        i++;
+      }
+      elements.push(<ul key={key++} className="am-list">{items}</ul>);
+      continue;
+    } else if (/^\d+\.\s/.test(line)) {
+      const items = [];
+      while (i < lines.length && /^\d+\.\s/.test(lines[i])) {
+        items.push(<li key={i}>{lines[i].replace(/^\d+\.\s/, '')}</li>);
+        i++;
+      }
+      elements.push(<ol key={key++} className="am-list am-ol">{items}</ol>);
+      continue;
+    } else if (line.trim() !== '') {
+      elements.push(<p key={key++} className="am-p">{line}</p>);
+    }
+    i++;
+  }
+
+  return <div className="analysis-body">{elements}</div>;
+}
+
 function encodeWorkspace(workspace) {
-  return btoa(JSON.stringify(workspace)).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/g, '');
+  const bytes = new TextEncoder().encode(JSON.stringify(workspace));
+  let binary = '';
+  bytes.forEach((byte) => {
+    binary += String.fromCharCode(byte);
+  });
+  return btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/g, '');
 }
 
 function readWorkspaceFromUrl() {
@@ -3311,7 +3360,9 @@ function readWorkspaceFromUrl() {
     const encoded = new URLSearchParams(window.location.search).get('workspace');
     if (!encoded) return null;
     const padded = encoded.replace(/-/g, '+').replace(/_/g, '/').padEnd(Math.ceil(encoded.length / 4) * 4, '=');
-    return JSON.parse(atob(padded));
+    const binary = atob(padded);
+    const bytes = Uint8Array.from(binary, (char) => char.charCodeAt(0));
+    return JSON.parse(new TextDecoder().decode(bytes));
   } catch {
     return null;
   }
