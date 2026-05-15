@@ -10,6 +10,7 @@ import './styles.css';
 const domain   = import.meta.env.VITE_AUTH0_DOMAIN;
 const clientId = import.meta.env.VITE_AUTH0_CLIENT_ID;
 const audience = import.meta.env.VITE_AUTH0_AUDIENCE;
+const connection = import.meta.env.VITE_AUTH0_CONNECTION || 'Username-Password-Authentication';
 
 function LegalPage({ type }) {
   const isPrivacy = type === 'privacy';
@@ -148,6 +149,7 @@ createRoot(document.getElementById('root')).render(
       authorizationParams={{
         redirect_uri: (window.location.hostname === 'localhost' ? window.location.origin : 'https://compassultra.com') + '/app',
         audience,
+        connection,
       }}
     >
       <BrowserRouter>
