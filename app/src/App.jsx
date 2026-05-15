@@ -2705,18 +2705,18 @@ export default function App() {
       )}
 
       {showPricing && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.75)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }} onClick={() => setShowPricing(false)}>
-          <div style={{ background: '#0e1117', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 12, padding: 40, maxWidth: 860, width: '100%', maxHeight: '90vh', overflowY: 'auto', position: 'relative' }} onClick={e => e.stopPropagation()}>
-            <button onClick={() => setShowPricing(false)} style={{ position: 'absolute', top: 16, right: 16, background: 'none', border: 'none', color: '#8b949e', cursor: 'pointer', fontSize: 20 }}>✕</button>
-            <div style={{ textAlign: 'center', marginBottom: 36 }}>
-              <span style={{ color: '#ffb800', fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: 'uppercase' }}>Compass Ultra</span>
-              <h2 style={{ color: '#e6edf3', fontSize: 28, margin: '8px 0 12px' }}>Pricing for teams that can't afford messy releases</h2>
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.75)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }} onClick={() => setShowPricing(false)}>
+          <div style={{ background: '#0e1117', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 12, padding: 22, maxWidth: 1180, width: '100%', maxHeight: '94vh', overflowY: 'auto', position: 'relative' }} onClick={e => e.stopPropagation()}>
+            <button onClick={() => setShowPricing(false)} style={{ position: 'absolute', top: 12, right: 12, background: 'none', border: 'none', color: '#8b949e', cursor: 'pointer', fontSize: 18 }}>✕</button>
+            <div style={{ textAlign: 'center', marginBottom: 18 }}>
+              <span style={{ color: '#ffb800', fontSize: 10, fontWeight: 700, letterSpacing: 2, textTransform: 'uppercase' }}>Compass Ultra</span>
+              <h2 style={{ color: '#e6edf3', fontSize: 20, margin: '4px 0 6px' }}>Pricing for teams that can't afford messy releases</h2>
               {gateNotice
-                ? <p style={{ color: '#ffb800', fontSize: 14, fontWeight: 600 }}>🔒 {gateNotice} Upgrade to unlock it.</p>
-                : <p style={{ color: '#8b949e', fontSize: 14 }}>One bad rollout costs more than a month of Compass Ultra.</p>
+                ? <p style={{ color: '#ffb800', fontSize: 12, fontWeight: 600, margin: 0 }}>🔒 {gateNotice} Upgrade to unlock it.</p>
+                : <p style={{ color: '#8b949e', fontSize: 12, margin: 0 }}>One bad rollout costs more than a month of Compass Ultra.</p>
               }
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 16 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(190px, 1fr))', gap: 10 }}>
               {[
                 {
                   name: 'Free', price: '$0', period: 'forever',
@@ -2759,27 +2759,33 @@ export default function App() {
                 const isUpgrade = tier.plan && planOrder[tier.plan] > planOrder[userPlan];
                 const isDowngrade = tier.plan && planOrder[tier.plan] < planOrder[userPlan];
                 const alreadyPaid = userPlan !== 'free';
-                const ctaLabel = isCurrent ? 'Current plan' : isUpgrade && alreadyPaid ? 'Upgrade via portal' : isDowngrade && alreadyPaid ? 'Downgrade via portal' : tier.cta;
+                const ctaLabel = isCurrent
+                  ? 'Current plan'
+                  : tier.plan === 'enterprise' || tier.plan === 'free' || !tier.plan
+                    ? tier.cta
+                    : isUpgrade && alreadyPaid ? 'Upgrade via portal'
+                    : isDowngrade && alreadyPaid ? 'Downgrade via portal'
+                    : tier.cta;
                 return (
-                <div key={tier.name} style={{ background: isCurrent ? 'rgba(88,166,255,0.05)' : tier.highlight ? 'rgba(63,185,80,0.05)' : '#161b22', border: `1px solid ${isCurrent ? '#58a6ff' : tier.highlight ? tier.color : 'rgba(255,255,255,0.07)'}`, borderRadius: 8, padding: 24, display: 'flex', flexDirection: 'column', gap: 12, position: 'relative' }}>
-                  {isCurrent && <span style={{ position: 'absolute', top: -11, left: '50%', transform: 'translateX(-50%)', background: '#58a6ff', color: '#000', fontSize: 10, fontWeight: 700, padding: '2px 10px', borderRadius: 10, letterSpacing: 1 }}>YOUR PLAN</span>}
-                  {!isCurrent && tier.highlight && <span style={{ position: 'absolute', top: -11, left: '50%', transform: 'translateX(-50%)', background: '#3fb950', color: '#07090e', fontSize: 10, fontWeight: 700, padding: '2px 10px', borderRadius: 10, letterSpacing: 1 }}>BEST FOR TEAMS</span>}
+                <div key={tier.name} style={{ background: isCurrent ? 'rgba(88,166,255,0.05)' : tier.highlight ? 'rgba(63,185,80,0.05)' : '#161b22', border: `1px solid ${isCurrent ? '#58a6ff' : tier.highlight ? tier.color : 'rgba(255,255,255,0.07)'}`, borderRadius: 8, padding: 14, display: 'flex', flexDirection: 'column', gap: 8, position: 'relative' }}>
+                  {isCurrent && <span style={{ position: 'absolute', top: -9, left: '50%', transform: 'translateX(-50%)', background: '#58a6ff', color: '#000', fontSize: 9, fontWeight: 700, padding: '2px 8px', borderRadius: 10, letterSpacing: 1 }}>YOUR PLAN</span>}
+                  {!isCurrent && tier.highlight && <span style={{ position: 'absolute', top: -9, left: '50%', transform: 'translateX(-50%)', background: '#3fb950', color: '#07090e', fontSize: 9, fontWeight: 700, padding: '2px 8px', borderRadius: 10, letterSpacing: 1 }}>BEST FOR TEAMS</span>}
                   <div>
-                    <div style={{ color: tier.color, fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: 1, marginBottom: 6 }}>{tier.name}</div>
-                    <div style={{ color: '#e6edf3', fontSize: 28, fontWeight: 800 }}>{tier.price}</div>
-                    <div style={{ color: '#8b949e', fontSize: 11 }}>{tier.period}</div>
-                    <div style={{ color: '#8b949e', fontSize: 12, lineHeight: 1.45, marginTop: 10 }}>{tier.description}</div>
+                    <div style={{ color: tier.color, fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: 1, marginBottom: 4 }}>{tier.name}</div>
+                    <div style={{ color: '#e6edf3', fontSize: 22, fontWeight: 800, lineHeight: 1.1 }}>{tier.price}</div>
+                    <div style={{ color: '#8b949e', fontSize: 10 }}>{tier.period}</div>
+                    <div style={{ color: '#8b949e', fontSize: 11, lineHeight: 1.4, marginTop: 6 }}>{tier.description}</div>
                   </div>
-                  <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: 7, flex: 1 }}>
+                  <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: 4, flex: 1 }}>
                     {tier.features.map(f => (
-                      <li key={f} style={{ color: '#8b949e', fontSize: 12, display: 'flex', alignItems: 'center', gap: 6 }}>
-                        <span style={{ color: tier.color }}>✓</span> {f}
+                      <li key={f} style={{ color: '#8b949e', fontSize: 11, display: 'flex', alignItems: 'flex-start', gap: 5, lineHeight: 1.35 }}>
+                        <span style={{ color: tier.color, flexShrink: 0 }}>✓</span> {f}
                       </li>
                     ))}
                   </ul>
                   <button
                     disabled={isCurrent}
-                    style={{ background: isCurrent ? 'rgba(255,255,255,0.05)' : tier.highlight ? '#3fb950' : 'none', color: isCurrent ? '#484f58' : tier.highlight ? '#07090e' : tier.color, border: `1px solid ${isCurrent ? 'rgba(255,255,255,0.1)' : tier.color}`, borderRadius: 6, padding: '9px 0', fontWeight: 700, fontSize: 13, cursor: isCurrent ? 'default' : 'pointer', marginTop: 8 }}
+                    style={{ background: isCurrent ? 'rgba(255,255,255,0.05)' : tier.highlight ? '#3fb950' : 'none', color: isCurrent ? '#484f58' : tier.highlight ? '#07090e' : tier.color, border: `1px solid ${isCurrent ? 'rgba(255,255,255,0.1)' : tier.color}`, borderRadius: 6, padding: '7px 0', fontWeight: 700, fontSize: 12, cursor: isCurrent ? 'default' : 'pointer', marginTop: 4 }}
                     onClick={async () => {
                       if (isCurrent) return;
                       if (tier.plan === 'enterprise') { window.location.href = 'mailto:hello@compassultra.com?subject=Compass Ultra Enterprise Plan Inquiry'; return; }
