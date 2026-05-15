@@ -2374,31 +2374,31 @@ export default function App() {
                   cta: 'Get started', highlight: false,
                 },
 {
-                   name: 'Solo', price: '$99', period: 'per month',
+                   name: 'Solo', price: '$49', period: 'per month',
                    color: '#e3b341',
                    description: 'For independent developers and freelancers managing production flags.',
-                   features: ['Everything in Free', 'Unlimited snapshots', 'Cloud save & sync', 'Risk analyzer', 'Snapshot diff viewer', 'Flag expiration alerts', 'Shareable public links', 'Audit log export'],
+                   features: ['7-day free trial, no credit card', 'Downgrades to Free automatically', 'Everything in Free', '1 user seat', 'Unlimited snapshots', 'Cloud save & sync', 'Risk analyzer', 'Snapshot diff viewer', 'Flag expiration alerts', 'Shareable public links', 'Audit log export'],
                    cta: 'Start Free Trial', highlight: false, plan: 'solo',
                  },
                 {
-                  name: 'Pro', price: '$199', period: 'per month',
+                  name: 'Pro', price: '$149', period: 'per month',
                   color: '#58a6ff',
                   description: 'For small teams managing release risk together.',
-                  features: ['Everything in Solo', '7-day full-feature trial', 'Team RBAC', 'Slack workflow payloads', 'Shared team workspace', 'Priority support'],
+                  features: ['7-day free trial, no credit card', 'Downgrades to Free automatically', 'Everything in Solo', 'Up to 5 team seats', 'Team RBAC', 'Slack workflow payloads', 'Shared team workspace', 'Priority support'],
                   cta: 'Start Free Trial', highlight: false, plan: 'pro',
                 },
                 {
-                  name: 'Team', price: '$499', period: 'per month',
+                  name: 'Team', price: '$299', period: 'per month',
                   color: '#3fb950',
                   description: 'For release teams that need shared visibility and audit-ready workflows.',
-                  features: ['Everything in Pro', 'Risk analyzer', 'Flag expiration alerts', 'Team RBAC', 'Slack workflow payloads', 'Audit log export', 'Release readiness scoring', 'Shared team workspace', 'Priority support'],
+                  features: ['7-day free trial, no credit card', 'Downgrades to Free automatically', 'Everything in Pro', 'Up to 15 team seats', 'Risk analyzer', 'Flag expiration alerts', 'Team RBAC', 'Slack workflow payloads', 'Audit log export', 'Release readiness scoring', 'Shared team workspace', 'Priority support'],
                   cta: 'Start Free Trial', highlight: true, plan: 'team',
                 },
                 {
                   name: 'Enterprise', price: 'Custom', period: 'contact sales',
                   color: '#bc8cff',
                   description: 'For organizations that need security review, onboarding, and custom workflows.',
-                  features: ['Everything in Team', 'Custom security review', 'SLA targets', 'Dedicated onboarding', 'Custom workflows', 'Custom integrations'],
+                  features: ['Everything in Team', 'Custom seats', 'Custom security review', 'SLA targets', 'Dedicated onboarding', 'Custom workflows', 'Custom integrations'],
                   cta: 'Talk to Sales', highlight: false, plan: 'enterprise',
                 },
               ].map(tier => {
@@ -3204,7 +3204,12 @@ function toSlackMrkdwn(text) {
 }
 
 function encodeWorkspace(workspace) {
-  return btoa(JSON.stringify(workspace)).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/g, '');
+  const bytes = new TextEncoder().encode(JSON.stringify(workspace));
+  let binary = '';
+  bytes.forEach((byte) => {
+    binary += String.fromCharCode(byte);
+  });
+  return btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/g, '');
 }
 
 function readWorkspaceFromUrl() {
@@ -3212,7 +3217,9 @@ function readWorkspaceFromUrl() {
     const encoded = new URLSearchParams(window.location.search).get('workspace');
     if (!encoded) return null;
     const padded = encoded.replace(/-/g, '+').replace(/_/g, '/').padEnd(Math.ceil(encoded.length / 4) * 4, '=');
-    return JSON.parse(atob(padded));
+    const binary = atob(padded);
+    const bytes = Uint8Array.from(binary, (char) => char.charCodeAt(0));
+    return JSON.parse(new TextDecoder().decode(bytes));
   } catch {
     return null;
   }
