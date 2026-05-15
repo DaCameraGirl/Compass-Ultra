@@ -1605,6 +1605,10 @@ select:focus {
   line-height: 1.45;
 }
 
+.kill-switch-fab {
+  display: none;
+}
+
 @media (max-width: 1320px) {
   .ai-risk-strip {
     grid-template-columns: 1fr;
