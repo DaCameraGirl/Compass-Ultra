@@ -586,9 +586,10 @@ export default function App() {
     localStorage.setItem('cu-theme', workspaceTheme);
   }, [workspaceTheme]);
 
-  const canUseAI   = demoMode || userPlan === 'pro' || userPlan === 'team';
-  const canUseDiff = demoMode || userPlan === 'pro' || userPlan === 'team';
-  const canExportAudit = userPlan === 'team';
+  const paidPlan = userPlan === 'solo' || userPlan === 'pro' || userPlan === 'team';
+  const canUseAI   = demoMode || paidPlan;
+  const canUseDiff = demoMode || paidPlan;
+  const canExportAudit = paidPlan;
   const snapshotCap = userPlan === 'free' ? 3 : Infinity;
 
   const requirePlan = (needed, label) => {
