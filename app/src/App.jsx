@@ -2706,7 +2706,7 @@ export default function App() {
 
       {showPricing && (
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.75)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }} onClick={() => setShowPricing(false)}>
-          <div style={{ background: '#0e1117', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 12, padding: 40, maxWidth: 860, width: '100%', position: 'relative' }} onClick={e => e.stopPropagation()}>
+          <div style={{ background: '#0e1117', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 12, padding: 40, maxWidth: 860, width: '100%', maxHeight: '90vh', overflowY: 'auto', position: 'relative' }} onClick={e => e.stopPropagation()}>
             <button onClick={() => setShowPricing(false)} style={{ position: 'absolute', top: 16, right: 16, background: 'none', border: 'none', color: '#8b949e', cursor: 'pointer', fontSize: 20 }}>✕</button>
             <div style={{ textAlign: 'center', marginBottom: 36 }}>
               <span style={{ color: '#ffb800', fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: 'uppercase' }}>Compass Ultra</span>
