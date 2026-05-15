@@ -74,6 +74,12 @@ export const api = {
       body: JSON.stringify(payload),
       timeoutMs: 8000,
     }),
+  syncUser: (token, profile = {}) =>
+    request('/api/v1/users/me', token, {
+      method: 'POST',
+      body: JSON.stringify({ ...profile, source: 'app' }),
+    }),
+  listSignups: (token) => request('/api/v1/users/signups', token),
   getPlan: (token) => request('/api/v1/stripe/plan', token),
   createCheckout: (token, plan) =>
     request('/api/v1/stripe/checkout', token, {

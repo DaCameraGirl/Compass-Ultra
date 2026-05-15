@@ -108,6 +108,8 @@ const defaultTeam = {
 
 const defaultIntegrations = [
   { id: 'launchdarkly', name: 'LaunchDarkly', kind: 'provider', status: 'ready', endpoint: '', apiKey: '', projectKey: 'default', envKey: 'production', secretHint: 'Paste your LaunchDarkly API key to sync live', lastSync: 'sample loaded' },
+  { id: 'unleash', name: 'Unleash', kind: 'provider', status: 'ready', endpoint: '', apiKey: '', projectKey: 'default', envKey: 'production', secretHint: 'Paste your Unleash admin API token', lastSync: 'sample loaded' },
+  { id: 'flagsmith', name: 'Flagsmith', kind: 'provider', status: 'ready', endpoint: '', apiKey: '', secretHint: 'Paste your Flagsmith environment key', lastSync: 'sample loaded' },
   { id: 'statsig', name: 'Statsig', kind: 'provider', status: 'ready', endpoint: '', apiKey: '', secretHint: 'Paste your Statsig Console API key to sync live', lastSync: 'sample loaded' },
   { id: 'firebase', name: 'Firebase Remote Config', kind: 'provider', status: 'ready', endpoint: '', apiKey: '', projectId: '', secretHint: 'Paste your Firebase access token + project ID to sync live', lastSync: 'sample loaded' },
   { id: 'github', name: 'GitHub Issues', kind: 'outbound', status: 'not configured', endpoint: '', secretHint: 'repo issue proxy or GitHub app endpoint', lastSync: 'payload ready' },
@@ -475,6 +477,7 @@ export default function App() {
       ? new URLSearchParams(window.location.search).get('upgraded')
       : null
   );
+  const riskInputFingerprintRef = useRef('');
 
   const [showKillSwitch, setShowKillSwitch] = useState(false);
   const [killToast, setKillToast] = useState('');
@@ -575,6 +578,13 @@ export default function App() {
     },
   });
 
+  const signupWithEmail = () => loginWithRedirect({
+    authorizationParams: {
+      connection: import.meta.env.VITE_AUTH0_CONNECTION || 'Username-Password-Authentication',
+      screen_hint: 'signup',
+    },
+  });
+
   const handleLogout = () => {
     checkoutPlanRef.current = null;
     setUserPlan('free');
@@ -645,10 +655,40 @@ export default function App() {
     () => makeIntegrationPayloads(workspaceName, release, context, evaluations, policyChecks, runbook),
     [context, evaluations, policyChecks, release, runbook, workspaceName]
   );
+  const riskInputFingerprint = useMemo(
+    () => JSON.stringify({
+      workspaceName,
+      release,
+      context,
+      flags: flags.map((flag) => ({
+        key: flag.key,
+        enabled: flag.enabled,
+        rollout: flag.rollout,
+        criticality: flag.criticality,
+        dependencies: flag.dependencies,
+        expiresAt: flag.expiresAt,
+        approver: flag.approver,
+        jira: flag.jira,
+        overrideValue: flag.overrideValue,
+      })),
+      policyChecks: policyChecks.map((check) => ({ id: check.id, status: check.status, detail: check.detail })),
+    }),
+    [context, flags, policyChecks, release, workspaceName]
+  );
 
   useEffect(() => {
     window.localStorage.setItem(storageKey, JSON.stringify({ workspaceName, release, team, integrations, context, flags, audit }));
   }, [audit, context, flags, integrations, release, team, workspaceName]);
+
+  useEffect(() => {
+    if (!aiAnalysis || !riskInputFingerprintRef.current) return;
+    if (riskInputFingerprintRef.current !== riskInputFingerprint) {
+      setAiAnalysis('');
+      setAiRiskLevel('');
+      setAiAnalysisSource('');
+      riskInputFingerprintRef.current = '';
+    }
+  }, [aiAnalysis, riskInputFingerprint]);
 
   const record = (action, detail = '', level = 'info') => {
     setAudit((current) => [
@@ -803,7 +843,7 @@ export default function App() {
       return;
     }
 
-    const proxyProviders = ['launchdarkly', 'statsig', 'firebase'];
+    const proxyProviders = ['launchdarkly', 'unleash', 'flagsmith', 'statsig', 'firebase'];
     const isProxyProvider = proxyProviders.includes(integration.id);
 
     if (isProxyProvider && !integration.apiKey) {
@@ -827,6 +867,10 @@ export default function App() {
         const token = await getAccessTokenSilently({ authorizationParams: { audience: import.meta.env.VITE_AUTH0_AUDIENCE } });
         const body = integration.id === 'launchdarkly'
           ? { apiKey: integration.apiKey, projectKey: integration.projectKey || 'default', envKey: integration.envKey || 'production' }
+          : integration.id === 'unleash'
+          ? { apiKey: integration.apiKey, apiUrl: integration.endpoint, projectId: integration.projectKey || 'default', envKey: integration.envKey || 'production' }
+          : integration.id === 'flagsmith'
+          ? { apiKey: integration.apiKey, apiUrl: integration.endpoint || undefined }
           : integration.id === 'firebase'
           ? { apiKey: integration.apiKey, projectId: integration.projectId }
           : { apiKey: integration.apiKey };
@@ -1215,6 +1259,28 @@ export default function App() {
   }, [isAuthenticated]);
 
   useEffect(() => {
+    if (!isAuthenticated || !user) return undefined;
+    let cancelled = false;
+    const syncProfile = async () => {
+      try {
+        const token = await getAccessTokenSilently({ authorizationParams: { audience: import.meta.env.VITE_AUTH0_AUDIENCE } });
+        if (cancelled) return;
+        await api.syncUser(token, {
+          email: user.email,
+          name: user.name,
+          picture: user.picture,
+        });
+      } catch {
+        // Signup tracking should never block the local demo workspace.
+      }
+    };
+    syncProfile();
+    return () => {
+      cancelled = true;
+    };
+  }, [getAccessTokenSilently, isAuthenticated, user]);
+
+  useEffect(() => {
     if (!isAuthenticated) return undefined;
     let cancelled = false;
     const expectedPlan = checkoutPlanRef.current;
@@ -1332,6 +1398,7 @@ export default function App() {
     setAiAnalysis(analysis);
     setAiRiskLevel(level);
     setAiAnalysisSource(source);
+    riskInputFingerprintRef.current = riskInputFingerprint;
     if (soundEnabled) playRiskTone(level);
   };
 
@@ -1589,6 +1656,10 @@ export default function App() {
             <button type="button" className="sandbox-login-btn" onClick={() => loginWithEmail()}>
               <LogIn size={15} />
               Sign in to save
+            </button>
+            <button type="button" className="sandbox-login-btn" onClick={() => signupWithEmail()}>
+              <UserRound size={15} />
+              Sign up free
             </button>
             <button type="button" className="sandbox-dismiss-btn" onClick={() => setShowPricing(true)}>
               View Pricing
@@ -1906,14 +1977,14 @@ export default function App() {
                   <div>
                     <strong>{integration.name}</strong>
                     <span>{integration.kind === 'provider' ? (
-                      ['launchdarkly','statsig','firebase'].includes(integration.id)
+                      ['launchdarkly','unleash','flagsmith','statsig','firebase'].includes(integration.id)
                         ? 'Paste your API key — flags sync directly via secure server proxy'
                         : 'Read provider JSON through a secure proxy/export URL'
                     ) : integration.id === 'slack'
                       ? 'Copy Slack-ready blocks or post through a configured workflow/proxy endpoint'
                       : 'Copy or post the generated release payload'}</span>
                   </div>
-                  {['launchdarkly','statsig','firebase'].includes(integration.id) ? (
+                  {['launchdarkly','unleash','flagsmith','statsig','firebase'].includes(integration.id) ? (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
                       <label>
                         API key
@@ -1936,6 +2007,42 @@ export default function App() {
                               updateIntegration(integration.id, { projectKey: proj || 'default', envKey: env || 'production' });
                             }}
                             placeholder="default / production"
+                          />
+                        </label>
+                      )}
+                      {integration.id === 'unleash' && (
+                        <>
+                          <label>
+                            Unleash URL
+                            <input
+                              value={integration.endpoint || ''}
+                              disabled={!canAdmin}
+                              onChange={(e) => updateIntegration(integration.id, { endpoint: e.target.value })}
+                              placeholder="https://your-unleash.example.com"
+                            />
+                          </label>
+                          <label>
+                            project / env
+                            <input
+                              value={`${integration.projectKey || 'default'} / ${integration.envKey || 'production'}`}
+                              disabled={!canAdmin}
+                              onChange={(e) => {
+                                const [proj, env] = e.target.value.split('/').map(s => s.trim());
+                                updateIntegration(integration.id, { projectKey: proj || 'default', envKey: env || 'production' });
+                              }}
+                              placeholder="default / production"
+                            />
+                          </label>
+                        </>
+                      )}
+                      {integration.id === 'flagsmith' && (
+                        <label>
+                          API URL
+                          <input
+                            value={integration.endpoint || ''}
+                            disabled={!canAdmin}
+                            onChange={(e) => updateIntegration(integration.id, { endpoint: e.target.value })}
+                            placeholder="https://api.flagsmith.com/api/v1/flags/"
                           />
                         </label>
                       )}
@@ -2822,11 +2929,17 @@ function normalizeAudit(audit) {
 
 function normalizeImportedFlags(input) {
   if (!input) return [];
-  if (Array.isArray(input)) return input;
+  if (Array.isArray(input)) {
+    if (input.some((item) => item?.feature)) return input.map(fromFlagsmith);
+    return input;
+  }
   if (Array.isArray(input.flags)) return input.flags;
   if (Array.isArray(input.items)) return input.items.map(fromLaunchDarkly);
   if (Array.isArray(input.feature_gates)) return input.feature_gates.map(fromStatsig);
   if (Array.isArray(input.gates)) return input.gates.map(fromStatsig);
+  if (Array.isArray(input.features)) return input.features.map(fromUnleash);
+  if (Array.isArray(input.results)) return input.results.map(fromFlagsmith);
+  if (input.flags && typeof input.flags === 'object' && !Array.isArray(input.flags)) return Object.entries(input.flags).map(fromOpenFeature);
   if (input.parameters && typeof input.parameters === 'object') return Object.entries(input.parameters).map(fromFirebase);
   return [];
 }
@@ -2892,6 +3005,72 @@ function fromFirebase([key, value]) {
     dependencies: [],
     tags: ['firebase', 'mobile'],
     source: 'Firebase',
+  };
+}
+
+function fromUnleash(item) {
+  const env = Array.isArray(item.environments) ? item.environments.find((entry) => entry.enabled) || item.environments[0] : {};
+  return {
+    key: item.name || item.key,
+    name: item.description || item.name || item.key,
+    owner: 'Unleash',
+    type: 'boolean',
+    enabled: env?.enabled ?? item.enabled ?? true,
+    defaultValue: false,
+    rollout: 100,
+    criticality: item.name?.includes('checkout') ? 'high' : 'medium',
+    jira: 'IMPORT-001',
+    approver: 'Provider Owner',
+    expiresAt: '2026-12-31',
+    rollback: `Disable ${item.name || item.key}.`,
+    canaryRequired: true,
+    dependencies: [],
+    tags: item.tags || ['unleash'],
+    source: 'Unleash',
+  };
+}
+
+function fromFlagsmith(item) {
+  const key = item.feature?.name || item.name || item.key;
+  return {
+    key,
+    name: key,
+    owner: 'Flagsmith',
+    type: typeof item.feature_state_value === 'boolean' ? 'boolean' : 'variant',
+    enabled: item.enabled ?? item.feature_state_value !== 'false',
+    defaultValue: item.feature_state_value ?? false,
+    rollout: 100,
+    criticality: key?.includes('checkout') ? 'high' : 'medium',
+    jira: 'IMPORT-001',
+    approver: 'Provider Owner',
+    expiresAt: '2026-12-31',
+    rollback: `Disable ${key}.`,
+    canaryRequired: true,
+    dependencies: [],
+    tags: ['flagsmith'],
+    source: 'Flagsmith',
+  };
+}
+
+function fromOpenFeature([key, value]) {
+  const raw = value?.defaultVariant ?? value?.defaultValue ?? value?.value ?? false;
+  return {
+    key,
+    name: value?.name || key,
+    owner: 'OpenFeature',
+    type: typeof raw === 'boolean' ? 'boolean' : 'variant',
+    enabled: raw !== false,
+    defaultValue: raw,
+    rollout: 100,
+    criticality: key.includes('checkout') ? 'high' : 'medium',
+    jira: 'IMPORT-001',
+    approver: 'Provider Owner',
+    expiresAt: '2026-12-31',
+    rollback: `Restore default value for ${key}.`,
+    canaryRequired: false,
+    dependencies: [],
+    tags: ['openfeature'],
+    source: 'OpenFeature',
   };
 }
 
@@ -3008,7 +3187,7 @@ function makePolicyChecks(flags, evaluations, context, release, integrations = d
       id: 'provider-adapters',
       status: configuredProviders ? 'pass' : 'warn',
       title: 'Live provider adapters configured',
-      detail: configuredProviders ? `${configuredProviders} read-only provider endpoints configured.` : 'Add proxy/export URLs for live LaunchDarkly, Statsig, or Firebase sync.',
+      detail: configuredProviders ? `${configuredProviders} read-only provider endpoints configured.` : 'Add proxy/export URLs for live LaunchDarkly, Unleash, Flagsmith, Statsig, or Firebase sync.',
     },
     {
       id: 'outbound-hooks',

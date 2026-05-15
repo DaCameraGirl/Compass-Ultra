@@ -1117,7 +1117,7 @@ export default function LandingPage() {
               <a href="#features">Features</a>
               <a href="#how">How It Works</a>
               <a href="#pricing">Pricing</a>
-              <a href="https://github.com/DaCameraGirl/Compass-Ultra">GitHub</a>
+              <a href="https://www.compassultra.com">Website</a>
               <a href="/trust">Trust</a>
               <a href="/privacy">Privacy</a>
               <a href="/terms">Terms</a>
