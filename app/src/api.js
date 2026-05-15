@@ -77,9 +77,11 @@ export const api = {
   syncUser: (token, profile = {}) =>
     request('/api/v1/users/me', token, {
       method: 'POST',
-      body: JSON.stringify({ ...profile, source: 'app' }),
+      body: JSON.stringify({ source: 'app', ...profile }),
     }),
+  getCurrentUser: (token) => request('/api/v1/users/me', token),
   listSignups: (token) => request('/api/v1/users/signups', token),
+  listSignupEvents: (token) => request('/api/v1/users/signup-events', token),
   getPlan: (token) => request('/api/v1/stripe/plan', token),
   createCheckout: (token, plan) =>
     request('/api/v1/stripe/checkout', token, {
