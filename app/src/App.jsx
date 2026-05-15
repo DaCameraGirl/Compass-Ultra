@@ -1304,8 +1304,12 @@ export default function App() {
     setAiRiskLevel(level);
     setAiAnalysisSource(source);
     if (soundEnabled) playRiskTone(level);
-    const webhook = localStorage.getItem('cu-slack-webhook');
-    if (webhook) sendSlackNotification(webhook, analysis, level).catch(() => {});
+    const slackHook = localStorage.getItem('cu-slack-webhook');
+    if (slackHook) sendSlackNotification(slackHook, analysis, level).catch(() => {});
+    const teamsHook = localStorage.getItem('cu-teams-webhook');
+    if (teamsHook) sendTeamsNotification(teamsHook, analysis, level).catch(() => {});
+    const discordHook = localStorage.getItem('cu-discord-webhook');
+    if (discordHook) sendDiscordNotification(discordHook, analysis, level).catch(() => {});
   };
 
   const runAiAnalysis = async () => {
@@ -3333,40 +3337,102 @@ async function sendSlackNotification(webhookUrl, analysis, riskLevel) {
   });
 }
 
+async function sendTeamsNotification(webhookUrl, analysis, riskLevel) {
+  const themeColor = { LOW: '00CC66', MEDIUM: 'FFD700', HIGH: 'FF8C00', CRITICAL: 'FF3333' }[riskLevel] || '888888';
+  const emoji = { LOW: '🟢', MEDIUM: '🟡', HIGH: '🟠', CRITICAL: '🔴' }[riskLevel] || '⚪';
+  await fetch(webhookUrl, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      '@type': 'MessageCard',
+      '@context': 'http://schema.org/extensions',
+      themeColor,
+      summary: `Release Risk: ${riskLevel || 'UNKNOWN'}`,
+      sections: [{
+        activityTitle: `${emoji} Compass Ultra — Release Risk: ${riskLevel || 'UNKNOWN'}`,
+        activityText: analysis.slice(0, 4000),
+      }],
+    }),
+  });
+}
+
+async function sendDiscordNotification(webhookUrl, analysis, riskLevel) {
+  const color = { LOW: 0x00cc66, MEDIUM: 0xffd700, HIGH: 0xff8c00, CRITICAL: 0xff3333 }[riskLevel] || 0x888888;
+  const emoji = { LOW: '🟢', MEDIUM: '🟡', HIGH: '🟠', CRITICAL: '🔴' }[riskLevel] || '⚪';
+  await fetch(webhookUrl, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      username: 'Compass Ultra',
+      embeds: [{
+        title: `${emoji} Release Risk: ${riskLevel || 'UNKNOWN'}`,
+        description: analysis.slice(0, 4096),
+        color,
+        footer: { text: 'Compass Ultra · Release Intelligence' },
+      }],
+    }),
+  });
+}
+
 function openEmailNotification(analysis, riskLevel, to = '') {
   const subject = encodeURIComponent(`Release Risk Analysis: ${riskLevel || 'UNKNOWN'}`);
   const body = encodeURIComponent(analysis);
   window.open(`mailto:${to}?subject=${subject}&body=${body}`, '_self');
 }
 
-function NotifyModal({ analysis, riskLevel, onClose }) {
-  const [webhook, setWebhook] = useState(() => localStorage.getItem('cu-slack-webhook') || '');
-  const [email, setEmail] = useState(() => localStorage.getItem('cu-notify-email') || '');
-  const [status, setStatus] = useState('');
-  const [sending, setSending] = useState(false);
+function openWhatsAppNotification(analysis, riskLevel, phone = '') {
+  const emoji = { LOW: '🟢', MEDIUM: '🟡', HIGH: '🟠', CRITICAL: '🔴' }[riskLevel] || '⚪';
+  const text = encodeURIComponent(`${emoji} *Compass Ultra — Release Risk: ${riskLevel || 'UNKNOWN'}*\n\n${analysis}`);
+  const base = phone.trim() ? `https://wa.me/${phone.replace(/\D/g, '')}` : 'https://wa.me';
+  window.open(`${base}?text=${text}`, '_blank');
+}
 
-  const handleSendSlack = async () => {
-    const url = webhook.trim();
-    if (!url) return;
-    localStorage.setItem('cu-slack-webhook', url);
+function openSmsNotification(analysis, riskLevel, phone = '') {
+  const emoji = { LOW: '🟢', MEDIUM: '🟡', HIGH: '🟠', CRITICAL: '🔴' }[riskLevel] || '⚪';
+  const body = encodeURIComponent(`${emoji} Compass Ultra — Release Risk: ${riskLevel || 'UNKNOWN'}\n\n${analysis.slice(0, 1400)}`);
+  const num = phone.trim();
+  window.open(`${num ? `sms:${num}` : 'sms:'}?body=${body}`, '_self');
+}
+
+const NOTIFY_TABS = [
+  { id: 'slack',    label: 'Slack',     color: '#611f69', hint: 'Paste an Incoming Webhook URL from your Slack app settings. Auto-sends on every analysis.' },
+  { id: 'email',    label: 'Email',     color: '#1a3a5c', hint: 'Opens your default mail client with the analysis pre-filled.' },
+  { id: 'teams',    label: 'Teams',     color: '#464eb8', hint: 'Paste an Incoming Webhook URL from your Teams channel connector. Auto-sends on every analysis.' },
+  { id: 'discord',  label: 'Discord',   color: '#5865f2', hint: 'Paste a Discord webhook URL. Auto-sends on every analysis.' },
+  { id: 'whatsapp', label: 'WhatsApp',  color: '#128c7e', hint: 'Opens WhatsApp Web or the app with the analysis pre-filled. Phone number is optional.' },
+  { id: 'sms',      label: 'iMessage',  color: '#34c759', hint: 'Opens Messages (iMessage / SMS) with the analysis pre-filled. Works on Apple devices.' },
+];
+
+function NotifyModal({ analysis, riskLevel, onClose }) {
+  const [tab, setTab] = useState('slack');
+  const [slackUrl, setSlackUrl]       = useState(() => localStorage.getItem('cu-slack-webhook') || '');
+  const [teamsUrl, setTeamsUrl]       = useState(() => localStorage.getItem('cu-teams-webhook') || '');
+  const [discordUrl, setDiscordUrl]   = useState(() => localStorage.getItem('cu-discord-webhook') || '');
+  const [email, setEmail]             = useState(() => localStorage.getItem('cu-notify-email') || '');
+  const [whatsapp, setWhatsapp]       = useState(() => localStorage.getItem('cu-notify-whatsapp') || '');
+  const [smsPhone, setSmsPhone]       = useState(() => localStorage.getItem('cu-notify-sms') || '');
+  const [status, setStatus]           = useState('');
+  const [sending, setSending]         = useState(false);
+
+  const switchTab = (id) => { setTab(id); setStatus(''); };
+
+  const webhookSend = async (key, url, fn, label) => {
+    const u = url.trim();
+    if (!u) return;
+    localStorage.setItem(key, u);
     setSending(true);
     setStatus('');
     try {
-      await sendSlackNotification(url, analysis, riskLevel);
-      setStatus('✓ Sent to Slack!');
+      await fn(u, analysis, riskLevel);
+      setStatus(`✓ Sent to ${label}!`);
     } catch {
-      setStatus('✗ Slack send failed — check your webhook URL');
+      setStatus(`✗ ${label} send failed — check your webhook URL`);
     } finally {
       setSending(false);
     }
   };
 
-  const handleOpenEmail = () => {
-    const addr = email.trim();
-    if (addr) localStorage.setItem('cu-notify-email', addr);
-    openEmailNotification(analysis, riskLevel, addr);
-    setStatus('✓ Opening mail client…');
-  };
+  const currentHint = NOTIFY_TABS.find(t => t.id === tab)?.hint || '';
 
   return (
     <div
@@ -3378,40 +3444,89 @@ function NotifyModal({ analysis, riskLevel, onClose }) {
           <h3>Send Analysis Report</h3>
           <button type="button" className="notify-close" onClick={onClose}>✕</button>
         </div>
-        <div className="notify-section">
-          <label className="notify-label">
-            <span className="notify-channel-badge">Slack</span>
-            Incoming webhook URL
-          </label>
-          <input
-            type="url"
-            className="notify-input"
-            placeholder="https://hooks.slack.com/services/…"
-            value={webhook}
-            onChange={(e) => setWebhook(e.target.value)}
-          />
-          <button type="button" className="notify-send-btn" onClick={handleSendSlack} disabled={!webhook.trim() || sending}>
-            {sending ? 'Sending…' : 'Send to Slack'}
-          </button>
+
+        <div className="notify-tabs">
+          {NOTIFY_TABS.map(t => (
+            <button
+              key={t.id}
+              type="button"
+              className={`notify-tab${tab === t.id ? ' active' : ''}`}
+              style={tab === t.id ? { borderBottomColor: t.color, color: '#e2eaf4' } : {}}
+              onClick={() => switchTab(t.id)}
+            >
+              {t.label}
+            </button>
+          ))}
         </div>
-        <div className="notify-section">
-          <label className="notify-label">
-            <span className="notify-channel-badge notify-email-badge">Email</span>
-            Recipient address (optional)
-          </label>
-          <input
-            type="email"
-            className="notify-input"
-            placeholder="team@yourcompany.com"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-          />
-          <button type="button" className="notify-send-btn notify-email-btn" onClick={handleOpenEmail}>
-            Open in Mail
-          </button>
+
+        <div className="notify-tab-body">
+          {tab === 'slack' && (
+            <div className="notify-section">
+              <input type="url" className="notify-input" placeholder="https://hooks.slack.com/services/…" value={slackUrl} onChange={(e) => setSlackUrl(e.target.value)} />
+              <button type="button" className="notify-send-btn" style={{ background: '#611f69' }} onClick={() => webhookSend('cu-slack-webhook', slackUrl, sendSlackNotification, 'Slack')} disabled={!slackUrl.trim() || sending}>
+                {sending ? 'Sending…' : 'Send to Slack'}
+              </button>
+            </div>
+          )}
+          {tab === 'email' && (
+            <div className="notify-section">
+              <input type="email" className="notify-input" placeholder="team@yourcompany.com (optional)" value={email} onChange={(e) => setEmail(e.target.value)} />
+              <button type="button" className="notify-send-btn" style={{ background: '#1158b7' }} onClick={() => {
+                const addr = email.trim();
+                if (addr) localStorage.setItem('cu-notify-email', addr);
+                openEmailNotification(analysis, riskLevel, addr);
+                setStatus('✓ Opening mail client…');
+              }}>
+                Open in Mail
+              </button>
+            </div>
+          )}
+          {tab === 'teams' && (
+            <div className="notify-section">
+              <input type="url" className="notify-input" placeholder="https://outlook.office.com/webhook/…" value={teamsUrl} onChange={(e) => setTeamsUrl(e.target.value)} />
+              <button type="button" className="notify-send-btn" style={{ background: '#464eb8' }} onClick={() => webhookSend('cu-teams-webhook', teamsUrl, sendTeamsNotification, 'Teams')} disabled={!teamsUrl.trim() || sending}>
+                {sending ? 'Sending…' : 'Send to Teams'}
+              </button>
+            </div>
+          )}
+          {tab === 'discord' && (
+            <div className="notify-section">
+              <input type="url" className="notify-input" placeholder="https://discord.com/api/webhooks/…" value={discordUrl} onChange={(e) => setDiscordUrl(e.target.value)} />
+              <button type="button" className="notify-send-btn" style={{ background: '#5865f2' }} onClick={() => webhookSend('cu-discord-webhook', discordUrl, sendDiscordNotification, 'Discord')} disabled={!discordUrl.trim() || sending}>
+                {sending ? 'Sending…' : 'Send to Discord'}
+              </button>
+            </div>
+          )}
+          {tab === 'whatsapp' && (
+            <div className="notify-section">
+              <input type="tel" className="notify-input" placeholder="+1 555 000 0000 (optional)" value={whatsapp} onChange={(e) => setWhatsapp(e.target.value)} />
+              <button type="button" className="notify-send-btn" style={{ background: '#128c7e' }} onClick={() => {
+                const p = whatsapp.trim();
+                if (p) localStorage.setItem('cu-notify-whatsapp', p);
+                openWhatsAppNotification(analysis, riskLevel, p);
+                setStatus('✓ Opening WhatsApp…');
+              }}>
+                Open in WhatsApp
+              </button>
+            </div>
+          )}
+          {tab === 'sms' && (
+            <div className="notify-section">
+              <input type="tel" className="notify-input" placeholder="+1 555 000 0000 (optional)" value={smsPhone} onChange={(e) => setSmsPhone(e.target.value)} />
+              <button type="button" className="notify-send-btn" style={{ background: '#248a3d' }} onClick={() => {
+                const p = smsPhone.trim();
+                if (p) localStorage.setItem('cu-notify-sms', p);
+                openSmsNotification(analysis, riskLevel, p);
+                setStatus('✓ Opening Messages…');
+              }}>
+                Open in Messages
+              </button>
+            </div>
+          )}
         </div>
-        {status && <p className="notify-status-msg">{status}</p>}
-        <p className="notify-hint">Webhook URL and email are saved locally for next time. If a webhook is set, Compass Ultra auto-sends to Slack on every analysis.</p>
+
+        {status && <p className={`notify-status-msg${status.startsWith('✗') ? ' notify-status-err' : ''}`}>{status}</p>}
+        <p className="notify-hint">{currentHint}</p>
       </div>
     </div>
   );
