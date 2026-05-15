@@ -35,6 +35,8 @@ import {
   Send,
   ShieldCheck,
   SlidersHorizontal,
+  Moon,
+  Sun,
   Trash2,
   Upload,
   UserRound,
@@ -457,6 +459,7 @@ export default function App() {
   const [diffB, setDiffB] = useState(null);
   const [showDiff, setShowDiff] = useState(false);
   const [showPricing, setShowPricing] = useState(false);
+  const [workspaceTheme, setWorkspaceTheme] = useState(() => localStorage.getItem('cu-theme') || 'dark');
   const [demoMode, setDemoMode] = useState(false);
   const [userPlan, setUserPlan] = useState(() => (
     typeof window !== 'undefined'
@@ -546,6 +549,10 @@ export default function App() {
     localStorage.setItem('cu-onboarded', '1');
     setShowOnboarding(false);
   };
+
+  useEffect(() => {
+    localStorage.setItem('cu-theme', workspaceTheme);
+  }, [workspaceTheme]);
 
   const canUseAI   = demoMode || userPlan === 'pro' || userPlan === 'team';
   const canUseDiff = demoMode || userPlan === 'pro' || userPlan === 'team';
@@ -1384,7 +1391,7 @@ export default function App() {
   };
 
   return (
-    <main className="app-shell">
+    <main className={`app-shell theme-${workspaceTheme}`}>
       {upgradeNotice && (
         <div style={{ background: '#3fb950', color: '#000', padding: '10px 20px', textAlign: 'center', fontWeight: 600, fontSize: '0.95rem', position: 'fixed', top: 0, left: 0, right: 0, zIndex: 9999, boxShadow: '0 2px 8px rgba(0,0,0,0.3)' }}>
           {upgradeNotice}
@@ -1409,6 +1416,15 @@ export default function App() {
           <span>{releaseState.score}% ready</span>
         </div>
         <div className="top-actions">
+          <button
+            type="button"
+            className="theme-toggle"
+            onClick={() => setWorkspaceTheme((theme) => (theme === 'dark' ? 'light' : 'dark'))}
+            title={workspaceTheme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+            aria-label={workspaceTheme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+          >
+            {workspaceTheme === 'dark' ? <Sun size={17} aria-hidden="true" /> : <Moon size={17} aria-hidden="true" />}
+          </button>
           <button type="button" onClick={() => importRef.current?.click()} title="Import JSON" aria-label="Import JSON">
             <Upload size={17} aria-hidden="true" />
           </button>

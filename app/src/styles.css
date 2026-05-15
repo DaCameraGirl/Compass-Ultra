@@ -1,7 +1,7 @@
 :root {
-  --bg: #07090e;
-  --panel: #0e1117;
-  --panel-soft: #161b22;
+  --bg: #0b1220;
+  --panel: #111827;
+  --panel-soft: #1f2937;
   --ink: #e6edf3;
   --muted: #8b949e;
   --line: rgba(255, 255, 255, 0.08);
@@ -16,7 +16,10 @@
   --violet: #bc8cff;
   --violet-soft: rgba(188, 140, 255, 0.12);
   --danger: #f85149;
-  --shadow: 0 24px 70px rgba(0, 0, 0, 0.35);
+  --control-bg: #172033;
+  --topbar-bg: rgba(15, 23, 42, 0.9);
+  --brand-contrast: #08111f;
+  --shadow: 0 20px 54px rgba(0, 0, 0, 0.24);
   color: var(--ink);
   background: var(--bg);
   font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
@@ -121,10 +124,38 @@ code {
 .app-shell {
   min-height: 100vh;
   background:
-    radial-gradient(circle at top left, rgba(88, 166, 255, 0.14), transparent 34vw),
-    radial-gradient(circle at 85% 6%, rgba(188, 140, 255, 0.1), transparent 30vw),
+    radial-gradient(circle at top left, rgba(88, 166, 255, 0.16), transparent 32vw),
+    radial-gradient(circle at 85% 6%, rgba(188, 140, 255, 0.1), transparent 28vw),
+    linear-gradient(180deg, #101827 0%, #0b1220 44%, #0f172a 100%),
     var(--bg);
   color: var(--ink);
+}
+
+.app-shell.theme-light {
+  --bg: #eef2f6;
+  --panel: #ffffff;
+  --panel-soft: #f8fafc;
+  --ink: #101828;
+  --muted: #667085;
+  --line: #d9e0ea;
+  --brand: #0b63ce;
+  --brand-soft: #e6f0ff;
+  --green: #087443;
+  --green-soft: #e8f7ef;
+  --red: #b42318;
+  --red-soft: #fff1f0;
+  --amber: #b54708;
+  --amber-soft: #fff4e5;
+  --violet: #6941c6;
+  --violet-soft: #f1ecff;
+  --danger: #b42318;
+  --control-bg: #ffffff;
+  --topbar-bg: rgba(248, 250, 252, 0.94);
+  --brand-contrast: #ffffff;
+  --shadow: 0 18px 48px rgba(16, 24, 40, 0.08);
+  background:
+    radial-gradient(circle at top left, rgba(11, 99, 206, 0.1), transparent 32vw),
+    linear-gradient(180deg, #f7fbff 0%, #eef2f6 48%, #f8fafc 100%);
 }
 
 .topbar {
@@ -136,7 +167,7 @@ code {
   gap: 14px;
   align-items: center;
   border-bottom: 1px solid var(--line);
-  background: rgba(7, 9, 14, 0.9);
+  background: var(--topbar-bg);
   padding: 12px 18px;
   backdrop-filter: blur(16px);
 }
@@ -156,7 +187,7 @@ code {
   place-items: center;
   border-radius: 8px;
   background: linear-gradient(135deg, var(--brand), var(--violet));
-  color: #07090e;
+  color: var(--brand-contrast);
   font-size: 13px;
   font-weight: 900;
 }
@@ -1379,7 +1410,7 @@ input[type="range"] {
   border: 1px solid rgba(88, 166, 255, 0.24);
   border-radius: 8px;
   background:
-    linear-gradient(135deg, rgba(88, 166, 255, 0.14), rgba(188, 140, 255, 0.08)),
+    linear-gradient(135deg, rgba(88, 166, 255, 0.11), rgba(188, 140, 255, 0.06)),
     var(--panel);
   box-shadow: var(--shadow);
   padding: 14px 16px;
@@ -1434,7 +1465,7 @@ input[type="range"] {
 .sandbox-login-btn {
   border: 0;
   background: var(--brand);
-  color: #07090e;
+  color: var(--brand-contrast);
 }
 
 .sandbox-dismiss-btn {
@@ -1446,14 +1477,14 @@ input[type="range"] {
 .demo-guide-bar,
 .ai-risk-strip {
   background:
-    linear-gradient(135deg, rgba(88, 166, 255, 0.12), rgba(188, 140, 255, 0.08)),
+    linear-gradient(135deg, rgba(88, 166, 255, 0.1), rgba(188, 140, 255, 0.05)),
     var(--panel);
 }
 
 .ai-risk-strip[data-risk="high"],
 .ai-risk-strip[data-risk="critical"] {
   background:
-    linear-gradient(135deg, rgba(248, 81, 73, 0.14), rgba(227, 179, 65, 0.08)),
+    linear-gradient(135deg, rgba(248, 81, 73, 0.11), rgba(227, 179, 65, 0.06)),
     var(--panel);
 }
 
@@ -1473,18 +1504,18 @@ input[type="range"] {
 .metric,
 .release-board,
 .policy-panel {
-  background: rgba(14, 17, 23, 0.92);
+  background: var(--panel);
 }
 
 .guide-intro {
   background:
-    linear-gradient(135deg, rgba(88, 166, 255, 0.12), rgba(63, 185, 80, 0.06)),
+    linear-gradient(135deg, rgba(88, 166, 255, 0.1), rgba(63, 185, 80, 0.05)),
     var(--panel);
 }
 
 input,
 select {
-  background: #090b10;
+  background: var(--control-bg);
 }
 
 input:focus,
@@ -1519,7 +1550,7 @@ select:focus {
 }
 
 .switch.is-on span {
-  background: #07090e;
+  background: var(--brand-contrast);
 }
 
 .panel-note {
