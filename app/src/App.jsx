@@ -2788,7 +2788,7 @@ export default function App() {
                       if (alreadyPaid && (isUpgrade || isDowngrade)) {
                         try {
                           const token = await getAccessTokenSilently({ authorizationParams: { audience: import.meta.env.VITE_AUTH0_AUDIENCE } });
-                          const { url } = await api.openPortal(token);
+                          const { url } = await api.openPortal(token, tier.plan);
                           window.location.href = url;
                         } catch (e) { alert('Could not open portal. Please try again.'); }
                         return;
