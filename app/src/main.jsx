@@ -7,10 +7,11 @@ import App from './App.jsx';
 import LandingPage from './LandingPage.jsx';
 import './styles.css';
 
-const domain   = import.meta.env.VITE_AUTH0_DOMAIN;
-const clientId = import.meta.env.VITE_AUTH0_CLIENT_ID;
-const audience = import.meta.env.VITE_AUTH0_AUDIENCE;
+const domain   = import.meta.env.VITE_AUTH0_DOMAIN || 'compassultra.us.auth0.com';
+const clientId = import.meta.env.VITE_AUTH0_CLIENT_ID || 'XnScfnNJsKiooRvxExyX9geuWGnJb2QV';
+const audience = import.meta.env.VITE_AUTH0_AUDIENCE || 'https://api.compass-ultra.com';
 const connection = import.meta.env.VITE_AUTH0_CONNECTION || 'Username-Password-Authentication';
+const appOrigin = window.location.hostname === 'localhost' ? window.location.origin : 'https://www.compassultra.com';
 
 function LegalPage({ type }) {
   const isPrivacy = type === 'privacy';
@@ -147,7 +148,7 @@ createRoot(document.getElementById('root')).render(
       domain={domain}
       clientId={clientId}
       authorizationParams={{
-        redirect_uri: (window.location.hostname === 'localhost' ? window.location.origin : 'https://compassultra.com') + '/app',
+        redirect_uri: `${appOrigin}/app`,
         audience,
         connection,
       }}

@@ -566,7 +566,7 @@ export default function App() {
   };
 
   const getPublicReturnUrl = () => (
-    window.location.hostname === 'localhost' ? window.location.origin : 'https://compassultra.com'
+    window.location.hostname === 'localhost' ? window.location.origin : 'https://www.compassultra.com'
   );
 
   const loginWithEmail = () => loginWithRedirect({
