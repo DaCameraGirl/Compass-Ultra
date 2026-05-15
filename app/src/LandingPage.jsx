@@ -126,6 +126,45 @@ const TRUST_SIGNALS = [
   },
 ];
 
+const GALLERY_IMAGES = [
+  {
+    icon: <Compass size={18} />,
+    title: 'Release Control Room',
+    headline: 'Know what can break before you ship.',
+    description: 'A single dashboard for risk, flags, gates, ownership, and release readiness.',
+    tags: ['Risk', 'Flags', 'Gates', 'Readiness'],
+    featured: true,
+  },
+  {
+    icon: <Brain size={18} />,
+    title: 'Risk Analyzer',
+    headline: 'Ship, hold, or fix first.',
+    description: 'A clear assessment with blocker details and remediation steps.',
+    tags: ['Decision', 'Blockers', 'Fix steps'],
+  },
+  {
+    icon: <Shield size={18} />,
+    title: 'Policy Gates',
+    headline: 'Catch the missing proof.',
+    description: 'Blockers, warnings, approvers, dependencies, overrides, and expiration checks.',
+    tags: ['Approvers', 'Dependencies', 'Overrides'],
+  },
+  {
+    icon: <GitCompare size={18} />,
+    title: 'Snapshot Diff',
+    headline: 'See exactly what changed.',
+    description: 'Before-and-after release state for flags, rollouts, owners, and policies.',
+    tags: ['Before', 'After', 'Change review'],
+  },
+  {
+    icon: <FileDown size={18} />,
+    title: 'PDF Runbook Export',
+    headline: 'Send audit-ready release proof.',
+    description: 'Clean release evidence for QA, DevOps, leadership, and compliance reviews.',
+    tags: ['PDF', 'QA', 'Compliance'],
+  },
+];
+
 const DEMO_FLAGS = [
   { key: 'checkout.new_flow', name: 'New Checkout Flow', enabled: true, risk: 'high', rollout: 85 },
   { key: 'payments.stripe_v4', name: 'Stripe v4 Integration', enabled: true, risk: 'medium', rollout: 100 },
@@ -701,6 +740,62 @@ export default function LandingPage() {
       </section>
 
       {/* ── LIVE DEMO ── */}
+      <section className="lp-section lp-gallery-section">
+        <div className="lp-container">
+          <div className="lp-section-header">
+            <div className="lp-badge">Product Gallery</div>
+            <h2>See the release decision before production does</h2>
+            <p>Visual proof for every part of the release review: risk, gates, diffs, and runbooks.</p>
+          </div>
+          <div className="lp-gallery-grid">
+            {GALLERY_IMAGES.map((item) => (
+              <article key={item.title} className={`lp-gallery-card ${item.featured ? 'lp-gallery-card--featured' : ''}`}>
+                <div className="lp-gallery-card-head">
+                  <span>{item.icon}</span>
+                  <strong>{item.title}</strong>
+                </div>
+                <div className="lp-gallery-visual" aria-hidden="true">
+                  {item.featured ? (
+                    <>
+                      <div className="lp-gallery-dashboard-top">
+                        <span>Release readiness</span>
+                        <strong>72%</strong>
+                      </div>
+                      <div className="lp-gallery-dashboard-bars">
+                        <span style={{ width: '72%' }} />
+                        <span style={{ width: '44%' }} />
+                        <span style={{ width: '86%' }} />
+                      </div>
+                      <div className="lp-gallery-dashboard-grid">
+                        <span>3 blockers</span>
+                        <span>8 stale flags</span>
+                        <span>2 missing owners</span>
+                        <span>1 risky rollout</span>
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <div className="lp-gallery-mini-line" />
+                      <div className="lp-gallery-mini-line is-short" />
+                      <div className="lp-gallery-mini-stack">
+                        <span />
+                        <span />
+                        <span />
+                      </div>
+                    </>
+                  )}
+                </div>
+                <h3>{item.headline}</h3>
+                <p>{item.description}</p>
+                <div className="lp-gallery-tags">
+                  {item.tags.map((tag) => <span key={tag}>{tag}</span>)}
+                </div>
+              </article>
+            ))}
+          </div>
+        </div>
+      </section>
+
       <section id="demo" className="lp-section lp-demo-section">
         <div className="lp-container">
           <div className="lp-section-header">

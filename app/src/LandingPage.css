@@ -374,6 +374,187 @@
 }
 
 /* ─── SECTIONS ──────────────────────────────────────────────────── */
+.lp-gallery-section {
+  background:
+    radial-gradient(circle at 18% 0%, rgba(88,166,255,0.08), transparent 34%),
+    rgba(255,255,255,0.01);
+}
+
+.lp-gallery-grid {
+  display: grid;
+  grid-template-columns: 1.35fr 1fr 1fr;
+  gap: 16px;
+}
+
+.lp-gallery-card {
+  display: flex;
+  min-height: 330px;
+  flex-direction: column;
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 10px;
+  background: #0e1117;
+  padding: 18px;
+  overflow: hidden;
+}
+
+.lp-gallery-card--featured {
+  grid-row: span 2;
+  min-height: 520px;
+  background:
+    linear-gradient(135deg, rgba(88,166,255,0.12), rgba(188,140,255,0.07)),
+    #0e1117;
+}
+
+.lp-gallery-card-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #58a6ff;
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.7px;
+}
+
+.lp-gallery-card-head span {
+  display: grid;
+  width: 30px;
+  height: 30px;
+  place-items: center;
+  border-radius: 8px;
+  background: rgba(88,166,255,0.1);
+}
+
+.lp-gallery-visual {
+  display: grid;
+  gap: 14px;
+  min-height: 132px;
+  margin: 18px 0;
+  border: 1px solid rgba(255,255,255,0.07);
+  border-radius: 8px;
+  background: #07090e;
+  padding: 16px;
+}
+
+.lp-gallery-card--featured .lp-gallery-visual {
+  min-height: 250px;
+  align-content: center;
+}
+
+.lp-gallery-dashboard-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.lp-gallery-dashboard-top span {
+  color: #8b949e;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.lp-gallery-dashboard-top strong {
+  color: #e3b341;
+  font-size: 38px;
+  line-height: 1;
+}
+
+.lp-gallery-dashboard-bars {
+  display: grid;
+  gap: 8px;
+}
+
+.lp-gallery-dashboard-bars span,
+.lp-gallery-mini-line {
+  display: block;
+  height: 10px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #58a6ff, #bc8cff);
+}
+
+.lp-gallery-dashboard-bars span:nth-child(2) {
+  background: linear-gradient(90deg, #e3b341, #f78166);
+}
+
+.lp-gallery-dashboard-bars span:nth-child(3) {
+  background: linear-gradient(90deg, #3fb950, #58a6ff);
+}
+
+.lp-gallery-dashboard-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+}
+
+.lp-gallery-dashboard-grid span {
+  border: 1px solid rgba(255,255,255,0.07);
+  border-radius: 7px;
+  background: rgba(255,255,255,0.04);
+  color: #d7e4f5;
+  padding: 10px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.lp-gallery-mini-line {
+  width: 82%;
+}
+
+.lp-gallery-mini-line.is-short {
+  width: 54%;
+  background: linear-gradient(90deg, #3fb950, #58a6ff);
+}
+
+.lp-gallery-mini-stack {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-top: auto;
+}
+
+.lp-gallery-mini-stack span {
+  height: 48px;
+  border-radius: 7px;
+  background: rgba(255,255,255,0.05);
+}
+
+.lp-gallery-card h3 {
+  margin: 0 0 10px;
+  color: #e6edf3;
+  font-size: 22px;
+  line-height: 1.15;
+}
+
+.lp-gallery-card--featured h3 {
+  font-size: 34px;
+  letter-spacing: -0.6px;
+}
+
+.lp-gallery-card p {
+  margin: 0;
+  color: #8b949e;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.lp-gallery-tags {
+  display: flex;
+  gap: 7px;
+  flex-wrap: wrap;
+  margin-top: auto;
+  padding-top: 18px;
+}
+
+.lp-gallery-tags span {
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 999px;
+  background: rgba(255,255,255,0.04);
+  color: #8b949e;
+  padding: 5px 8px;
+  font-size: 11px;
+  font-weight: 700;
+}
+
 .lp-section { padding: 100px 0; }
 .lp-section--alt { background: rgba(255,255,255,0.013); }
 
@@ -1667,14 +1848,20 @@
   .lp-nav-links        { display: none; }
   .lp-nav-actions      { display: none; }
   .lp-menu-toggle      { display: block; }
-  .lp-features-grid    { grid-template-columns: repeat(2, 1fr); }
+  .lp-features-grid,
+  .lp-gallery-grid     { grid-template-columns: repeat(2, 1fr); }
+  .lp-gallery-card--featured { grid-column: 1 / -1; min-height: 460px; }
   .lp-testimonials-grid { grid-template-columns: 1fr; }
   .lp-steps            { grid-template-columns: 1fr; }
 }
 
 @media (max-width: 600px) {
   .lp-hero-headline    { font-size: 32px; }
-  .lp-features-grid    { grid-template-columns: 1fr; }
+  .lp-features-grid,
+  .lp-gallery-grid     { grid-template-columns: 1fr; }
+  .lp-gallery-card,
+  .lp-gallery-card--featured { min-height: auto; }
+  .lp-gallery-card--featured h3 { font-size: 28px; }
   .lp-pricing-grid     { grid-template-columns: 1fr; }
   .lp-section-header h2 { font-size: 28px; }
   .lp-cta-banner h2    { font-size: 30px; }

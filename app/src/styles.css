@@ -588,6 +588,50 @@ code {
   overflow: hidden;
 }
 
+.guide-dropdown > summary {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 4px 14px;
+  align-items: center;
+  padding: 16px 18px;
+  color: var(--ink);
+  cursor: pointer;
+  list-style: none;
+}
+
+.guide-dropdown > summary::-webkit-details-marker {
+  display: none;
+}
+
+.guide-dropdown > summary::after {
+  content: "+";
+  grid-row: 1 / span 3;
+  grid-column: 2;
+  color: var(--brand);
+  font-size: 22px;
+  font-weight: 900;
+}
+
+.guide-dropdown[open] > summary::after {
+  content: "-";
+}
+
+.guide-dropdown > summary .guide-kicker,
+.guide-dropdown > summary strong,
+.guide-dropdown > summary small {
+  grid-column: 1;
+}
+
+.guide-dropdown > summary strong {
+  font-size: 17px;
+}
+
+.guide-dropdown > summary small {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+}
+
 .guide-intro {
   display: grid;
   gap: 8px;

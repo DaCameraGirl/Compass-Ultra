@@ -2613,6 +2613,12 @@ function WorkspaceGuide() {
 
   return (
     <section className="workspace-guide" aria-label="Compass Ultra documentation">
+      <details className="guide-dropdown">
+        <summary>
+          <span className="guide-kicker">Compass Ultra - Release Intelligence Platform</span>
+          <strong>How Compass Ultra works</strong>
+          <small>Open the release intelligence guide</small>
+        </summary>
       <div className="guide-intro">
         <div>
           <span className="guide-kicker">Compass Ultra — Release Intelligence Platform</span>
@@ -2623,8 +2629,8 @@ function WorkspaceGuide() {
         </div>
       </div>
       <div className="guide-tabs">
-        {sections.map((section, index) => (
-          <details key={section.title} open={index === 0}>
+        {sections.map((section) => (
+          <details key={section.title}>
             <summary>
               <span>{section.icon}</span>
               <strong>{section.title}</strong>
@@ -2637,6 +2643,7 @@ function WorkspaceGuide() {
           </details>
         ))}
       </div>
+      </details>
     </section>
   );
 }
