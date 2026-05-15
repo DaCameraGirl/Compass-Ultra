@@ -569,6 +569,12 @@ export default function App() {
     window.location.hostname === 'localhost' ? window.location.origin : 'https://compassultra.com'
   );
 
+  const loginWithEmail = () => loginWithRedirect({
+    authorizationParams: {
+      connection: import.meta.env.VITE_AUTH0_CONNECTION || 'Username-Password-Authentication',
+    },
+  });
+
   const handleLogout = () => {
     checkoutPlanRef.current = null;
     setUserPlan('free');
@@ -1271,7 +1277,7 @@ export default function App() {
   }, []);
 
   const saveToCloud = () => {
-    if (!isAuthenticated) { loginWithRedirect(); return; }
+    if (!isAuthenticated) { loginWithEmail(); return; }
     if (cloudSnapshots.length >= snapshotCap) {
       requirePlan('Pro', `Free plan is limited to ${snapshotCap} snapshots`);
       return;
@@ -1352,7 +1358,7 @@ export default function App() {
       }, 650);
       return;
     }
-    if (!isAuthenticated) { loginWithRedirect(); return; }
+    if (!isAuthenticated) { loginWithEmail(); return; }
     if (!canUseAI) { requirePlan('Pro', 'risk analyzer'); return; }
     setAiLoading(true);
     setAiAnalysis('');
@@ -1364,7 +1370,7 @@ export default function App() {
       record('AI risk analysis complete');
     } catch (e) {
       if (e.error === 'login_required' || e.error === 'consent_required') {
-        loginWithRedirect();
+        loginWithEmail();
         return;
       }
       const analysis = makeDemoAiAnalysis(workspaceName, release, context, flags, policyChecks);
@@ -1479,7 +1485,7 @@ export default function App() {
               <LogOut size={17} aria-hidden="true" />
             </button>
           ) : (
-            <button type="button" onClick={() => loginWithRedirect()} title="Login" aria-label="Login">
+            <button type="button" onClick={() => loginWithEmail()} title="Login" aria-label="Login">
               <LogIn size={17} aria-hidden="true" />
             </button>
           )}
@@ -1564,7 +1570,7 @@ export default function App() {
               </div>
               <button
                 type="button"
-                onClick={() => { if (!isAuthenticated) { loginWithRedirect(); return; } setShowRollbackModal(true); }}
+                onClick={() => { if (!isAuthenticated) { loginWithEmail(); return; } setShowRollbackModal(true); }}
               >
                 Rollback to Safe State
               </button>
@@ -1580,7 +1586,7 @@ export default function App() {
             <span>Exploring Compass Ultra — no account needed. Toggle flags, run risk analysis, export PDFs.</span>
           </div>
           <div className="sandbox-banner-actions">
-            <button type="button" className="sandbox-login-btn" onClick={() => loginWithRedirect()}>
+            <button type="button" className="sandbox-login-btn" onClick={() => loginWithEmail()}>
               <LogIn size={15} />
               Sign in to save
             </button>
@@ -2196,7 +2202,7 @@ export default function App() {
               )}
             </div>
             {!isAuthenticated && (
-              <button className="full-button" type="button" onClick={() => loginWithRedirect()}>
+              <button className="full-button" type="button" onClick={() => loginWithEmail()}>
                 <LogIn size={16} aria-hidden="true" />
                 Login to save &amp; load snapshots
               </button>
@@ -2474,7 +2480,7 @@ export default function App() {
                       if (isCurrent) return;
                       if (tier.plan === 'enterprise') { window.location.href = 'mailto:hello@compassultra.com?subject=Compass Ultra Enterprise Plan Inquiry'; return; }
                       if (tier.plan === 'free' || !tier.plan) { setShowPricing(false); return; }
-                      if (!isAuthenticated) { loginWithRedirect(); return; }
+                      if (!isAuthenticated) { loginWithEmail(); return; }
                       if (alreadyPaid && (isUpgrade || isDowngrade)) {
                         try {
                           const token = await getAccessTokenSilently({ authorizationParams: { audience: import.meta.env.VITE_AUTH0_AUDIENCE } });
