@@ -1375,9 +1375,10 @@ input[type="range"] {
 .evaluation-card {
   display: grid;
   gap: 4px;
+  border: 1px solid var(--line);
   border-radius: 8px;
-  background: var(--ink);
-  color: #fff;
+  background: #0b1220;
+  color: #e6edf3;
   padding: 14px;
 }
 
