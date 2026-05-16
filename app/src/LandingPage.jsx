@@ -83,28 +83,28 @@ const PRICING = [
     cta: 'Get Started',
   },
   {
-    name: 'Solo', price: '$99', period: 'per month', color: '#e3b341', highlight: false,
+    name: 'Solo', price: '$49', period: 'per month', color: '#e3b341', highlight: false,
     description: 'For independent developers and freelancers managing production flags.',
-    features: ['Everything in Free', 'Unlimited snapshots', 'Cloud save & sync', 'Risk analyzer', 'Snapshot diff viewer', 'Flag expiration alerts', 'Shareable public links', 'Audit log export'],
+    features: ['7-day free trial, no credit card', 'Downgrades to Free automatically', 'Everything in Free', '1 user seat', 'Unlimited snapshots', 'Cloud save & sync', 'Risk analyzer', 'Snapshot diff viewer', 'Flag expiration alerts', 'Shareable public links', 'Audit log export'],
     cta: 'Start Free Trial', plan: 'solo',
   },
   {
-    name: 'Pro', price: '$199', period: 'per month', color: '#58a6ff', highlight: false,
-    description: 'For small teams managing release risk together.',
-    features: ['Everything in Solo', '7-day full-feature trial', 'Team RBAC', 'Slack workflow payloads', 'Shared team workspace', 'Priority support'],
+    name: 'Pro', price: '$149', period: 'per month', color: '#58a6ff', highlight: false,
+    description: 'For teams that need shared release handoffs and stronger workflow controls.',
+    features: ['7-day free trial, no credit card', 'Downgrades to Free automatically', 'Everything in Solo', 'Workspace RBAC roles', 'Slack workflow payloads', 'Shareable release handoffs', 'Priority support'],
     cta: 'Start Free Trial', plan: 'pro',
   },
   {
-    name: 'Team', price: '$499', period: 'per month', color: '#3fb950', highlight: true,
+    name: 'Team', price: '$299', period: 'per month', color: '#3fb950', highlight: true,
     badge: 'BEST FOR TEAMS',
-    description: 'For release teams that need shared visibility and audit-ready workflows.',
-    features: ['Everything in Pro', 'Risk analyzer', 'Flag expiration alerts', 'Team RBAC', 'Slack workflow payloads', 'Audit log export', 'Release readiness scoring', 'Shared team workspace', 'Priority support'],
+    description: 'For release teams that need audit-ready workflows and repeatable handoff evidence.',
+    features: ['7-day free trial, no credit card', 'Downgrades to Free automatically', 'Everything in Pro', 'Risk analyzer', 'Flag expiration alerts', 'Workspace RBAC roles', 'Slack workflow payloads', 'Audit log export', 'Release readiness scoring', 'Shareable release handoffs', 'Priority support'],
     cta: 'Start Free Trial',
   },
   {
     name: 'Enterprise', price: 'Custom', period: 'contact sales', color: '#bc8cff', highlight: false,
     description: 'For organizations that need security review, onboarding, and custom workflows.',
-    features: ['Everything in Team', 'Custom security review', 'SLA targets', 'Dedicated onboarding', 'Custom workflows', 'Custom integrations'],
+    features: ['Everything in Team', 'Custom seats and org setup', 'Custom security review', 'SLA targets', 'Dedicated onboarding', 'Custom workflows', 'Custom integrations'],
     cta: 'Talk to Sales',
   },
 ];
@@ -657,7 +657,7 @@ export default function LandingPage() {
                 </ul>
               </div>
               <div className="lp-hero-logos">
-                <span>Works with</span>
+                <span>BYO sync/import for</span>
                 {BUILT_FOR.slice(0, 4).map((provider) => (
                   <span key={provider} className="lp-provider-pill">{provider}</span>
                 ))}
@@ -673,7 +673,7 @@ export default function LandingPage() {
       {/* ── STATS BAR ── */}
       <section className="lp-built-for">
         <div className="lp-container">
-          <span>Built for teams already shipping with</span>
+          <span>Built for teams importing or syncing from their own</span>
           <div className="lp-built-for-grid">
             {BUILT_FOR.map((provider) => (
               <div key={provider} className="lp-provider-logo">{provider}</div>
@@ -826,7 +826,7 @@ export default function LandingPage() {
           <div className="lp-section-header">
             <div className="lp-badge">Launch Proof</div>
             <h2>Built for release teams before the launch rush</h2>
-            <p>Concrete demo evidence, exportable artifacts, and a blocked production gate you can inspect before connecting live providers.</p>
+            <p>Concrete demo evidence, exportable artifacts, and a blocked production gate you can inspect before adding customer-owned provider tokens.</p>
           </div>
           <div className="lp-testimonials-grid">
             {TRUST_SIGNALS.map((item) => (
@@ -849,7 +849,7 @@ export default function LandingPage() {
               <div className="lp-badge lp-badge--purple">AI Release Review</div>
               <h2>Release risk analysis built into the control room</h2>
               <p>
-                Before every deploy, Compass Ultra reviews your complete flag configuration with a provider-neutral AI risk engine. You get back a structured risk assessment with specific flag keys called out, dependency conflicts identified, compliance risks flagged, and a direct ship/no-ship recommendation.
+                Before every deploy, Compass Ultra reviews your imported or synced flag configuration with a provider-neutral AI risk engine. You get back a structured risk assessment with specific flag keys called out, dependency conflicts identified, compliance risks flagged, and a direct ship/no-ship recommendation.
               </p>
               <ul className="lp-ai-list">
                 {[

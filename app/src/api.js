@@ -43,6 +43,11 @@ async function request(path, token, options = {}) {
       return res.json();
     } catch (err) {
       clearTimeout(timer);
+      if (err?.name === 'AbortError') {
+        lastError = new Error(`Request timed out after ${Math.round(timeoutMs / 1000)}s`);
+        lastError.status = 408;
+        continue;
+      }
       lastError = err;
     }
   }
@@ -66,13 +71,19 @@ export const api = {
     request('/api/v1/analyze', token, {
       method: 'POST',
       body: JSON.stringify(payload),
-      timeoutMs: 12000,
+      timeoutMs: 45000,
     }),
   analyzeDemoFlags: (payload) =>
     request('/api/v1/analyze/demo', null, {
       method: 'POST',
       body: JSON.stringify(payload),
-      timeoutMs: 8000,
+      timeoutMs: 35000,
+    }),
+  syncProvider: (token, provider, payload) =>
+    request(`/api/v1/proxy/${provider}`, token, {
+      method: 'POST',
+      body: JSON.stringify(payload),
+      timeoutMs: 20000,
     }),
   getPlan: (token) => request('/api/v1/stripe/plan', token),
   createCheckout: (token, plan) =>
@@ -80,6 +91,9 @@ export const api = {
       method: 'POST',
       body: JSON.stringify({ plan }),
     }),
-  openPortal: (token) =>
-    request('/api/v1/stripe/portal', token, { method: 'POST' }),
+  openPortal: (token, switchToPlan) =>
+    request('/api/v1/stripe/portal', token, {
+      method: 'POST',
+      body: JSON.stringify(switchToPlan ? { switchToPlan } : {}),
+    }),
 };

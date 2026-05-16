@@ -4,7 +4,7 @@ import path from 'node:path';
 const root = process.cwd();
 const ignored = new Set(['.git', 'node_modules', 'dist', 'assets']);
 const extensions = new Set(['.js', '.jsx', '.mjs', '.json', '.md', '.yml', '.yaml']);
-const forbidden = ['<'.repeat(7), '='.repeat(7), '>'.repeat(7)];
+const conflictMarker = /^(<<<<<<<|=======|>>>>>>>)($|[ \t])/m;
 const failures = [];
 
 function walk(dir) {
@@ -17,9 +17,7 @@ function walk(dir) {
     }
     if (!extensions.has(path.extname(entry.name))) continue;
     const text = fs.readFileSync(fullPath, 'utf8');
-    for (const marker of forbidden) {
-      if (text.includes(marker)) failures.push(`${path.relative(root, fullPath)} contains ${marker}`);
-    }
+    if (conflictMarker.test(text)) failures.push(`${path.relative(root, fullPath)} contains merge conflict marker`);
   }
 }
 

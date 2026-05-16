@@ -245,14 +245,14 @@ Teams can copy payloads or post them to configured webhook/proxy endpoints. Slac
 
 🧩 Supported Providers
 
-Compass Ultra is provider-flexible.
+Compass Ultra is provider-flexible. Live sync uses customer-owned provider tokens or export URLs through the backend proxy; JSON import works without connecting a provider.
 
 Provider	Support
-🚩 LaunchDarkly	Supported through import / adapter flow
-📊 Statsig	Supported through import / adapter flow
-🔥 Firebase Remote Config	Supported through import / adapter flow
-🧱 Unleash	Compatible via JSON-style workflows
-🏁 Flagsmith	Compatible via JSON-style workflows
+🚩 LaunchDarkly	BYO token sync or JSON import
+📊 Statsig	BYO token sync or JSON import
+🔥 Firebase Remote Config	BYO token sync or JSON import
+🧱 Unleash	BYO token sync or JSON import
+🏁 Flagsmith	BYO token sync or JSON import
 🧭 OpenFeature	Compatible with provider-neutral flag state
 📦 Any JSON export	Supported
 📦 Sample Packs
@@ -281,9 +281,10 @@ Layer	Technology
 💸 Pricing
 Plan	Price	Best For
 🆓 Free	$0	Solo builders and teams trying local flag review
-⚡ Pro	$199/mo	Engineers and small teams needing risk analysis, cloud sync, snapshots, and diff review
-👥 Team	$499/mo	Release teams needing RBAC, audit export, expiration alerts, Slack payloads, and org workflows
-🏢 Enterprise	Custom	Security review, onboarding, SLA targets, and custom integrations
+🧑‍💻 Solo	$49/mo	7-day no-card trial, then 1 user seat for solo operators needing cloud sync, risk analysis, snapshots, and exports
+⚡ Pro	$149/mo	7-day no-card trial, then teams needing risk analysis, cloud sync, snapshots, diff review, RBAC roles, and Slack payloads
+👥 Team	$299/mo	7-day no-card trial, then release teams needing RBAC workflows, audit export, expiration alerts, Slack payloads, and release handoff evidence
+🏢 Enterprise	Custom	Security review, onboarding, SLA targets, custom integrations, and custom org setup
 🚀 Run Locally
 Frontend
 git clone https://github.com/DaCameraGirl/Compass-Ultra.git

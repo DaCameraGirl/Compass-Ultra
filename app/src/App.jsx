@@ -66,6 +66,7 @@ const defaultRelease = {
   incidentChannel: '#release-war-room',
   releaseCaptain: 'Release Captain',
   approver: 'Platform Approver',
+  deployDate: '2026-11-26',
   window: 'Thu 23:00-01:00 ET',
 };
 
@@ -82,9 +83,11 @@ const defaultTeam = {
 };
 
 const defaultIntegrations = [
-  { id: 'launchdarkly', name: 'LaunchDarkly', kind: 'provider', status: 'ready', endpoint: '', apiKey: '', projectKey: 'default', envKey: 'production', secretHint: 'Paste your LaunchDarkly API key to sync live', lastSync: 'sample loaded' },
-  { id: 'statsig', name: 'Statsig', kind: 'provider', status: 'ready', endpoint: '', apiKey: '', secretHint: 'Paste your Statsig Console API key to sync live', lastSync: 'sample loaded' },
-  { id: 'firebase', name: 'Firebase Remote Config', kind: 'provider', status: 'ready', endpoint: '', apiKey: '', projectId: '', secretHint: 'Paste your Firebase access token + project ID to sync live', lastSync: 'sample loaded' },
+  { id: 'launchdarkly', name: 'LaunchDarkly', kind: 'provider', status: 'ready', endpoint: '', apiKey: '', projectKey: 'default', envKey: 'production', secretHint: 'Paste a customer-owned LaunchDarkly API token', lastSync: 'sample loaded' },
+  { id: 'unleash', name: 'Unleash', kind: 'provider', status: 'ready', endpoint: '', apiKey: '', projectKey: 'default', envKey: 'production', secretHint: 'Paste a customer-owned Unleash admin API token', lastSync: 'sample loaded' },
+  { id: 'flagsmith', name: 'Flagsmith', kind: 'provider', status: 'ready', endpoint: '', apiKey: '', secretHint: 'Paste a customer-owned Flagsmith environment key', lastSync: 'sample loaded' },
+  { id: 'statsig', name: 'Statsig', kind: 'provider', status: 'ready', endpoint: '', apiKey: '', secretHint: 'Paste a customer-owned Statsig Console API key', lastSync: 'sample loaded' },
+  { id: 'firebase', name: 'Firebase Remote Config', kind: 'provider', status: 'ready', endpoint: '', apiKey: '', projectId: '', secretHint: 'Paste a customer-owned Firebase access token + project ID', lastSync: 'sample loaded' },
   { id: 'github', name: 'GitHub Issues', kind: 'outbound', status: 'not configured', endpoint: '', secretHint: 'repo issue proxy or GitHub app endpoint', lastSync: 'payload ready' },
   { id: 'jira', name: 'Jira Change', kind: 'outbound', status: 'not configured', endpoint: '', secretHint: 'Jira automation webhook', lastSync: 'payload ready' },
   { id: 'slack', name: 'Slack War Room', kind: 'outbound', status: 'not configured', endpoint: '', secretHint: 'Slack workflow/proxy endpoint', lastSync: 'payload ready' },
@@ -525,9 +528,10 @@ export default function App() {
     setShowOnboarding(false);
   };
 
-  const canUseAI   = demoMode || userPlan === 'pro' || userPlan === 'team';
-  const canUseDiff = demoMode || userPlan === 'pro' || userPlan === 'team';
-  const canExportAudit = userPlan === 'team';
+  const isPaidPlan = ['solo', 'pro', 'team', 'enterprise'].includes(userPlan);
+  const canUseAI   = demoMode || isPaidPlan;
+  const canUseDiff = demoMode || isPaidPlan;
+  const canExportAudit = isPaidPlan;
   const snapshotCap = userPlan === 'free' ? 3 : Infinity;
 
   const requirePlan = (needed, label) => {
@@ -768,11 +772,21 @@ export default function App() {
       return;
     }
 
-    const proxyProviders = ['launchdarkly', 'statsig', 'firebase'];
+    const proxyProviders = ['launchdarkly', 'unleash', 'flagsmith', 'statsig', 'firebase'];
     const isProxyProvider = proxyProviders.includes(integration.id);
 
     if (isProxyProvider && !integration.apiKey) {
       record(`${integration.name} needs API key`, 'Enter your API key in the integration panel', 'warn');
+      return;
+    }
+
+    if (integration.id === 'unleash' && !integration.endpoint) {
+      record(`${integration.name} needs URL`, 'Enter your Unleash instance URL in the integration panel', 'warn');
+      return;
+    }
+
+    if (integration.id === 'firebase' && !integration.projectId) {
+      record(`${integration.name} needs project ID`, 'Enter your Firebase project ID in the integration panel', 'warn');
       return;
     }
 
@@ -788,20 +802,17 @@ export default function App() {
     try {
       let payload;
       if (isProxyProvider) {
-        const apiBase = import.meta.env.VITE_API_URL;
         const token = await getAccessTokenSilently({ authorizationParams: { audience: import.meta.env.VITE_AUTH0_AUDIENCE } });
         const body = integration.id === 'launchdarkly'
           ? { apiKey: integration.apiKey, projectKey: integration.projectKey || 'default', envKey: integration.envKey || 'production' }
+          : integration.id === 'unleash'
+          ? { apiKey: integration.apiKey, apiUrl: integration.endpoint, projectId: integration.projectKey || 'default', envKey: integration.envKey || 'production' }
+          : integration.id === 'flagsmith'
+          ? { apiKey: integration.apiKey, apiUrl: integration.endpoint || 'https://api.flagsmith.com/api/v1/flags/' }
           : integration.id === 'firebase'
           ? { apiKey: integration.apiKey, projectId: integration.projectId }
           : { apiKey: integration.apiKey };
-        const response = await fetch(`${apiBase}/api/v1/proxy/${integration.id}`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-          body: JSON.stringify(body),
-        });
-        if (!response.ok) throw new Error(`HTTP ${response.status}`);
-        payload = await response.json();
+        payload = await api.syncProvider(token, integration.id, body);
       } else {
         const response = await fetch(integration.endpoint, { headers: { Accept: 'application/json' } });
         if (!response.ok) throw new Error(`HTTP ${response.status}`);
@@ -962,6 +973,7 @@ export default function App() {
       ['Release Train', release.train],
       ['Release Captain', release.releaseCaptain],
       ['Approver', release.approver],
+      ['Deploy Date', release.deployDate || 'not set'],
       ['Window', release.window],
       ['Incident Channel', release.incidentChannel],
     ];
@@ -1136,7 +1148,7 @@ export default function App() {
 
   const openSnapshotDiff = () => {
     if (!canUseDiff) {
-      requirePlan('Pro', 'Snapshot diff viewer');
+      requirePlan('Solo', 'Snapshot diff viewer');
       return;
     }
 
@@ -1226,6 +1238,20 @@ export default function App() {
       return;
     }
 
+    const snapId = params.get('snapshot');
+    if (snapId) {
+      api.getSnapshot(snapId).then((snap) => {
+        restoreFromCloud(snap);
+        setDemoMode(false);
+        window.history.replaceState({}, '', '/app');
+      }).catch(() => {
+        if (!isAuthenticated) {
+          loadDemo('Demo Retail — Peak Sale Release', { changeTicket: 'CHG-1850', train: 'peak-sale-2026.11', releaseCaptain: 'Demo Guest' });
+        }
+      });
+      return;
+    }
+
     if (!isAuthenticated) {
       loadDemo('Demo Retail — Peak Sale Release', { changeTicket: 'CHG-1850', train: 'peak-sale-2026.11', releaseCaptain: 'Demo Guest' });
       return;
@@ -1239,12 +1265,6 @@ export default function App() {
       window.history.replaceState({}, '', window.location.pathname);
       setTimeout(() => setUpgradeNotice(''), 6000);
     }
-    const snapId = params.get('snapshot');
-    if (!snapId) return;
-    api.getSnapshot(snapId).then((snap) => {
-      restoreFromCloud(snap);
-      window.history.replaceState({}, '', window.location.pathname);
-    }).catch(() => {});
   }, [authLoading, isAuthenticated]);
 
   const saveToCloud = () => {
@@ -1336,7 +1356,7 @@ export default function App() {
       return;
     }
     if (!isAuthenticated) { loginWithRedirect(); return; }
-    if (!canUseAI) { requirePlan('Pro', 'risk analyzer'); return; }
+    if (!canUseAI) { requirePlan('Solo', 'risk analyzer'); return; }
     setAiLoading(true);
     setAiAnalysis('');
     setAiAnalysisSource('');
@@ -1408,17 +1428,20 @@ export default function App() {
           <button type="button" onClick={copyShareLink} title="Copy share link" aria-label="Copy share link">
             <Link size={17} aria-hidden="true" />
           </button>
+          <button type="button" onClick={() => { window.location.href = 'mailto:hello@compassultra.com?subject=Compass%20Ultra%20support'; }} title="Contact support" aria-label="Contact support">
+            <Send size={17} aria-hidden="true" />
+          </button>
           <button type="button" onClick={resetWorkspace} title="Reset workspace" aria-label="Reset workspace">
             <RefreshCw size={17} aria-hidden="true" />
           </button>
           <button type="button" onClick={() => setShowPricing(true)} title="Pricing" aria-label="Pricing" style={{ color: '#ffb800' }}>
             <DollarSign size={17} aria-hidden="true" />
           </button>
-          <button type="button" onClick={openSnapshotDiff} title={demoMode ? 'Demo snapshot diff viewer' : canUseDiff ? 'Snapshot diff viewer' : 'Snapshot diff viewer (Pro)'} aria-label="Snapshot diff viewer" style={{ color: showDiff ? '#58a6ff' : canUseDiff ? '#8b949e' : '#3d4451' }}>
+          <button type="button" onClick={openSnapshotDiff} title={demoMode ? 'Demo snapshot diff viewer' : canUseDiff ? 'Snapshot diff viewer' : 'Snapshot diff viewer (Solo+)'} aria-label="Snapshot diff viewer" style={{ color: showDiff ? '#58a6ff' : canUseDiff ? '#8b949e' : '#3d4451' }}>
             <GitCompare size={17} aria-hidden="true" />
             {!canUseDiff && <LockKeyhole size={9} style={{ position: 'absolute', marginLeft: -7, marginTop: 8, color: '#ffb800' }} />}
           </button>
-          <button type="button" onClick={runAiAnalysis} title={demoMode ? 'Run demo risk analysis' : canUseAI ? 'Risk analysis' : 'Risk analysis (Pro)'} aria-label="Risk analysis" style={{ color: aiLoading ? '#ffb800' : canUseAI ? '#bc8cff' : '#3d4451', position: 'relative' }}>
+          <button type="button" onClick={runAiAnalysis} title={demoMode ? 'Run demo risk analysis' : canUseAI ? 'Risk analysis' : 'Risk analysis (Solo+)'} aria-label="Risk analysis" style={{ color: aiLoading ? '#ffb800' : canUseAI ? '#bc8cff' : '#3d4451', position: 'relative' }}>
             <BrainCircuit size={17} aria-hidden="true" />
             {!canUseAI && <LockKeyhole size={9} style={{ position: 'absolute', top: 0, right: 0, color: '#ffb800' }} />}
           </button>
@@ -1612,7 +1635,7 @@ export default function App() {
               {Object.entries(release).map(([key, value]) => (
                 <label key={key}>
                   {key}
-                  <input value={value} onChange={(event) => updateRelease(key, event.target.value)} />
+                  <input type={key === 'deployDate' ? 'date' : 'text'} value={value} onChange={(event) => updateRelease(key, event.target.value)} />
                 </label>
               ))}
             </div>
@@ -1784,7 +1807,7 @@ export default function App() {
                   <div>
                     <h3 style={{ color: '#e6edf3', margin: '0 0 8px', fontSize: 16 }}>No flags loaded yet</h3>
                     <p style={{ color: '#8b949e', fontSize: 13, margin: '0 0 24px', maxWidth: 360 }}>
-                      Load the demo to see Compass Ultra in action, or import your own flags from LaunchDarkly, Statsig, Firebase, or any JSON export.
+                      Start with a sample pack, import JSON, or connect a customer-owned provider token for read-only sync. Your release setup and policy gates update immediately.
                     </p>
                   </div>
                   <div style={{ display: 'flex', gap: 12 }}>
@@ -1882,14 +1905,14 @@ export default function App() {
                   <div>
                     <strong>{integration.name}</strong>
                     <span>{integration.kind === 'provider' ? (
-                      ['launchdarkly','statsig','firebase'].includes(integration.id)
-                        ? 'Paste your API key — flags sync directly via secure server proxy'
-                        : 'Read provider JSON through a secure proxy/export URL'
+                      ['launchdarkly','unleash','flagsmith','statsig','firebase'].includes(integration.id)
+                        ? 'Bring your own provider token for read-only flag sync through the server proxy'
+                        : 'Import provider JSON through a customer-owned proxy/export URL'
                     ) : integration.id === 'slack'
                       ? 'Copy Slack-ready blocks or post through a configured workflow/proxy endpoint'
                       : 'Copy or post the generated release payload'}</span>
                   </div>
-                  {['launchdarkly','statsig','firebase'].includes(integration.id) ? (
+                  {['launchdarkly','unleash','flagsmith','statsig','firebase'].includes(integration.id) ? (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
                       <label>
                         API key
@@ -1912,6 +1935,42 @@ export default function App() {
                               updateIntegration(integration.id, { projectKey: proj || 'default', envKey: env || 'production' });
                             }}
                             placeholder="default / production"
+                          />
+                        </label>
+                      )}
+                      {integration.id === 'unleash' && (
+                        <>
+                          <label>
+                            Unleash URL
+                            <input
+                              value={integration.endpoint || ''}
+                              disabled={!canAdmin}
+                              onChange={(e) => updateIntegration(integration.id, { endpoint: e.target.value, status: e.target.value ? 'configured' : 'ready' })}
+                              placeholder="https://your-unleash.example.com"
+                            />
+                          </label>
+                          <label>
+                            project / env
+                            <input
+                              value={`${integration.projectKey || 'default'} / ${integration.envKey || 'production'}`}
+                              disabled={!canAdmin}
+                              onChange={(e) => {
+                                const [proj, env] = e.target.value.split('/').map(s => s.trim());
+                                updateIntegration(integration.id, { projectKey: proj || 'default', envKey: env || 'production' });
+                              }}
+                              placeholder="default / production"
+                            />
+                          </label>
+                        </>
+                      )}
+                      {integration.id === 'flagsmith' && (
+                        <label>
+                          API URL
+                          <input
+                            value={integration.endpoint || ''}
+                            disabled={!canAdmin}
+                            onChange={(e) => updateIntegration(integration.id, { endpoint: e.target.value, status: e.target.value ? 'configured' : 'ready' })}
+                            placeholder="https://api.flagsmith.com/api/v1/flags/"
                           />
                         </label>
                       )}
@@ -2314,7 +2373,7 @@ export default function App() {
             <div className="panel-heading">
               <Activity size={18} aria-hidden="true" />
               <h2>Audit</h2>
-              <button type="button" onClick={() => canExportAudit ? copyText(JSON.stringify(audit, null, 2), 'Audit copied') : requirePlan('Team', 'Audit log export')} aria-label="Copy structured audit history" title={canExportAudit ? 'Copy audit log' : 'Audit export (Team)'} style={{ color: canExportAudit ? undefined : '#3d4451' }}>
+              <button type="button" onClick={() => canExportAudit ? copyText(JSON.stringify(audit, null, 2), 'Audit copied') : requirePlan('Solo', 'Audit log export')} aria-label="Copy structured audit history" title={canExportAudit ? 'Copy audit log' : 'Audit export (Solo+)'} style={{ color: canExportAudit ? undefined : '#3d4451' }}>
                 <Clipboard size={15} aria-hidden="true" />
               </button>
             </div>
@@ -2425,9 +2484,9 @@ export default function App() {
                 <h2 style={{ color: '#e6edf3', fontSize: 20, margin: '0 0 24px', textAlign: 'center' }}>Here's what you're looking at</h2>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 16, marginBottom: 28 }}>
                   {[
-                    { icon: '🏁', title: 'Release Control', desc: 'Set your change ticket, release train, captain, and deploy window. Every artifact auto-fills from here.' },
-                    { icon: '⚡', title: 'Flag Evaluation', desc: 'Your flags are evaluated live against a real user context — plan, role, region, device. See exactly what each user gets.' },
-                    { icon: '🛡️', title: 'Policy Checks', desc: '9 automated checks run continuously. They tell you if your release is safe to ship or needs review.' },
+                    { icon: '1', title: 'Set the release', desc: 'Enter the change ticket, train, deploy date, time window, captain, and approver.' },
+                    { icon: '2', title: 'Load or sync flags', desc: 'Import JSON, use a sample pack, or connect a customer-owned provider token for read-only sync.' },
+                    { icon: '3', title: 'Review risk evidence', desc: 'Run the analyzer, resolve policy gates, then export the runbook or send a Slack-ready handoff.' },
                   ].map(item => (
                     <div key={item.title} style={{ display: 'flex', gap: 14, alignItems: 'flex-start' }}>
                       <span style={{ fontSize: 22, flexShrink: 0 }}>{item.icon}</span>
@@ -2454,10 +2513,9 @@ export default function App() {
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 28 }}>
                   {[
-                    { icon: '🔍', text: 'Click the brain circuit icon in the toolbar to run risk analysis' },
-                    { icon: '💾', text: 'Hit the cloud icon to save your first snapshot' },
-                    { icon: '📄', text: 'Click the PDF icon to generate a release runbook' },
-                    { icon: '💰', text: 'Click the $ icon to explore plan options' },
+                    { icon: '1', text: 'Set the release date/window and choose the evaluation context' },
+                    { icon: '2', text: 'Import flags or connect a BYO provider token for read-only sync' },
+                    { icon: '3', text: 'Run risk analysis, save a snapshot, and export the runbook' },
                   ].map(item => (
                     <div key={item.text} style={{ display: 'flex', gap: 10, alignItems: 'flex-start', background: '#161b22', borderRadius: 8, padding: '10px 14px' }}>
                       <span style={{ flexShrink: 0 }}>{item.icon}</span>
@@ -2507,14 +2565,14 @@ export default function App() {
                   name: 'Pro', price: '$149', period: 'per month',
                   color: '#58a6ff',
                   description: 'For small teams managing release risk together.',
-                  features: ['7-day free trial, no credit card', 'Downgrades to Free automatically', 'Everything in Solo', 'Up to 5 team seats', 'Team RBAC', 'Slack workflow payloads', 'Shared team workspace', 'Priority support'],
+                  features: ['7-day free trial, no credit card', 'Downgrades to Free automatically', 'Everything in Solo', 'Workspace RBAC roles', 'Slack workflow payloads', 'Shareable release handoffs', 'Priority support'],
                   cta: 'Start Free Trial', highlight: false, plan: 'pro',
                 },
                 {
                   name: 'Team', price: '$299', period: 'per month',
                   color: '#3fb950',
                   description: 'For release teams that need shared visibility and audit-ready workflows.',
-                  features: ['7-day free trial, no credit card', 'Downgrades to Free automatically', 'Everything in Pro', 'Up to 15 team seats', 'Risk analyzer', 'Flag expiration alerts', 'Team RBAC', 'Slack workflow payloads', 'Audit log export', 'Release readiness scoring', 'Shared team workspace', 'Priority support'],
+                  features: ['7-day free trial, no credit card', 'Downgrades to Free automatically', 'Everything in Pro', 'Risk analyzer', 'Flag expiration alerts', 'Workspace RBAC roles', 'Slack workflow payloads', 'Audit log export', 'Release readiness scoring', 'Shareable release handoffs', 'Priority support'],
                   cta: 'Start Free Trial', highlight: true, plan: 'team',
                 },
                 {
@@ -2559,7 +2617,7 @@ export default function App() {
                       if (alreadyPaid && (isUpgrade || isDowngrade)) {
                         try {
                           const token = await getAccessTokenSilently({ authorizationParams: { audience: import.meta.env.VITE_AUTH0_AUDIENCE } });
-                          const { url } = await api.openPortal(token);
+                          const { url } = await api.openPortal(token, tier.plan);
                           window.location.href = url;
                         } catch (e) { alert('Could not open portal. Please try again.'); }
                         return;
@@ -2637,12 +2695,12 @@ function Metric({ icon, label, value }) {
 function WorkspaceGuide() {
   const sections = [
     {
-      title: '1. Connect Your Flag Data',
+      title: '1. Set the Release and Flag Data',
       icon: <BookOpenCheck size={17} aria-hidden="true" />,
       body: [
-        'Compass Ultra integrates with LaunchDarkly, Statsig, Firebase Remote Config, and any JSON-based flag provider. Import your flag export directly from your provider dashboard — your full flag inventory loads in seconds.',
-        'Fill in the Release Control panel — change ticket, release train, captain, and deployment window. These fields populate every generated artifact, runbook, and integration payload automatically.',
-        'Every workspace state persists to the cloud. Named snapshots let you checkpoint a release at any stage and return to it exactly as you left it — across devices, across your team.',
+        'Start with the release: change ticket, release train, deploy date, time window, captain, and approver. These fields populate every generated artifact, runbook, and integration payload automatically.',
+        'Bring flag data in through JSON import, sample packs, or a customer-owned read-only provider token. Compass Ultra syncs LaunchDarkly, Unleash, Flagsmith, Statsig, and Firebase through the backend proxy when credentials are provided.',
+        'Every workspace state can be saved as a cloud snapshot. Named snapshots let you checkpoint a release at any stage and return to it exactly as you left it.',
       ],
     },
     {
@@ -2650,8 +2708,8 @@ function WorkspaceGuide() {
       icon: <Users size={17} aria-hidden="true" />,
       body: [
         'Compass Ultra enforces three access tiers. Admins control integrations, team configuration, and release ownership. Operators manage flag state and release metadata. Viewers have full read access with a complete audit trail.',
-        'Every permission boundary is hard-enforced and logged. Blocked actions are recorded with the actor, role, timestamp, and the specific gate that denied access — no silent failures, no undocumented overrides.',
-        'RBAC is built for real release reviews — not just access control. Stakeholders and external auditors get exactly the visibility they need without the ability to mutate release state.',
+        'Every permission boundary is enforced and logged. Blocked actions are recorded with the actor, role, timestamp, and the specific gate that denied access.',
+        'Workspace RBAC is built for release reviews. Stakeholders and external auditors get visibility without the ability to mutate release state.',
       ],
     },
     {
@@ -2699,7 +2757,7 @@ function WorkspaceGuide() {
           <span className="guide-kicker">Compass Ultra — Release Intelligence Platform</span>
           <h1>Ship with confidence. Every flag, every risk, every time.</h1>
           <p>
-            Compass Ultra gives engineering and DevOps teams a single control plane for feature flag releases — live flag evaluation, enterprise policy enforcement, AI-powered risk analysis, and automated handoff artifacts, all before a single change touches production.
+            Compass Ultra gives engineering and DevOps teams a release review layer for feature flags: context-based flag evaluation, policy enforcement, AI-powered risk analysis, snapshots, and handoff artifacts before a change touches production.
           </p>
         </div>
       </div>
@@ -2823,6 +2881,7 @@ function makeDemoAiAnalysis(workspaceName, release, context, flags, policyChecks
     '',
     `Decision: ${decision}.`,
     `Change ticket ${release.changeTicket || 'CHG-DEMO'} currently has ${blocked.length} blocking gate(s), ${warnings.length} warning gate(s), and ${activeHighRisk.length} active high-risk evaluation path(s).`,
+    `Deploy date evaluated: ${release.deployDate || 'not set'}.`,
     `Context evaluated: ${context.environment || 'production'} / ${context.tenant || 'demo-retail-prod'} / ${context.role || 'role'} / ${context.region || 'region'} / ${context.device || 'device'}.`,
     '',
     '## Key Findings',
@@ -2834,7 +2893,7 @@ function makeDemoAiAnalysis(workspaceName, release, context, flags, policyChecks
     '## Evidence Snapshot',
     `- Enabled flags: ${flags.filter((flag) => flag.enabled).length}/${flags.length}.`,
     `- Rule matches: ${ruleMatches.length}; rollout evaluations: ${rolloutMatches.length}.`,
-    `- Selected release train: ${release.train || 'not set'}; window: ${release.window || 'not set'}.`,
+    `- Selected release train: ${release.train || 'not set'}; deploy date: ${release.deployDate || 'not set'}; window: ${release.window || 'not set'}.`,
     `- Highest-risk flags: ${activeHighRisk.slice(0, 5).map(({ flag }) => `${flag.key} (${flag.criticality})`).join(', ') || 'none active'}.`,
     '',
     'This public-demo analysis is generated from the current workspace state, so toggles, rollouts, dependencies, and policy gates change the result.',
@@ -3076,7 +3135,7 @@ function makePolicyChecks(flags, evaluations, context, release, integrations = d
       id: 'provider-adapters',
       status: configuredProviders ? 'pass' : 'warn',
       title: 'Live provider adapters configured',
-      detail: configuredProviders ? `${configuredProviders} read-only provider endpoints configured.` : 'Add proxy/export URLs for live LaunchDarkly, Statsig, or Firebase sync.',
+      detail: configuredProviders ? `${configuredProviders} read-only provider connection(s) configured.` : 'Add customer-owned provider tokens or export URLs for LaunchDarkly, Unleash, Flagsmith, Statsig, or Firebase sync.',
     },
     {
       id: 'outbound-hooks',
@@ -3109,6 +3168,7 @@ function makeRunbook(workspaceName, release, context, evaluations, checks) {
     `Train: ${release.train}`,
     `Captain: ${release.releaseCaptain}`,
     `Approver: ${release.approver}`,
+    `Deploy date: ${release.deployDate || 'not set'}`,
     `Window: ${release.window}`,
     `Incident channel: ${release.incidentChannel}`,
     '',
@@ -3134,6 +3194,8 @@ function makeIntegrationPayloads(workspaceName, release, context, evaluations, c
     workspaceName,
     changeTicket: release.changeTicket,
     releaseTrain: release.train,
+    deployDate: release.deployDate || '',
+    deployWindow: release.window,
     environment: context.environment,
     gateStatus: failed.length ? 'needs-review' : 'ready',
     failedChecks: failed.map((check) => ({ id: check.id, status: check.status, title: check.title, detail: check.detail })),
@@ -3174,6 +3236,8 @@ function makeIntegrationPayloads(workspaceName, release, context, evaluations, c
       ],
     },
     launchdarkly: summary,
+    unleash: summary,
+    flagsmith: summary,
     statsig: summary,
     firebase: summary,
   };
