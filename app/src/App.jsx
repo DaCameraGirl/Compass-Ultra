@@ -1937,8 +1937,6 @@ export default function App() {
       )}
 
       <section id="workspace" className="workspace-layout">
-        <WorkspaceGuide />
-
         <aside className="sidebar">
           <section className="panel">
             <div className="panel-heading">
