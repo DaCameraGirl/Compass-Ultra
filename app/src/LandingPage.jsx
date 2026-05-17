@@ -63,8 +63,8 @@ const STEPS = [
   },
   {
     number: '03',
-    title: 'Share the proof',
-    description: 'Compare snapshots, export the runbook, and hand your team a clear ship, hold, or fix-first decision before production changes.',
+    title: 'Export the certificate',
+    description: 'Generate the Release Readiness Certificate — score, blockers, owners, approvals, timestamp, and rollback evidence — as a CAB-ready PDF or share link.',
   },
 ];
 
@@ -78,33 +78,38 @@ const DEMO_TOUR_STEPS = [
 const PRICING = [
   {
     name: 'Free', price: '$0', period: 'forever', color: '#3d4451', highlight: false,
-    description: 'For demos, onboarding, and evaluating local release workflows.',
-    features: ['3 saved snapshots', 'Local workspace', 'PDF runbook export', 'Flag evaluation engine', 'Policy checks'],
+    persona: 'Try it',
+    description: 'Evaluate the release review loop on a local workspace, no account required.',
+    features: ['Local workspace, no login', '3 saved snapshots', 'Flag evaluation engine', '9 policy gates', 'PDF runbook export'],
     cta: 'Get Started',
   },
   {
     name: 'Solo', price: '$49', period: 'per month', color: '#e3b341', highlight: false,
-    description: 'For independent developers and freelancers managing production flags.',
-    features: ['7-day free trial, no credit card', 'Downgrades to Free automatically', 'Everything in Free', '1 user seat', 'Unlimited snapshots', 'Cloud save & sync', 'Risk analyzer', 'Snapshot diff viewer', 'Flag expiration alerts', 'Shareable public links', 'Audit log export'],
+    persona: 'Solo · 1 developer',
+    description: 'Independent developers and freelancers who own production flags end-to-end.',
+    features: ['Everything in Free', '1 seat', 'Unlimited snapshots in the cloud', 'AI risk analyzer', 'Snapshot diff viewer', 'Flag expiration alerts', 'Shareable certificate links', 'Audit log export', '7-day trial, no credit card'],
     cta: 'Start Free Trial', plan: 'solo',
   },
   {
     name: 'Pro', price: '$149', period: 'per month', color: '#58a6ff', highlight: false,
-    description: 'For small teams managing release risk together.',
-    features: ['7-day free trial, no credit card', 'Downgrades to Free automatically', 'Everything in Solo', 'Up to 5 team seats', 'Team RBAC', 'Slack workflow payloads', 'Shared team workspace', 'Priority support'],
+    persona: 'Team · up to 5',
+    description: 'Small teams that need to review releases together and route them through Slack.',
+    features: ['Everything in Solo', 'Up to 5 team seats', 'Shared team workspace', 'Team RBAC (Admin / Operator / Viewer)', 'Slack workflow payloads', 'Jira & GitHub release handoff', 'Priority support'],
     cta: 'Start Free Trial', plan: 'pro',
   },
   {
     name: 'Team', price: '$299', period: 'per month', color: '#3fb950', highlight: true,
-    badge: 'BEST FOR TEAMS',
-    description: 'For release teams that need shared visibility and audit-ready workflows.',
-    features: ['7-day free trial, no credit card', 'Downgrades to Free automatically', 'Everything in Pro', 'Up to 15 team seats', 'Risk analyzer', 'Flag expiration alerts', 'Team RBAC', 'Slack workflow payloads', 'Audit log export', 'Release readiness scoring', 'Shared team workspace', 'Priority support'],
+    badge: 'BEST FOR RELEASE TEAMS',
+    persona: 'Organization · up to 15',
+    description: 'Release teams that need shared readiness scoring, CAB workflows, and audit trails.',
+    features: ['Everything in Pro', 'Up to 15 team seats', 'Release Readiness scoring across workspaces', 'CAB-ready certificate workflow', 'Multi-environment snapshot diff', 'Audit log streaming', 'SSO-ready (Google + Email)'],
     cta: 'Start Free Trial',
   },
   {
     name: 'Enterprise', price: 'Custom', period: 'contact sales', color: '#bc8cff', highlight: false,
-    description: 'For organizations that need security review, onboarding, and custom workflows.',
-    features: ['Everything in Team', 'Custom seats and org setup', 'Custom security review', 'SLA targets', 'Dedicated onboarding', 'Custom workflows', 'Custom integrations'],
+    persona: 'Org · 15+ or regulated',
+    description: 'Organizations with security review, compliance, and procurement requirements.',
+    features: ['Everything in Team', 'Custom seat count & org setup', 'Security review & DPA', 'SSO/SAML and SCIM', 'SLA targets', 'Dedicated onboarding', 'Custom workflows & integrations'],
     cta: 'Talk to Sales',
   },
 ];
@@ -338,6 +343,7 @@ function DashboardMock() {
   };
 
   const riskColor = score >= 70 ? '#3fb950' : score >= 40 ? '#e3b341' : '#f85149';
+  const staticStatus = score >= 75 ? 'READY' : score >= 55 ? 'WITH CAUTION' : 'BLOCKED';
 
   return (
     <div className="dash-mock">
@@ -349,8 +355,9 @@ function DashboardMock() {
           <span className="dash-badge-plan">TEAM</span>
         </div>
         <div className="dash-topbar-right">
-          <span className="dash-score-label">Release Score</span>
+          <span className="dash-score-label">Readiness</span>
           <span className="dash-score-value" style={{ color: riskColor }}>{score}%</span>
+          <span className="dash-score-status" style={{ color: riskColor }}>{staticStatus}</span>
         </div>
       </div>
 
@@ -503,8 +510,11 @@ function DashboardMockInteractive() {
           <span className="dash-badge-plan">DEMO</span>
         </div>
         <div className="dash-topbar-right">
-          <span className="dash-score-label">Release Score</span>
+          <span className="dash-score-label">Readiness</span>
           <span className="dash-score-value" style={{ color: riskColor }}>{score}%</span>
+          <span className="dash-score-status" style={{ color: riskColor }}>
+            {riskLevel === 'LOW' ? 'READY' : riskLevel === 'MEDIUM' ? 'WITH CAUTION' : 'BLOCKED'}
+          </span>
         </div>
       </div>
 
@@ -632,6 +642,7 @@ export default function LandingPage() {
             <span>Compass <strong>Ultra</strong></span>
           </div>
           <div className="lp-nav-links">
+            <a href="#certificate">Certificate</a>
             <a href="#demo">Demo</a>
             <a href="#features">Features</a>
             <a href="#how">How It Works</a>
@@ -647,6 +658,7 @@ export default function LandingPage() {
         </div>
         {menuOpen && (
           <div className="lp-mobile-menu">
+            <a href="#certificate" onClick={() => setMenuOpen(false)}>Certificate</a>
             <a href="#demo" onClick={() => setMenuOpen(false)}>Demo</a>
             <a href="#features" onClick={() => setMenuOpen(false)}>Features</a>
             <a href="#how" onClick={() => setMenuOpen(false)}>How It Works</a>
@@ -662,13 +674,13 @@ export default function LandingPage() {
         <div className="lp-container">
           <div className="lp-hero-inner">
             <div className="lp-hero-text">
-              <div className="lp-badge">Release Intelligence Platform</div>
+              <div className="lp-badge">Release Readiness Platform</div>
               <h1 className="lp-hero-headline">
-                One control room for<br />
-                <span className="lp-gradient-text">every flag, every policy, every release.</span>
+                Know if your release is safe<br />
+                <span className="lp-gradient-text">before you deploy.</span>
               </h1>
               <p className="lp-hero-sub">
-                Block bad releases before they reach production. The HUD debugs running apps. The CI gate enforces policy on every PR. The dashboard proves compliance. <strong>Works in CI, in your app, and on your dashboard.</strong>
+                Sync your feature flags, run policy gates and AI risk analysis, and export a <strong>Release Readiness Certificate</strong> — a single shareable artifact your team, CAB, and auditors can trust. <strong>Catch the bad release before production does.</strong>
               </p>
               <div className="lp-hero-actions">
                 <button className="lp-btn-primary lp-btn-lg" onClick={goToDemo}>
@@ -685,14 +697,15 @@ export default function LandingPage() {
               <div className="lp-hero-ai-card">
                 <div className="lp-hero-ai-head">
                   <Brain size={16} />
-                  <strong>Release Risk Analyzer</strong>
+                  <strong>Release Readiness Certificate</strong>
                   <span>HIGH RISK</span>
                 </div>
-                <p><strong>checkout.new_flow</strong> depends on disabled payments.v2 for EU paid users.</p>
+                <p>Readiness <strong>62%</strong> · <strong>2 blockers unresolved</strong> · <strong>checkout.new_flow</strong> depends on disabled payments.v2 for EU paid users.</p>
                 <ul>
                   <li>Reduce rollout to 10%</li>
                   <li>Assign production approver</li>
                   <li>Add rollback owner</li>
+                  <li>Export CAB-ready PDF</li>
                 </ul>
               </div>
               <div className="lp-hero-logos">
@@ -725,16 +738,91 @@ export default function LandingPage() {
         <div className="lp-container">
           <div className="lp-stats-grid">
             {[
-              { value: 'CI', label: 'Gate blocks risky PRs' },
-              { value: '9', label: 'Policy gates before deploy' },
-              { value: 'AI', label: 'Risk explanation for each release' },
-              { value: 'HUD', label: 'Embeddable dev debug panel' },
+              { value: '1', label: 'Release Readiness Certificate per deploy' },
+              { value: '9', label: 'Policy gates before production' },
+              { value: 'AI', label: 'Risk decision: ship · with-caution · hold' },
+              { value: 'CAB', label: 'Audit-ready PDF + share link' },
             ].map((s, i) => (
               <div key={i} className="lp-stat">
                 <strong>{s.value}</strong>
                 <span>{s.label}</span>
               </div>
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── RELEASE READINESS CERTIFICATE ── */}
+      <section id="certificate" className="lp-section lp-certificate-section">
+        <div className="lp-container">
+          <div className="lp-section-header">
+            <div className="lp-badge lp-badge--green">The Artifact</div>
+            <h2>The Release Readiness Certificate</h2>
+            <p>Sync or import your flags, run gates and risk analysis, and export one shareable artifact — proof that this release is safe to deploy.</p>
+          </div>
+          <div className="lp-certificate-wrap">
+            <article className="lp-certificate" aria-label="Release Readiness Certificate example">
+              <header className="lp-certificate-head">
+                <div>
+                  <div className="lp-certificate-eyebrow">Release Readiness Certificate</div>
+                  <h3>Demo Retail — Peak Sale 2026.11</h3>
+                  <span className="lp-certificate-meta">Issued 2026-05-17 14:32 UTC · CHG-1850 · train peak-sale-2026.11</span>
+                </div>
+                <div className="lp-certificate-score">
+                  <span className="lp-certificate-score-label">Readiness</span>
+                  <strong>72%</strong>
+                  <span className="lp-certificate-status lp-certificate-status--caution">WITH CAUTION · 2 blockers unresolved</span>
+                </div>
+              </header>
+              <div className="lp-certificate-grid">
+                <section>
+                  <h4>Blockers (2)</h4>
+                  <ul>
+                    <li><span className="lp-cert-dot is-bad" /> <strong>checkout.new_flow</strong> depends on disabled payments.v2 for EU</li>
+                    <li><span className="lp-cert-dot is-bad" /> <strong>flash_sale_engine</strong> missing canary rollout cap</li>
+                  </ul>
+                </section>
+                <section>
+                  <h4>Warnings (1)</h4>
+                  <ul>
+                    <li><span className="lp-cert-dot is-warn" /> <strong>eu.gdpr_consent_v2</strong> expires in 48 hours, no renewal ticket</li>
+                  </ul>
+                </section>
+                <section>
+                  <h4>Owners &amp; Approvals</h4>
+                  <ul>
+                    <li><span>Release captain</span><strong>A. Ortiz</strong></li>
+                    <li><span>Production approver</span><strong>R. Kim (pending)</strong></li>
+                    <li><span>Rollback owner</span><strong>D. Patel</strong></li>
+                  </ul>
+                </section>
+                <section>
+                  <h4>Rollback Evidence</h4>
+                  <ul>
+                    <li><span className="lp-cert-dot is-good" /> Last safe snapshot — 2026-05-15 09:11 UTC</li>
+                    <li><span className="lp-cert-dot is-good" /> Per-flag rollback steps attached</li>
+                    <li><span className="lp-cert-dot is-good" /> Provider tokens read-only verified</li>
+                  </ul>
+                </section>
+              </div>
+              <footer className="lp-certificate-footer">
+                <span>Signed by Compass Ultra · audit-ready PDF</span>
+                <span className="lp-certificate-cab">CAB-ready export · share link · attach to PR</span>
+              </footer>
+            </article>
+            <aside className="lp-certificate-side">
+              <h3>One artifact. Every reviewer.</h3>
+              <ul>
+                <li><CheckCircle size={14} color="#3fb950" /><span><strong>Sync or import</strong> flags from LaunchDarkly, Statsig, Unleash, Flagsmith, OpenFeature, Firebase, or any JSON.</span></li>
+                <li><CheckCircle size={14} color="#3fb950" /><span><strong>Run 9 policy gates</strong> and AI risk analysis on the current flag state.</span></li>
+                <li><CheckCircle size={14} color="#3fb950" /><span><strong>Export the certificate</strong> — score, blockers, owners, approvals, timestamp, rollback evidence.</span></li>
+                <li><CheckCircle size={14} color="#3fb950" /><span><strong>Share it</strong> as a PDF runbook, public link, or Slack/Jira payload for CAB review.</span></li>
+              </ul>
+              <div className="lp-certificate-actions">
+                <button className="lp-btn-primary" onClick={goToDemo}>See it in the live demo <ArrowRight size={15} /></button>
+                <button className="lp-btn-outline" onClick={goToApp}>Generate yours free</button>
+              </div>
+            </aside>
           </div>
         </div>
       </section>
@@ -758,7 +846,7 @@ export default function LandingPage() {
                   {item.featured ? (
                     <>
                       <div className="lp-gallery-dashboard-top">
-                        <span>Release readiness</span>
+                        <span>Readiness · WITH CAUTION</span>
                         <strong>72%</strong>
                       </div>
                       <div className="lp-gallery-dashboard-bars">
@@ -767,7 +855,7 @@ export default function LandingPage() {
                         <span style={{ width: '86%' }} />
                       </div>
                       <div className="lp-gallery-dashboard-grid">
-                        <span>3 blockers</span>
+                        <span>3 blockers unresolved</span>
                         <span>8 stale flags</span>
                         <span>2 missing owners</span>
                         <span>1 risky rollout</span>
@@ -1017,6 +1105,7 @@ export default function LandingPage() {
               >
                 {tier.highlight && <div className="lp-popular-badge">{tier.badge || 'BEST FOR TEAMS'}</div>}
                 <div className="lp-pricing-name" style={{ color: tier.color }}>{tier.name}</div>
+                {tier.persona && <div className="lp-pricing-persona">{tier.persona}</div>}
                 <div className="lp-pricing-price">{tier.price}</div>
                 <div className="lp-pricing-period">{tier.period}</div>
                 <p className="lp-pricing-description">{tier.description}</p>
@@ -1050,17 +1139,17 @@ export default function LandingPage() {
           </div>
           <div className="lp-risk-report-preview">
             <div className="lp-risk-report-copy">
-              <span className="lp-badge lp-badge--green">Example Release Risk Report</span>
+              <span className="lp-badge lp-badge--green">Example Release Readiness Certificate</span>
               <h3>Your feature flags are a release surface. Treat them like one.</h3>
-              <p>Compass Ultra turns scattered flag state into a concrete release decision your team can review, export, and defend.</p>
+              <p>Compass Ultra turns scattered flag state into a CAB-ready certificate your team can review, export, and defend.</p>
             </div>
             <div className="lp-risk-report-card">
-              <div><span>Release Readiness</span><strong>72%</strong></div>
-              <div><span>Blockers found</span><strong>3</strong></div>
+              <div><span>Readiness</span><strong>72% · WITH CAUTION</strong></div>
+              <div><span>Blockers unresolved</span><strong>3</strong></div>
               <div><span>Stale flags</span><strong>8</strong></div>
               <div><span>Missing owners</span><strong>2</strong></div>
               <div><span>Risky rollout patterns</span><strong>1</strong></div>
-              <footer>PDF audit export ready</footer>
+              <footer>CAB-ready PDF · share link · audit log</footer>
             </div>
           </div>
           <div className="lp-pricing-value">

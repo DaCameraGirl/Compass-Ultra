@@ -44,6 +44,7 @@ import {
   Volume2,
   VolumeX,
   Webhook,
+  X,
   XCircle,
 } from 'lucide-react';
 import { api } from './api.js';
@@ -500,7 +501,18 @@ export default function App() {
   const [signupDetailsNotice, setSignupDetailsNotice] = useState('');
   const [upgradeNotice, setUpgradeNotice] = useState('');
   const [gateNotice, setGateNotice] = useState('');
-  const [showOnboarding, setShowOnboarding] = useState(() => !localStorage.getItem('cu-onboarded'));
+  const [showOnboarding, setShowOnboarding] = useState(() => {
+    if (typeof window === 'undefined') return false;
+    const params = new URLSearchParams(window.location.search);
+    // Demo / sandbox visitors should land directly in the value. Onboarding
+    // surfaces inline via the dismissible demo guide bar below.
+    if (params.get('demo') === 'true' || params.get('sandbox') === 'true') return false;
+    return !localStorage.getItem('cu-onboarded');
+  });
+  const [showDemoGuide, setShowDemoGuide] = useState(() => {
+    if (typeof window === 'undefined') return true;
+    return localStorage.getItem('cu-demo-guide-dismissed') !== '1';
+  });
   const [onboardStep, setOnboardStep] = useState(1);
   const checkoutPlanRef = useRef(
     typeof window !== 'undefined'
@@ -1913,11 +1925,11 @@ export default function App() {
         </section>
       )}
 
-      {demoMode && isAuthenticated && (
+      {demoMode && showDemoGuide && (
         <section className="demo-guide-bar" aria-label="Demo walkthrough">
           <div>
             <strong>Try the release review loop</strong>
-            <span>Toggle a risky flag, run risk analysis, compare snapshots, then export the runbook.</span>
+            <span>Toggle a risky flag, run risk analysis, compare snapshots, then export the Release Readiness Certificate.</span>
           </div>
           <div className="demo-guide-actions">
             <button type="button" onClick={runAiAnalysis}>
@@ -1930,7 +1942,18 @@ export default function App() {
             </button>
             <button type="button" onClick={exportPDF}>
               <FileDown size={15} aria-hidden="true" />
-              Export Proof
+              Export Certificate
+            </button>
+            <button
+              type="button"
+              className="demo-guide-dismiss"
+              aria-label="Dismiss demo guide"
+              onClick={() => {
+                setShowDemoGuide(false);
+                try { localStorage.setItem('cu-demo-guide-dismissed', '1'); } catch {}
+              }}
+            >
+              <X size={14} aria-hidden="true" />
             </button>
           </div>
         </section>

@@ -512,6 +512,20 @@ code {
   background: var(--brand-soft);
 }
 
+.demo-guide-actions .demo-guide-dismiss {
+  padding: 6px;
+  border-radius: 999px;
+  background: transparent;
+  color: #8b949e;
+  border: 1px solid transparent;
+}
+
+.demo-guide-actions .demo-guide-dismiss:hover {
+  color: #e6edf3;
+  background: rgba(255,255,255,0.06);
+  border-color: rgba(255,255,255,0.08);
+}
+
 .ai-risk-strip {
   display: grid;
   grid-template-columns: minmax(280px, 1fr) auto auto;
