@@ -74,11 +74,11 @@ export const api = {
       body: JSON.stringify(payload),
       timeoutMs: 45000,
     }),
-  analyzeDemoFlags: (payload) =>
+  analyzeDemoFlags: (payload, { timeoutMs = 6000 } = {}) =>
     request('/api/v1/analyze/demo', null, {
       method: 'POST',
       body: JSON.stringify(payload),
-      timeoutMs: 30000,
+      timeoutMs,
     }),
   syncProvider: (token, provider, payload) =>
     request(`/api/v1/proxy/${provider}`, token, {

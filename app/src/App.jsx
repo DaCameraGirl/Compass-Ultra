@@ -480,6 +480,7 @@ export default function App() {
   const [aiLoading, setAiLoading] = useState(false);
   const [aiRiskLevel, setAiRiskLevel] = useState('');
   const [aiLiveError, setAiLiveError] = useState('');
+  const [aiStale, setAiStale] = useState(false);
   const [soundEnabled, setSoundEnabled] = useState(true);
   const [showRollbackModal, setShowRollbackModal] = useState(false);
   const [showNotifyModal, setShowNotifyModal] = useState(false);
@@ -780,10 +781,7 @@ export default function App() {
   useEffect(() => {
     if (!aiAnalysis || !riskInputFingerprintRef.current) return;
     if (riskInputFingerprintRef.current !== riskInputFingerprint) {
-      setAiAnalysis('');
-      setAiRiskLevel('');
-      setAiAnalysisSource('');
-      riskInputFingerprintRef.current = '';
+      setAiStale(true);
     }
   }, [aiAnalysis, riskInputFingerprint]);
 
@@ -880,7 +878,10 @@ export default function App() {
     const target = flags.find((flag) => flag.key === key);
     setFlags((current) => current.filter((flag) => flag.key !== key));
     if (selectedKey === key) setSelectedKey(flags.find((flag) => flag.key !== key)?.key || '');
-    record(`${target?.name || key} removed`);
+    record(
+      `${target?.name || key} removed`,
+      'Readiness recalculated. Rerun risk analysis to refresh AI evidence.'
+    );
   };
 
   const updateRule = (flag, patch) => {
@@ -1121,7 +1122,7 @@ export default function App() {
     doc.setFontSize(9);
     doc.setTextColor(139, 148, 158);
     doc.setFont('helvetica', 'normal');
-    doc.text(`Release Runbook  ·  ${new Date().toLocaleString()}`, margin, 50);
+    doc.text(`Release Readiness Certificate  ·  ${new Date().toLocaleString()}`, margin, 50);
     y = 80;
 
     // Title
@@ -1283,8 +1284,8 @@ export default function App() {
       doc.text(`Compass-Ultra  ·  ${workspaceName}  ·  Page ${i} of ${pages}`, margin, doc.internal.pageSize.getHeight() - 10);
     }
 
-    doc.save(`${slugKey(workspaceName) || 'compass-runbook'}-${Date.now()}.pdf`);
-    record('PDF runbook exported');
+    doc.save(`${slugKey(workspaceName) || 'compass'}-readiness-certificate-${Date.now()}.pdf`);
+    record('Release Readiness Certificate exported');
   };
 
   const copyText = async (text, label) => {
@@ -1539,6 +1540,7 @@ export default function App() {
     setAiAnalysis(analysis);
     setAiRiskLevel(level);
     setAiAnalysisSource(source);
+    setAiStale(false);
     riskInputFingerprintRef.current = riskInputFingerprint;
     if (soundEnabled) playRiskTone(level);
     const slackHook = localStorage.getItem('cu-slack-webhook');
@@ -1557,29 +1559,32 @@ export default function App() {
       setAiAnalysisSource('');
       setAiLiveError('');
       try {
-        const { analysis } = await api.analyzeDemoFlags({ flags, context, release, policyChecks });
-        applyRiskAnalysis(analysis, 'Live AI service');
+        const { analysis } = await api.analyzeDemoFlags(
+          { flags, context, release, policyChecks },
+          { timeoutMs: 6000 }
+        );
+        applyRiskAnalysis(analysis, 'Live AI · same policy model');
         setAiLoading(false);
         record('Live demo AI risk analysis complete');
         return;
       } catch (e) {
-        const isTimeout = e.name === 'AbortError' || /aborted/i.test(e.message || '');
+        const isTimeout = e.name === 'AbortError' || e.status === 408 || /aborted|timed out/i.test(e.message || '');
         const base = isTimeout
-          ? 'Live AI took too long to respond (>30s) and was cancelled. Showing local analysis.'
+          ? 'Live AI is slow right now — switching to the local policy model so you can keep moving. Same gates, same scoring, no waiting.'
           : e.status === 429
-            ? 'Demo rate limit reached — try again in a minute.'
+            ? 'Live AI rate limit hit — running the same policy model locally instead.'
             : e.status === 503
-              ? 'AI service is not configured on this server. Showing local analysis.'
-              : `Live AI unavailable (${e.status || 'network'}): ${e.message || 'unknown error'}. Showing local analysis.`;
-        setAiLiveError(e.hint ? `${base} — ${e.hint}` : base);
-        record('Live demo AI unavailable; using state-aware fallback', e.message || '', 'warn');
+              ? 'Live AI is offline on this demo server — running the same policy model locally instead.'
+              : 'Live AI is unavailable right now — running the same policy model locally instead.';
+        setAiLiveError(e.hint ? `${base} ${e.hint}` : base);
+        record('Live AI unavailable; using local policy model', e.message || '', 'warn');
       }
       window.setTimeout(() => {
         const analysis = makeDemoAiAnalysis(workspaceName, release, context, flags, policyChecks);
-        applyRiskAnalysis(analysis, 'Local deterministic risk engine');
+        applyRiskAnalysis(analysis, 'Local policy model · deterministic');
         setAiLoading(false);
-        record('State-aware demo AI risk analysis complete');
-      }, 650);
+        record('Local demo risk analysis complete');
+      }, 450);
       return;
     }
     if (!isAuthenticated) { loginWithEmail(); return; }
@@ -1762,7 +1767,7 @@ export default function App() {
             <BrainCircuit size={17} aria-hidden="true" />
             {!canUseAI && <LockKeyhole size={9} style={{ position: 'absolute', top: 0, right: 0, color: '#ffb800' }} />}
           </button>
-          <button type="button" onClick={exportPDF} title="Export proof PDF" aria-label="Export proof PDF">
+          <button type="button" onClick={exportPDF} title="Export Release Readiness Certificate (PDF)" aria-label="Export Release Readiness Certificate">
             <FileDown size={17} aria-hidden="true" />
           </button>
           <button type="button" onClick={saveToCloud} title={isAuthenticated ? 'Save to cloud' : 'Login to save to cloud'} aria-label="Save to cloud" style={{ color: isAuthenticated ? '#3fb950' : '#8b949e' }}>
@@ -1807,18 +1812,24 @@ export default function App() {
             <BrainCircuit size={22} aria-hidden="true" />
           </div>
           <div>
-            <span className="ai-risk-kicker">Release Risk Analyzer</span>
+            <span className="ai-risk-kicker">Release Risk Analyzer · AI-assisted</span>
             <h1>
               {aiLoading
                 ? 'Risk engine is reviewing this release.'
-                : aiRiskLevel
-                  ? `${aiRiskLevel} risk detected`
-                  : 'Run the risk check before deploy.'}
+                : aiStale && aiRiskLevel
+                  ? `${aiRiskLevel} risk · workspace changed`
+                  : aiRiskLevel
+                    ? `${aiRiskLevel} risk detected`
+                    : 'Run the risk check before deploy.'}
             </h1>
             <p>
-              {aiAnalysis
-                ? `Latest analysis is ready below with blockers, affected flags, and recommended actions. Source: ${aiAnalysisSource || 'risk engine'}.`
-                : releaseBlockSummary}
+              {aiStale && aiAnalysis
+                ? 'Flags or release inputs changed since the last analysis. Rerun the risk check to refresh readiness, blockers, and the certificate.'
+                : aiAnalysis
+                  ? `Latest analysis is ready below with blockers, affected flags, and recommended actions. Source: ${aiAnalysisSource || 'risk engine'}.`
+                  : (demoMode && !isAuthenticated)
+                    ? 'Demo analysis runs the same policy model locally — instant, deterministic, no waiting. Live AI runs when connected on signed-in plans.'
+                    : releaseBlockSummary}
             </p>
           </div>
         </div>
@@ -1828,9 +1839,15 @@ export default function App() {
           <span><strong>{policyWarnings}</strong> warnings</span>
         </div>
         <div className="ai-risk-actions">
-          <button type="button" className="ai-risk-cta" onClick={runAiAnalysis} disabled={aiLoading}>
+          <button
+            type="button"
+            className={`ai-risk-cta${aiStale ? ' is-stale' : ''}`}
+            onClick={runAiAnalysis}
+            disabled={aiLoading}
+            title={aiStale ? 'Workspace changed — rerun to refresh readiness' : undefined}
+          >
             <BrainCircuit size={16} aria-hidden="true" />
-            {aiLoading ? 'Analyzing...' : aiRiskLevel ? 'Run Again' : 'Run Risk Analysis'}
+            {aiLoading ? 'Analyzing...' : aiStale ? 'Rerun · refresh readiness' : aiRiskLevel ? 'Run Again' : 'Run Risk Analysis'}
           </button>
           <button
             type="button"
@@ -1874,6 +1891,11 @@ export default function App() {
           {aiLiveError && (
             <div className="ai-live-error-notice" role="alert">
               ⚠️ {aiLiveError}
+            </div>
+          )}
+          {aiStale && aiAnalysis && !aiLoading && (
+            <div className="ai-stale-notice" role="status">
+              Flag or release inputs changed since this analysis ran. Rerun to refresh readiness, blockers, and certificate evidence.
             </div>
           )}
           {aiLoading && <p className="risk-analysis-loading">Analyzing the current workspace...</p>}
@@ -2168,8 +2190,12 @@ export default function App() {
                       type="button"
                       onClick={(event) => {
                         event.stopPropagation();
-                        updateFlag(flag.key, { enabled: !flag.enabled });
-                        record(`${flag.name} ${flag.enabled ? 'disabled' : 'enabled'}`);
+                        const nextEnabled = !flag.enabled;
+                        updateFlag(flag.key, { enabled: nextEnabled });
+                        record(
+                          `${flag.name} ${nextEnabled ? 'enabled' : 'disabled'}`,
+                          'Readiness recalculated. Rerun risk analysis to refresh AI evidence.'
+                        );
                       }}
                       aria-pressed={flag.enabled}
                     >
@@ -2790,7 +2816,7 @@ export default function App() {
                   name: 'Free', price: '$0', period: 'forever',
                   color: '#3d4451',
                   description: 'For demos, onboarding, and evaluating local release workflows.',
-                  features: ['3 saved snapshots', 'Local workspace', 'PDF runbook export', 'Flag evaluation engine', 'Policy checks'],
+                  features: ['3 saved snapshots', 'Local workspace', 'Release Readiness Certificate (PDF)', 'Flag evaluation engine', 'Policy checks'],
                   cta: 'Get started', highlight: false,
                 },
 {

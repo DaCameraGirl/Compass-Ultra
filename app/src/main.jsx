@@ -156,6 +156,9 @@ createRoot(document.getElementById('root')).render(
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<LandingPage />} />
+          <Route path="/pricing" element={<LandingPage initialAnchor="pricing" />} />
+          <Route path="/features" element={<LandingPage initialAnchor="features" />} />
+          <Route path="/demo" element={<LandingPage initialAnchor="demo" />} />
           <Route path="/app" element={<App />} />
           <Route path="/app/*" element={<App />} />
           <Route path="/privacy" element={<LegalPage type="privacy" />} />

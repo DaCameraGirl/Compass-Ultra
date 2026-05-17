@@ -614,7 +614,7 @@ function DashboardMockInteractive() {
   );
 }
 
-export default function LandingPage() {
+export default function LandingPage({ initialAnchor }) {
   const navigate = useNavigate();
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -624,6 +624,19 @@ export default function LandingPage() {
     window.addEventListener('scroll', fn);
     return () => window.removeEventListener('scroll', fn);
   }, []);
+
+  useEffect(() => {
+    if (!initialAnchor) return;
+    const scrollToTarget = () => {
+      const el = document.getElementById(initialAnchor);
+      if (el) {
+        el.scrollIntoView({ behavior: 'auto', block: 'start' });
+      }
+    };
+    // Defer one frame so layout/styles settle before scrolling.
+    const raf = window.requestAnimationFrame(scrollToTarget);
+    return () => window.cancelAnimationFrame(raf);
+  }, [initialAnchor]);
 
   const goToApp = () => navigate('/app');
   const goToDemo = () => navigate('/app?demo=true');
