@@ -104,7 +104,7 @@ const PRICING = [
   {
     name: 'Enterprise', price: 'Custom', period: 'contact sales', color: '#bc8cff', highlight: false,
     description: 'For organizations that need security review, onboarding, and custom workflows.',
-    features: ['Everything in Team', 'Custom seats', 'Custom security review', 'SLA targets', 'Dedicated onboarding', 'Custom workflows', 'Custom integrations'],
+    features: ['Everything in Team', 'Custom seats and org setup', 'Custom security review', 'SLA targets', 'Dedicated onboarding', 'Custom workflows', 'Custom integrations'],
     cta: 'Talk to Sales',
   },
 ];
@@ -696,7 +696,7 @@ export default function LandingPage() {
                 </ul>
               </div>
               <div className="lp-hero-logos">
-                <span>Works with</span>
+                <span>BYO sync/import for</span>
                 {BUILT_FOR.slice(0, 4).map((provider) => (
                   <span key={provider} className="lp-provider-pill">{provider}</span>
                 ))}
@@ -712,7 +712,7 @@ export default function LandingPage() {
       {/* ── STATS BAR ── */}
       <section className="lp-built-for">
         <div className="lp-container">
-          <span>Built for teams already shipping with</span>
+          <span>Built for teams importing or syncing from their own</span>
           <div className="lp-built-for-grid">
             {BUILT_FOR.map((provider) => (
               <div key={provider} className="lp-provider-logo">{provider}</div>
@@ -921,7 +921,7 @@ export default function LandingPage() {
           <div className="lp-section-header">
             <div className="lp-badge">Launch Proof</div>
             <h2>Built for release teams before the launch rush</h2>
-            <p>Concrete demo evidence, exportable artifacts, and a blocked production gate you can inspect before connecting live providers.</p>
+            <p>Concrete demo evidence, exportable artifacts, and a blocked production gate you can inspect before adding customer-owned provider tokens.</p>
           </div>
           <div className="lp-testimonials-grid">
             {TRUST_SIGNALS.map((item) => (
@@ -944,7 +944,7 @@ export default function LandingPage() {
               <div className="lp-badge lp-badge--purple">AI Release Review</div>
               <h2>Release risk analysis built into the control room</h2>
               <p>
-                Before every deploy, Compass Ultra reviews your complete flag configuration with a provider-neutral AI risk engine. You get back a structured risk assessment with specific flag keys called out, dependency conflicts identified, compliance risks flagged, and a direct ship/no-ship recommendation.
+                Before every deploy, Compass Ultra reviews your imported or synced flag configuration with a provider-neutral AI risk engine. You get back a structured risk assessment with specific flag keys called out, dependency conflicts identified, compliance risks flagged, and a direct ship/no-ship recommendation.
               </p>
               <ul className="lp-ai-list">
                 {[

@@ -7,6 +7,18 @@ on:
     branches: [main]
 
 jobs:
+  release-gate:
+    runs-on: ubuntu-latest
+    name: Compass Ultra Release Gate
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/compass-release-gate
+        with:
+          api-key: ${{ secrets.COMPASS_API_KEY }}
+          workspace: fixtures/compass-workspace.demo.json
+          fail-on: high
+          post-pr-comment: 'true'
+
   ci:
     runs-on: ubuntu-latest
     steps:

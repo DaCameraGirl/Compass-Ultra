@@ -44,6 +44,11 @@ async function request(path, token, options = {}) {
       return res.json();
     } catch (err) {
       clearTimeout(timer);
+      if (err?.name === 'AbortError') {
+        lastError = new Error(`Request timed out after ${Math.round(timeoutMs / 1000)}s`);
+        lastError.status = 408;
+        continue;
+      }
       lastError = err;
     }
   }
@@ -74,6 +79,12 @@ export const api = {
       method: 'POST',
       body: JSON.stringify(payload),
       timeoutMs: 30000,
+    }),
+  syncProvider: (token, provider, payload) =>
+    request(`/api/v1/proxy/${provider}`, token, {
+      method: 'POST',
+      body: JSON.stringify(payload),
+      timeoutMs: 20000,
     }),
   syncUser: (token, profile = {}) =>
     request('/api/v1/users/me', token, {

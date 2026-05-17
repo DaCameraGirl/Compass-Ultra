@@ -68,6 +68,7 @@ const defaultRelease = {
   incidentChannel: '#release-war-room',
   releaseCaptain: 'Release Captain',
   approver: 'Platform Approver',
+  deployDate: '2026-11-26',
   window: 'Thu 23:00-01:00 ET',
 };
 
@@ -107,11 +108,11 @@ const defaultTeam = {
 };
 
 const defaultIntegrations = [
-  { id: 'launchdarkly', name: 'LaunchDarkly', kind: 'provider', status: 'ready', endpoint: '', apiKey: '', projectKey: 'default', envKey: 'production', secretHint: 'Paste your LaunchDarkly API key to sync live', lastSync: 'sample loaded' },
-  { id: 'unleash', name: 'Unleash', kind: 'provider', status: 'ready', endpoint: '', apiKey: '', projectKey: 'default', envKey: 'production', secretHint: 'Paste your Unleash admin API token', lastSync: 'sample loaded' },
-  { id: 'flagsmith', name: 'Flagsmith', kind: 'provider', status: 'ready', endpoint: '', apiKey: '', secretHint: 'Paste your Flagsmith environment key', lastSync: 'sample loaded' },
-  { id: 'statsig', name: 'Statsig', kind: 'provider', status: 'ready', endpoint: '', apiKey: '', secretHint: 'Paste your Statsig Console API key to sync live', lastSync: 'sample loaded' },
-  { id: 'firebase', name: 'Firebase Remote Config', kind: 'provider', status: 'ready', endpoint: '', apiKey: '', projectId: '', secretHint: 'Paste your Firebase access token + project ID to sync live', lastSync: 'sample loaded' },
+  { id: 'launchdarkly', name: 'LaunchDarkly', kind: 'provider', status: 'ready', endpoint: '', apiKey: '', projectKey: 'default', envKey: 'production', secretHint: 'Paste a customer-owned LaunchDarkly API token', lastSync: 'sample loaded' },
+  { id: 'unleash', name: 'Unleash', kind: 'provider', status: 'ready', endpoint: '', apiKey: '', projectKey: 'default', envKey: 'production', secretHint: 'Paste a customer-owned Unleash admin API token', lastSync: 'sample loaded' },
+  { id: 'flagsmith', name: 'Flagsmith', kind: 'provider', status: 'ready', endpoint: '', apiKey: '', secretHint: 'Paste a customer-owned Flagsmith environment key', lastSync: 'sample loaded' },
+  { id: 'statsig', name: 'Statsig', kind: 'provider', status: 'ready', endpoint: '', apiKey: '', secretHint: 'Paste a customer-owned Statsig Console API key', lastSync: 'sample loaded' },
+  { id: 'firebase', name: 'Firebase Remote Config', kind: 'provider', status: 'ready', endpoint: '', apiKey: '', projectId: '', secretHint: 'Paste a customer-owned Firebase access token + project ID', lastSync: 'sample loaded' },
   { id: 'github', name: 'GitHub Issues', kind: 'outbound', status: 'not configured', endpoint: '', secretHint: 'repo issue proxy or GitHub app endpoint', lastSync: 'payload ready' },
   { id: 'jira', name: 'Jira Change', kind: 'outbound', status: 'not configured', endpoint: '', secretHint: 'Jira automation webhook', lastSync: 'payload ready' },
   { id: 'slack', name: 'Slack War Room', kind: 'outbound', status: 'not configured', endpoint: '', secretHint: 'Slack workflow/proxy endpoint', lastSync: 'payload ready' },
@@ -480,6 +481,7 @@ export default function App() {
   const [aiLiveError, setAiLiveError] = useState('');
   const [soundEnabled, setSoundEnabled] = useState(true);
   const [showRollbackModal, setShowRollbackModal] = useState(false);
+  const [showNotifyModal, setShowNotifyModal] = useState(false);
   const [diffA, setDiffA] = useState(null);
   const [diffB, setDiffB] = useState(null);
   const [showDiff, setShowDiff] = useState(false);
@@ -586,10 +588,10 @@ export default function App() {
     localStorage.setItem('cu-theme', workspaceTheme);
   }, [workspaceTheme]);
 
-  const paidPlan = userPlan === 'solo' || userPlan === 'pro' || userPlan === 'team';
-  const canUseAI   = demoMode || paidPlan;
-  const canUseDiff = demoMode || paidPlan;
-  const canExportAudit = paidPlan;
+  const isPaidPlan = ['solo', 'pro', 'team', 'enterprise'].includes(userPlan);
+  const canUseAI   = demoMode || isPaidPlan;
+  const canUseDiff = demoMode || isPaidPlan;
+  const canExportAudit = isPaidPlan;
   const snapshotCap = userPlan === 'free' ? 3 : Infinity;
 
   const requirePlan = (needed, label) => {
@@ -934,6 +936,16 @@ export default function App() {
       return;
     }
 
+    if (integration.id === 'unleash' && !integration.endpoint) {
+      record(`${integration.name} needs URL`, 'Enter your Unleash instance URL in the integration panel', 'warn');
+      return;
+    }
+
+    if (integration.id === 'firebase' && !integration.projectId) {
+      record(`${integration.name} needs project ID`, 'Enter your Firebase project ID in the integration panel', 'warn');
+      return;
+    }
+
     if (!isProxyProvider && !integration.endpoint) {
       record(`${integration.name} needs endpoint`, 'Configure a read-only proxy/export URL first', 'warn');
       return;
@@ -946,24 +958,17 @@ export default function App() {
     try {
       let payload;
       if (isProxyProvider) {
-        const apiBase = (import.meta.env.VITE_API_URL || '').replace(/\/+$/, '');
         const token = await getAccessTokenSilently({ authorizationParams: { audience: import.meta.env.VITE_AUTH0_AUDIENCE } });
         const body = integration.id === 'launchdarkly'
           ? { apiKey: integration.apiKey, projectKey: integration.projectKey || 'default', envKey: integration.envKey || 'production' }
           : integration.id === 'unleash'
           ? { apiKey: integration.apiKey, apiUrl: integration.endpoint, projectId: integration.projectKey || 'default', envKey: integration.envKey || 'production' }
           : integration.id === 'flagsmith'
-          ? { apiKey: integration.apiKey, apiUrl: integration.endpoint || undefined }
+          ? { apiKey: integration.apiKey, apiUrl: integration.endpoint || 'https://api.flagsmith.com/api/v1/flags/' }
           : integration.id === 'firebase'
           ? { apiKey: integration.apiKey, projectId: integration.projectId }
           : { apiKey: integration.apiKey };
-        const response = await fetch(`${apiBase}/api/v1/proxy/${integration.id}`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-          body: JSON.stringify(body),
-        });
-        if (!response.ok) throw new Error(`HTTP ${response.status}`);
-        payload = await response.json();
+        payload = await api.syncProvider(token, integration.id, body);
       } else {
         const response = await fetch(integration.endpoint, { headers: { Accept: 'application/json' } });
         if (!response.ok) throw new Error(`HTTP ${response.status}`);
@@ -1124,6 +1129,7 @@ export default function App() {
       ['Release Train', release.train],
       ['Release Captain', release.releaseCaptain],
       ['Approver', release.approver],
+      ['Deploy Date', release.deployDate || 'not set'],
       ['Window', release.window],
       ['Incident Channel', release.incidentChannel],
     ];
@@ -1298,7 +1304,7 @@ export default function App() {
 
   const openSnapshotDiff = () => {
     if (!canUseDiff) {
-      requirePlan('Pro', 'Snapshot diff viewer');
+      requirePlan('Solo', 'Snapshot diff viewer');
       return;
     }
 
@@ -1397,7 +1403,13 @@ export default function App() {
     };
   }, [getAccessTokenSilently, isAuthenticated]);
 
+  const authReadyRef = useRef(false);
+
   useEffect(() => {
+    if (authLoading) return;
+    if (authReadyRef.current) return;
+    authReadyRef.current = true;
+
     const params = new URLSearchParams(window.location.search);
 
     if (params.get('demo') === 'true') {
@@ -1413,6 +1425,22 @@ export default function App() {
         demoLoadedRef.current = true;
         loadDemo('Demo Sandbox — Try Before You Sign In', { changeTicket: 'CHG-SANDBOX', train: 'sandbox-2026', releaseCaptain: 'Guest Explorer' });
       }
+      return;
+    }
+
+    const snapIdForUnauth = params.get('snapshot');
+    if (snapIdForUnauth && !isAuthenticated) {
+      api.getSnapshot(snapIdForUnauth).then((snap) => {
+        demoLoadedRef.current = true;
+        restoreFromCloud(snap);
+        setDemoMode(false);
+        window.history.replaceState({}, '', '/app');
+      }).catch(() => {
+        if (!demoLoadedRef.current) {
+          demoLoadedRef.current = true;
+          loadDemo('Demo Retail — Peak Sale Release', { changeTicket: 'CHG-1850', train: 'peak-sale-2026.11', releaseCaptain: 'Demo Guest' });
+        }
+      });
       return;
     }
 
@@ -1501,6 +1529,12 @@ export default function App() {
     setAiAnalysisSource(source);
     riskInputFingerprintRef.current = riskInputFingerprint;
     if (soundEnabled) playRiskTone(level);
+    const slackHook = localStorage.getItem('cu-slack-webhook');
+    if (slackHook) sendSlackNotification(slackHook, analysis, level).catch(() => {});
+    const teamsHook = localStorage.getItem('cu-teams-webhook');
+    if (teamsHook) sendTeamsNotification(teamsHook, analysis, level).catch(() => {});
+    const discordHook = localStorage.getItem('cu-discord-webhook');
+    if (discordHook) sendDiscordNotification(discordHook, analysis, level).catch(() => {});
   };
 
   const runAiAnalysis = async () => {
@@ -1537,7 +1571,7 @@ export default function App() {
       return;
     }
     if (!isAuthenticated) { loginWithEmail(); return; }
-    if (!canUseAI) { requirePlan('Pro', 'risk analyzer'); return; }
+    if (!canUseAI) { requirePlan('Solo', 'risk analyzer'); return; }
     setAiLoading(true);
     setAiAnalysis('');
     setAiAnalysisSource('');
@@ -1699,17 +1733,20 @@ export default function App() {
           <button type="button" onClick={copyShareLink} title="Copy share link" aria-label="Copy share link">
             <Link size={17} aria-hidden="true" />
           </button>
+          <button type="button" onClick={() => { window.location.href = 'mailto:hello@compassultra.com?subject=Compass%20Ultra%20support'; }} title="Contact support" aria-label="Contact support">
+            <Send size={17} aria-hidden="true" />
+          </button>
           <button type="button" onClick={resetWorkspace} title="Reset workspace" aria-label="Reset workspace">
             <RefreshCw size={17} aria-hidden="true" />
           </button>
           <button type="button" onClick={() => setShowPricing(true)} title="Pricing" aria-label="Pricing" style={{ color: '#ffb800' }}>
             <DollarSign size={17} aria-hidden="true" />
           </button>
-          <button type="button" onClick={openSnapshotDiff} title={demoMode ? 'Demo snapshot diff viewer' : canUseDiff ? 'Snapshot diff viewer' : 'Snapshot diff viewer (Pro)'} aria-label="Snapshot diff viewer" style={{ color: showDiff ? '#58a6ff' : canUseDiff ? '#8b949e' : '#3d4451' }}>
+          <button type="button" onClick={openSnapshotDiff} title={demoMode ? 'Demo snapshot diff viewer' : canUseDiff ? 'Snapshot diff viewer' : 'Snapshot diff viewer (Solo+)'} aria-label="Snapshot diff viewer" style={{ color: showDiff ? '#58a6ff' : canUseDiff ? '#8b949e' : '#3d4451' }}>
             <GitCompare size={17} aria-hidden="true" />
             {!canUseDiff && <LockKeyhole size={9} style={{ position: 'absolute', marginLeft: -7, marginTop: 8, color: '#ffb800' }} />}
           </button>
-          <button type="button" onClick={runAiAnalysis} title={demoMode ? 'Run demo risk analysis' : canUseAI ? 'Risk analysis' : 'Risk analysis (Pro)'} aria-label="Risk analysis" style={{ color: aiLoading ? '#ffb800' : canUseAI ? '#bc8cff' : '#3d4451', position: 'relative' }}>
+          <button type="button" onClick={runAiAnalysis} title={demoMode ? 'Run demo risk analysis' : canUseAI ? 'Risk analysis' : 'Risk analysis (Solo+)'} aria-label="Risk analysis" style={{ color: aiLoading ? '#ffb800' : canUseAI ? '#bc8cff' : '#3d4451', position: 'relative' }}>
             <BrainCircuit size={17} aria-hidden="true" />
             {!canUseAI && <LockKeyhole size={9} style={{ position: 'absolute', top: 0, right: 0, color: '#ffb800' }} />}
           </button>
@@ -1812,6 +1849,9 @@ export default function App() {
                   <button type="button" onClick={() => copyText(toSlackMrkdwn(aiAnalysis), 'Copied for Slack!')} aria-label="Copy as Slack mrkdwn" title="Copy for Slack (mrkdwn format)">
                     Slack
                   </button>
+                  <button type="button" onClick={() => setShowNotifyModal(true)} aria-label="Send analysis via Slack or Email" title="Send via Slack / Email">
+                    <Send size={15} aria-hidden="true" />
+                  </button>
                   <button type="button" onClick={() => setAiAnalysis('')} aria-label="Close analysis">
                     ×
                   </button>
@@ -1825,7 +1865,7 @@ export default function App() {
             </div>
           )}
           {aiLoading && <p className="risk-analysis-loading">Analyzing the current workspace...</p>}
-          {aiAnalysis && <pre>{aiAnalysis}</pre>}
+          {aiAnalysis && <AnalysisMarkdown text={aiAnalysis} />}
           {aiAnalysis && (aiRiskLevel === 'HIGH' || aiRiskLevel === 'CRITICAL') && (
             <div className="rollback-callout">
               <div>
@@ -1841,6 +1881,14 @@ export default function App() {
             </div>
           )}
         </section>
+      )}
+
+      {showNotifyModal && aiAnalysis && (
+        <NotifyModal
+          analysis={aiAnalysis}
+          riskLevel={aiRiskLevel}
+          onClose={() => setShowNotifyModal(false)}
+        />
       )}
 
       {!authLoading && !isAuthenticated && (
@@ -1902,7 +1950,7 @@ export default function App() {
               {Object.entries(release).map(([key, value]) => (
                 <label key={key}>
                   {fieldLabel(key, releaseFieldLabels)}
-                  <input value={value} onChange={(event) => updateRelease(key, event.target.value)} />
+                  <input type={key === 'deployDate' ? 'date' : 'text'} value={value} onChange={(event) => updateRelease(key, event.target.value)} />
                 </label>
               ))}
             </div>
@@ -2076,7 +2124,7 @@ export default function App() {
                   <div>
                     <h3 style={{ color: '#e6edf3', margin: '0 0 8px', fontSize: 16 }}>No flags loaded yet</h3>
                     <p style={{ color: '#8b949e', fontSize: 13, margin: '0 0 24px', maxWidth: 360 }}>
-                      Load the demo to see Compass Ultra in action, or import your own flags from LaunchDarkly, Statsig, Firebase, or any JSON export.
+                      Start with a sample pack, import JSON, or connect a customer-owned provider token for read-only sync. Your release setup and policy gates update immediately.
                     </p>
                   </div>
                   <div style={{ display: 'flex', gap: 12 }}>
@@ -2175,8 +2223,8 @@ export default function App() {
                     <strong>{integration.name}</strong>
                     <span>{integration.kind === 'provider' ? (
                       ['launchdarkly','unleash','flagsmith','statsig','firebase'].includes(integration.id)
-                        ? 'Paste your API key — flags sync directly via secure server proxy'
-                        : 'Read provider JSON through a secure proxy/export URL'
+                        ? 'Bring your own provider token for read-only flag sync through the server proxy'
+                        : 'Import provider JSON through a customer-owned proxy/export URL'
                     ) : integration.id === 'slack'
                       ? 'Copy Slack-ready blocks or post through a configured workflow/proxy endpoint'
                       : 'Copy or post the generated release payload'}</span>
@@ -2214,7 +2262,7 @@ export default function App() {
                             <input
                               value={integration.endpoint || ''}
                               disabled={!canAdmin}
-                              onChange={(e) => updateIntegration(integration.id, { endpoint: e.target.value })}
+                              onChange={(e) => updateIntegration(integration.id, { endpoint: e.target.value, status: e.target.value ? 'configured' : 'ready' })}
                               placeholder="https://your-unleash.example.com"
                             />
                           </label>
@@ -2238,7 +2286,7 @@ export default function App() {
                           <input
                             value={integration.endpoint || ''}
                             disabled={!canAdmin}
-                            onChange={(e) => updateIntegration(integration.id, { endpoint: e.target.value })}
+                            onChange={(e) => updateIntegration(integration.id, { endpoint: e.target.value, status: e.target.value ? 'configured' : 'ready' })}
                             placeholder="https://api.flagsmith.com/api/v1/flags/"
                           />
                         </label>
@@ -2543,7 +2591,7 @@ export default function App() {
             <div className="panel-heading">
               <Activity size={18} aria-hidden="true" />
               <h2>Audit</h2>
-              <button type="button" onClick={() => canExportAudit ? copyText(JSON.stringify(audit, null, 2), 'Audit copied') : requirePlan('Team', 'Audit log export')} aria-label="Copy structured audit history" title={canExportAudit ? 'Copy audit log' : 'Audit export (Team)'} style={{ color: canExportAudit ? undefined : '#3d4451' }}>
+              <button type="button" onClick={() => canExportAudit ? copyText(JSON.stringify(audit, null, 2), 'Audit copied') : requirePlan('Solo', 'Audit log export')} aria-label="Copy structured audit history" title={canExportAudit ? 'Copy audit log' : 'Audit export (Solo+)'} style={{ color: canExportAudit ? undefined : '#3d4451' }}>
                 <Clipboard size={15} aria-hidden="true" />
               </button>
             </div>
@@ -2654,9 +2702,9 @@ export default function App() {
                 <h2 style={{ color: '#e6edf3', fontSize: 20, margin: '0 0 24px', textAlign: 'center' }}>Here's what you're looking at</h2>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 16, marginBottom: 28 }}>
                   {[
-                    { icon: '🏁', title: 'Release Control', desc: 'Set your change ticket, release train, captain, and deploy window. Every artifact auto-fills from here.' },
-                    { icon: '⚡', title: 'Flag Evaluation', desc: 'Your flags are evaluated live against a real user context — plan, role, region, device. See exactly what each user gets.' },
-                    { icon: '🛡️', title: 'Policy Checks', desc: '9 automated checks run continuously. They tell you if your release is safe to ship or needs review.' },
+                    { icon: '1', title: 'Set the release', desc: 'Enter the change ticket, train, deploy date, time window, captain, and approver.' },
+                    { icon: '2', title: 'Load or sync flags', desc: 'Import JSON, use a sample pack, or connect a customer-owned provider token for read-only sync.' },
+                    { icon: '3', title: 'Review risk evidence', desc: 'Run the analyzer, resolve policy gates, then export the runbook or send a Slack-ready handoff.' },
                   ].map(item => (
                     <div key={item.title} style={{ display: 'flex', gap: 14, alignItems: 'flex-start' }}>
                       <span style={{ fontSize: 22, flexShrink: 0 }}>{item.icon}</span>
@@ -2683,10 +2731,9 @@ export default function App() {
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 28 }}>
                   {[
-                    { icon: '🔍', text: 'Click the brain circuit icon in the toolbar to run risk analysis' },
-                    { icon: '💾', text: 'Hit the cloud icon to save your first snapshot' },
-                    { icon: '📄', text: 'Click the PDF icon to generate a release runbook' },
-                    { icon: '💰', text: 'Click the $ icon to explore plan options' },
+                    { icon: '1', text: 'Set the release date/window and choose the evaluation context' },
+                    { icon: '2', text: 'Import flags or connect a BYO provider token for read-only sync' },
+                    { icon: '3', text: 'Run risk analysis, save a snapshot, and export the runbook' },
                   ].map(item => (
                     <div key={item.text} style={{ display: 'flex', gap: 10, alignItems: 'flex-start', background: '#161b22', borderRadius: 8, padding: '10px 14px' }}>
                       <span style={{ flexShrink: 0 }}>{item.icon}</span>
@@ -2872,12 +2919,12 @@ function Metric({ icon, label, value }) {
 function WorkspaceGuide() {
   const sections = [
     {
-      title: '1. Connect Your Flag Data',
+      title: '1. Set the Release and Flag Data',
       icon: <BookOpenCheck size={17} aria-hidden="true" />,
       body: [
-        'Compass Ultra integrates with LaunchDarkly, Statsig, Firebase Remote Config, and any JSON-based flag provider. Import your flag export directly from your provider dashboard — your full flag inventory loads in seconds.',
-        'Fill in the Release Control panel — change ticket, release train, captain, and deployment window. These fields populate every generated artifact, runbook, and integration payload automatically.',
-        'Every workspace state persists to the cloud. Named snapshots let you checkpoint a release at any stage and return to it exactly as you left it — across devices, across your team.',
+        'Start with the release: change ticket, release train, deploy date, time window, captain, and approver. These fields populate every generated artifact, runbook, and integration payload automatically.',
+        'Bring flag data in through JSON import, sample packs, or a customer-owned read-only provider token. Compass Ultra syncs LaunchDarkly, Unleash, Flagsmith, Statsig, and Firebase through the backend proxy when credentials are provided.',
+        'Every workspace state can be saved as a cloud snapshot. Named snapshots let you checkpoint a release at any stage and return to it exactly as you left it.',
       ],
     },
     {
@@ -2885,8 +2932,8 @@ function WorkspaceGuide() {
       icon: <Users size={17} aria-hidden="true" />,
       body: [
         'Compass Ultra enforces three access tiers. Admins control integrations, team configuration, and release ownership. Operators manage flag state and release metadata. Viewers have full read access with a complete audit trail.',
-        'Every permission boundary is hard-enforced and logged. Blocked actions are recorded with the actor, role, timestamp, and the specific gate that denied access — no silent failures, no undocumented overrides.',
-        'RBAC is built for real release reviews — not just access control. Stakeholders and external auditors get exactly the visibility they need without the ability to mutate release state.',
+        'Every permission boundary is enforced and logged. Blocked actions are recorded with the actor, role, timestamp, and the specific gate that denied access.',
+        'Workspace RBAC is built for release reviews. Stakeholders and external auditors get visibility without the ability to mutate release state.',
       ],
     },
     {
@@ -2940,7 +2987,7 @@ function WorkspaceGuide() {
           <span className="guide-kicker">Compass Ultra — Release Intelligence Platform</span>
           <h1>Ship with confidence. Every flag, every risk, every time.</h1>
           <p>
-            Compass Ultra gives engineering and DevOps teams a single control plane for feature flag releases — live flag evaluation, enterprise policy enforcement, AI-powered risk analysis, and automated handoff artifacts, all before a single change touches production.
+            Compass Ultra gives engineering and DevOps teams a release review layer for feature flags: context-based flag evaluation, policy enforcement, AI-powered risk analysis, snapshots, and handoff artifacts before a change touches production.
           </p>
         </div>
       </div>
@@ -3029,7 +3076,7 @@ function makeDemoAiAnalysis(workspaceName, release, context, flags, policyChecks
   const staleOrMissingExpiry = flags.filter((flag) => flag.enabled && !flag.expiresAt);
   const ruleMatches = evaluations.filter(({ result }) => result.reason === 'rule');
   const rolloutMatches = evaluations.filter(({ result }) => result.reason === 'rollout');
-  const blockerScore = blocked.length * 3 + brokenDeps.length * 3 + prodOverrides.length * 2 + canaryBreaches.length + warnings.length;
+  const blockerScore = blocked.length * 3 + brokenDeps.length * 3 + prodOverrides.length * 2 + canaryBreaches.length + warnings.length + Math.floor(staleOrMissingExpiry.length / 3);
   const riskLevel = blockerScore >= 8 || (activeHighRisk.length >= 5 && canaryBreaches.length >= 2)
     ? 'CRITICAL'
     : blockerScore >= 4 || brokenDeps.length > 0 || blocked.length > 0
@@ -3065,6 +3112,7 @@ function makeDemoAiAnalysis(workspaceName, release, context, flags, policyChecks
     '',
     `Decision: ${decision}.`,
     `Change ticket ${release.changeTicket || 'CHG-DEMO'} currently has ${blocked.length} blocking gate(s), ${warnings.length} warning gate(s), and ${activeHighRisk.length} active high-risk evaluation path(s).`,
+    `Deploy date evaluated: ${release.deployDate || 'not set'}.`,
     `Context evaluated: ${context.environment || 'production'} / ${context.tenant || 'demo-retail-prod'} / ${context.role || 'role'} / ${context.region || 'region'} / ${context.device || 'device'}.`,
     '',
     '## Key Findings',
@@ -3076,7 +3124,7 @@ function makeDemoAiAnalysis(workspaceName, release, context, flags, policyChecks
     '## Evidence Snapshot',
     `- Enabled flags: ${flags.filter((flag) => flag.enabled).length}/${flags.length}.`,
     `- Rule matches: ${ruleMatches.length}; rollout evaluations: ${rolloutMatches.length}.`,
-    `- Selected release train: ${release.train || 'not set'}; window: ${release.window || 'not set'}.`,
+    `- Selected release train: ${release.train || 'not set'}; deploy date: ${release.deployDate || 'not set'}; window: ${release.window || 'not set'}.`,
     `- Highest-risk flags: ${activeHighRisk.slice(0, 5).map(({ flag }) => `${flag.key} (${flag.criticality})`).join(', ') || 'none active'}.`,
     '',
     'This public-demo analysis is generated from the current workspace state, so toggles, rollouts, dependencies, and policy gates change the result.',
@@ -3390,7 +3438,7 @@ function makePolicyChecks(flags, evaluations, context, release, integrations = d
       id: 'provider-adapters',
       status: configuredProviders ? 'pass' : 'warn',
       title: 'Live provider adapters configured',
-      detail: configuredProviders ? `${configuredProviders} read-only provider endpoints configured.` : 'Add proxy/export URLs for live LaunchDarkly, Unleash, Flagsmith, Statsig, or Firebase sync.',
+      detail: configuredProviders ? `${configuredProviders} read-only provider connection(s) configured.` : 'Add customer-owned provider tokens or export URLs for LaunchDarkly, Unleash, Flagsmith, Statsig, or Firebase sync.',
     },
     {
       id: 'outbound-hooks',
@@ -3423,6 +3471,7 @@ function makeRunbook(workspaceName, release, context, evaluations, checks) {
     `Train: ${release.train}`,
     `Captain: ${release.releaseCaptain}`,
     `Approver: ${release.approver}`,
+    `Deploy date: ${release.deployDate || 'not set'}`,
     `Window: ${release.window}`,
     `Incident channel: ${release.incidentChannel}`,
     '',
@@ -3448,6 +3497,8 @@ function makeIntegrationPayloads(workspaceName, release, context, evaluations, c
     workspaceName,
     changeTicket: release.changeTicket,
     releaseTrain: release.train,
+    deployDate: release.deployDate || '',
+    deployWindow: release.window,
     environment: context.environment,
     gateStatus: failed.length ? 'needs-review' : 'ready',
     failedChecks: failed.map((check) => ({ id: check.id, status: check.status, title: check.title, detail: check.detail })),
@@ -3488,6 +3539,8 @@ function makeIntegrationPayloads(workspaceName, release, context, evaluations, c
       ],
     },
     launchdarkly: summary,
+    unleash: summary,
+    flagsmith: summary,
     statsig: summary,
     firebase: summary,
   };
@@ -3638,6 +3691,250 @@ function toSlackMrkdwn(text) {
     .replace(/^### (.+)$/gm, '_$1_')
     .replace(/^- /gm, '• ')
     .replace(/\*\*(.+?)\*\*/g, '*$1*');
+}
+
+async function sendSlackNotification(webhookUrl, analysis, riskLevel) {
+  const emoji = { LOW: '🟢', MEDIUM: '🟡', HIGH: '🟠', CRITICAL: '🔴' }[riskLevel] || '⚪';
+  await fetch(webhookUrl, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      text: `${emoji} *Compass Ultra — Release Risk: ${riskLevel || 'UNKNOWN'}*\n\n${toSlackMrkdwn(analysis)}`,
+    }),
+  });
+}
+
+async function sendTeamsNotification(webhookUrl, analysis, riskLevel) {
+  const themeColor = { LOW: '00CC66', MEDIUM: 'FFD700', HIGH: 'FF8C00', CRITICAL: 'FF3333' }[riskLevel] || '888888';
+  const emoji = { LOW: '🟢', MEDIUM: '🟡', HIGH: '🟠', CRITICAL: '🔴' }[riskLevel] || '⚪';
+  await fetch(webhookUrl, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      '@type': 'MessageCard',
+      '@context': 'http://schema.org/extensions',
+      themeColor,
+      summary: `Release Risk: ${riskLevel || 'UNKNOWN'}`,
+      sections: [{
+        activityTitle: `${emoji} Compass Ultra — Release Risk: ${riskLevel || 'UNKNOWN'}`,
+        activityText: analysis.slice(0, 4000),
+      }],
+    }),
+  });
+}
+
+async function sendDiscordNotification(webhookUrl, analysis, riskLevel) {
+  const color = { LOW: 0x00cc66, MEDIUM: 0xffd700, HIGH: 0xff8c00, CRITICAL: 0xff3333 }[riskLevel] || 0x888888;
+  const emoji = { LOW: '🟢', MEDIUM: '🟡', HIGH: '🟠', CRITICAL: '🔴' }[riskLevel] || '⚪';
+  await fetch(webhookUrl, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      username: 'Compass Ultra',
+      embeds: [{
+        title: `${emoji} Release Risk: ${riskLevel || 'UNKNOWN'}`,
+        description: analysis.slice(0, 4096),
+        color,
+        footer: { text: 'Compass Ultra · Release Intelligence' },
+      }],
+    }),
+  });
+}
+
+function openEmailNotification(analysis, riskLevel, to = '') {
+  const subject = encodeURIComponent(`Release Risk Analysis: ${riskLevel || 'UNKNOWN'}`);
+  const body = encodeURIComponent(analysis);
+  window.open(`mailto:${to}?subject=${subject}&body=${body}`, '_self');
+}
+
+function openWhatsAppNotification(analysis, riskLevel, phone = '') {
+  const emoji = { LOW: '🟢', MEDIUM: '🟡', HIGH: '🟠', CRITICAL: '🔴' }[riskLevel] || '⚪';
+  const text = encodeURIComponent(`${emoji} *Compass Ultra — Release Risk: ${riskLevel || 'UNKNOWN'}*\n\n${analysis}`);
+  const base = phone.trim() ? `https://wa.me/${phone.replace(/\D/g, '')}` : 'https://wa.me';
+  window.open(`${base}?text=${text}`, '_blank');
+}
+
+function openSmsNotification(analysis, riskLevel, phone = '') {
+  const emoji = { LOW: '🟢', MEDIUM: '🟡', HIGH: '🟠', CRITICAL: '🔴' }[riskLevel] || '⚪';
+  const body = encodeURIComponent(`${emoji} Compass Ultra — Release Risk: ${riskLevel || 'UNKNOWN'}\n\n${analysis.slice(0, 1400)}`);
+  const num = phone.trim();
+  window.open(`${num ? `sms:${num}` : 'sms:'}?body=${body}`, '_self');
+}
+
+const NOTIFY_TABS = [
+  { id: 'slack',    label: 'Slack',     color: '#611f69', hint: 'Paste an Incoming Webhook URL from your Slack app settings. Auto-sends on every analysis.' },
+  { id: 'email',    label: 'Email',     color: '#1a3a5c', hint: 'Opens your default mail client with the analysis pre-filled.' },
+  { id: 'teams',    label: 'Teams',     color: '#464eb8', hint: 'Paste an Incoming Webhook URL from your Teams channel connector. Auto-sends on every analysis.' },
+  { id: 'discord',  label: 'Discord',   color: '#5865f2', hint: 'Paste a Discord webhook URL. Auto-sends on every analysis.' },
+  { id: 'whatsapp', label: 'WhatsApp',  color: '#128c7e', hint: 'Opens WhatsApp Web or the app with the analysis pre-filled. Phone number is optional.' },
+  { id: 'sms',      label: 'iMessage',  color: '#34c759', hint: 'Opens Messages (iMessage / SMS) with the analysis pre-filled. Works on Apple devices.' },
+];
+
+function NotifyModal({ analysis, riskLevel, onClose }) {
+  const [tab, setTab] = useState('slack');
+  const [slackUrl, setSlackUrl]       = useState(() => localStorage.getItem('cu-slack-webhook') || '');
+  const [teamsUrl, setTeamsUrl]       = useState(() => localStorage.getItem('cu-teams-webhook') || '');
+  const [discordUrl, setDiscordUrl]   = useState(() => localStorage.getItem('cu-discord-webhook') || '');
+  const [email, setEmail]             = useState(() => localStorage.getItem('cu-notify-email') || '');
+  const [whatsapp, setWhatsapp]       = useState(() => localStorage.getItem('cu-notify-whatsapp') || '');
+  const [smsPhone, setSmsPhone]       = useState(() => localStorage.getItem('cu-notify-sms') || '');
+  const [status, setStatus]           = useState('');
+  const [sending, setSending]         = useState(false);
+
+  const switchTab = (id) => { setTab(id); setStatus(''); };
+
+  const webhookSend = async (key, url, fn, label) => {
+    const u = url.trim();
+    if (!u) return;
+    localStorage.setItem(key, u);
+    setSending(true);
+    setStatus('');
+    try {
+      await fn(u, analysis, riskLevel);
+      setStatus(`✓ Sent to ${label}!`);
+    } catch {
+      setStatus(`✗ ${label} send failed — check your webhook URL`);
+    } finally {
+      setSending(false);
+    }
+  };
+
+  const currentHint = NOTIFY_TABS.find(t => t.id === tab)?.hint || '';
+
+  return (
+    <div
+      style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.75)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}
+      onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
+    >
+      <div className="notify-modal">
+        <div className="notify-modal-header">
+          <h3>Send Analysis Report</h3>
+          <button type="button" className="notify-close" onClick={onClose}>✕</button>
+        </div>
+
+        <div className="notify-tabs">
+          {NOTIFY_TABS.map(t => (
+            <button
+              key={t.id}
+              type="button"
+              className={`notify-tab${tab === t.id ? ' active' : ''}`}
+              style={tab === t.id ? { borderBottomColor: t.color, color: '#e2eaf4' } : {}}
+              onClick={() => switchTab(t.id)}
+            >
+              {t.label}
+            </button>
+          ))}
+        </div>
+
+        <div className="notify-tab-body">
+          {tab === 'slack' && (
+            <div className="notify-section">
+              <input type="url" className="notify-input" placeholder="https://hooks.slack.com/services/…" value={slackUrl} onChange={(e) => setSlackUrl(e.target.value)} />
+              <button type="button" className="notify-send-btn" style={{ background: '#611f69' }} onClick={() => webhookSend('cu-slack-webhook', slackUrl, sendSlackNotification, 'Slack')} disabled={!slackUrl.trim() || sending}>
+                {sending ? 'Sending…' : 'Send to Slack'}
+              </button>
+            </div>
+          )}
+          {tab === 'email' && (
+            <div className="notify-section">
+              <input type="email" className="notify-input" placeholder="team@yourcompany.com (optional)" value={email} onChange={(e) => setEmail(e.target.value)} />
+              <button type="button" className="notify-send-btn" style={{ background: '#1158b7' }} onClick={() => {
+                const addr = email.trim();
+                if (addr) localStorage.setItem('cu-notify-email', addr);
+                openEmailNotification(analysis, riskLevel, addr);
+                setStatus('✓ Opening mail client…');
+              }}>
+                Open in Mail
+              </button>
+            </div>
+          )}
+          {tab === 'teams' && (
+            <div className="notify-section">
+              <input type="url" className="notify-input" placeholder="https://outlook.office.com/webhook/…" value={teamsUrl} onChange={(e) => setTeamsUrl(e.target.value)} />
+              <button type="button" className="notify-send-btn" style={{ background: '#464eb8' }} onClick={() => webhookSend('cu-teams-webhook', teamsUrl, sendTeamsNotification, 'Teams')} disabled={!teamsUrl.trim() || sending}>
+                {sending ? 'Sending…' : 'Send to Teams'}
+              </button>
+            </div>
+          )}
+          {tab === 'discord' && (
+            <div className="notify-section">
+              <input type="url" className="notify-input" placeholder="https://discord.com/api/webhooks/…" value={discordUrl} onChange={(e) => setDiscordUrl(e.target.value)} />
+              <button type="button" className="notify-send-btn" style={{ background: '#5865f2' }} onClick={() => webhookSend('cu-discord-webhook', discordUrl, sendDiscordNotification, 'Discord')} disabled={!discordUrl.trim() || sending}>
+                {sending ? 'Sending…' : 'Send to Discord'}
+              </button>
+            </div>
+          )}
+          {tab === 'whatsapp' && (
+            <div className="notify-section">
+              <input type="tel" className="notify-input" placeholder="+1 555 000 0000 (optional)" value={whatsapp} onChange={(e) => setWhatsapp(e.target.value)} />
+              <button type="button" className="notify-send-btn" style={{ background: '#128c7e' }} onClick={() => {
+                const p = whatsapp.trim();
+                if (p) localStorage.setItem('cu-notify-whatsapp', p);
+                openWhatsAppNotification(analysis, riskLevel, p);
+                setStatus('✓ Opening WhatsApp…');
+              }}>
+                Open in WhatsApp
+              </button>
+            </div>
+          )}
+          {tab === 'sms' && (
+            <div className="notify-section">
+              <input type="tel" className="notify-input" placeholder="+1 555 000 0000 (optional)" value={smsPhone} onChange={(e) => setSmsPhone(e.target.value)} />
+              <button type="button" className="notify-send-btn" style={{ background: '#248a3d' }} onClick={() => {
+                const p = smsPhone.trim();
+                if (p) localStorage.setItem('cu-notify-sms', p);
+                openSmsNotification(analysis, riskLevel, p);
+                setStatus('✓ Opening Messages…');
+              }}>
+                Open in Messages
+              </button>
+            </div>
+          )}
+        </div>
+
+        {status && <p className={`notify-status-msg${status.startsWith('✗') ? ' notify-status-err' : ''}`}>{status}</p>}
+        <p className="notify-hint">{currentHint}</p>
+      </div>
+    </div>
+  );
+}
+
+function AnalysisMarkdown({ text }) {
+  const elements = [];
+  const lines = text.split('\n');
+  let i = 0;
+  let key = 0;
+
+  while (i < lines.length) {
+    const line = lines[i];
+
+    if (line.startsWith('# ')) {
+      elements.push(<h2 key={key++} className="am-h1">{line.slice(2)}</h2>);
+    } else if (line.startsWith('## ')) {
+      elements.push(<h3 key={key++} className="am-h2">{line.slice(3)}</h3>);
+    } else if (line.startsWith('- ') || line.startsWith('• ')) {
+      const items = [];
+      while (i < lines.length && (lines[i].startsWith('- ') || lines[i].startsWith('• '))) {
+        items.push(<li key={i}>{lines[i].startsWith('- ') ? lines[i].slice(2) : lines[i].slice(2)}</li>);
+        i++;
+      }
+      elements.push(<ul key={key++} className="am-list">{items}</ul>);
+      continue;
+    } else if (/^\d+\.\s/.test(line)) {
+      const items = [];
+      while (i < lines.length && /^\d+\.\s/.test(lines[i])) {
+        items.push(<li key={i}>{lines[i].replace(/^\d+\.\s/, '')}</li>);
+        i++;
+      }
+      elements.push(<ol key={key++} className="am-list am-ol">{items}</ol>);
+      continue;
+    } else if (line.trim() !== '') {
+      elements.push(<p key={key++} className="am-p">{line}</p>);
+    }
+    i++;
+  }
+
+  return <div className="analysis-body">{elements}</div>;
 }
 
 function encodeWorkspace(workspace) {
