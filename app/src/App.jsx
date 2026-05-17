@@ -1559,32 +1559,29 @@ export default function App() {
       setAiAnalysisSource('');
       setAiLiveError('');
       try {
-        const { analysis } = await api.analyzeDemoFlags(
-          { flags, context, release, policyChecks },
-          { timeoutMs: 6000 }
-        );
-        applyRiskAnalysis(analysis, 'Live AI · same policy model');
+        const { analysis } = await api.analyzeDemoFlags({ flags, context, release, policyChecks });
+        applyRiskAnalysis(analysis, 'Live AI · Compass Ultra demo service');
         setAiLoading(false);
         record('Live demo AI risk analysis complete');
         return;
       } catch (e) {
         const isTimeout = e.name === 'AbortError' || e.status === 408 || /aborted|timed out/i.test(e.message || '');
         const base = isTimeout
-          ? 'Live AI is slow right now — switching to the local policy model so you can keep moving. Same gates, same scoring, no waiting.'
+          ? 'Live AI did not respond in time — showing a deterministic fallback so you can keep moving. Rerun to try the live analyzer again.'
           : e.status === 429
-            ? 'Live AI rate limit hit — running the same policy model locally instead.'
+            ? 'Live AI rate limit hit — showing a deterministic fallback. Rerun in a minute to try the live analyzer again.'
             : e.status === 503
-              ? 'Live AI is offline on this demo server — running the same policy model locally instead.'
-              : 'Live AI is unavailable right now — running the same policy model locally instead.';
+              ? 'Live AI is offline on this demo server — showing a deterministic fallback.'
+              : `Live AI unavailable (${e.status || 'network'}) — showing a deterministic fallback.`;
         setAiLiveError(e.hint ? `${base} ${e.hint}` : base);
-        record('Live AI unavailable; using local policy model', e.message || '', 'warn');
-      }
-      window.setTimeout(() => {
+        record('Live AI unavailable; using deterministic fallback', e.message || '', 'warn');
         const analysis = makeDemoAiAnalysis(workspaceName, release, context, flags, policyChecks);
-        applyRiskAnalysis(analysis, 'Local policy model · deterministic');
+        applyRiskAnalysis(
+          `${analysis}\n\n_Live AI unavailable; this is the deterministic fallback generated from the current workspace state. Rerun to try the live analyzer again._`,
+          'Deterministic fallback · live AI unavailable'
+        );
         setAiLoading(false);
-        record('Local demo risk analysis complete');
-      }, 450);
+      }
       return;
     }
     if (!isAuthenticated) { loginWithEmail(); return; }
@@ -1828,7 +1825,7 @@ export default function App() {
                 : aiAnalysis
                   ? `Latest analysis is ready below with blockers, affected flags, and recommended actions. Source: ${aiAnalysisSource || 'risk engine'}.`
                   : (demoMode && !isAuthenticated)
-                    ? 'Demo analysis runs the same policy model locally — instant, deterministic, no waiting. Live AI runs when connected on signed-in plans.'
+                    ? 'Demo analysis runs the live AI risk engine against this workspace. It can take 20–30 seconds. A deterministic fallback only appears if the live service fails.'
                     : releaseBlockSummary}
             </p>
           </div>

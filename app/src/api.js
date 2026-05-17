@@ -74,7 +74,7 @@ export const api = {
       body: JSON.stringify(payload),
       timeoutMs: 45000,
     }),
-  analyzeDemoFlags: (payload, { timeoutMs = 6000 } = {}) =>
+  analyzeDemoFlags: (payload, { timeoutMs = 45000 } = {}) =>
     request('/api/v1/analyze/demo', null, {
       method: 'POST',
       body: JSON.stringify(payload),
