@@ -5,6 +5,7 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { Analytics } from '@vercel/analytics/react';
 import App from './App.jsx';
 import LandingPage from './LandingPage.jsx';
+import AiDevOpsChecker from './AiDevOpsChecker.jsx';
 import './styles.css';
 
 const domain   = import.meta.env.VITE_AUTH0_DOMAIN || 'compassultra.us.auth0.com';
@@ -159,6 +160,7 @@ createRoot(document.getElementById('root')).render(
           <Route path="/pricing" element={<LandingPage initialAnchor="pricing" />} />
           <Route path="/features" element={<LandingPage initialAnchor="features" />} />
           <Route path="/demo" element={<LandingPage initialAnchor="demo" />} />
+          <Route path="/ai-devops" element={<AiDevOpsChecker />} />
           <Route path="/app" element={<App />} />
           <Route path="/app/*" element={<App />} />
           <Route path="/privacy" element={<LegalPage type="privacy" />} />
