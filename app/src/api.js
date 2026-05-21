@@ -80,6 +80,12 @@ export const api = {
       body: JSON.stringify(payload),
       timeoutMs,
     }),
+  aiDevOpsDemo: (payload, { timeoutMs = 45000 } = {}) =>
+    request('/api/v1/ai-devops/demo', null, {
+      method: 'POST',
+      body: JSON.stringify(payload),
+      timeoutMs,
+    }),
   syncProvider: (token, provider, payload) =>
     request(`/api/v1/proxy/${provider}`, token, {
       method: 'POST',
