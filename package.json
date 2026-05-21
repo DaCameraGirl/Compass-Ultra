@@ -8,7 +8,7 @@
     "dev": "vite --host 0.0.0.0",
     "build": "vite build",
     "preview": "vite preview --host 0.0.0.0",
-    "typecheck": "tsc --noEmit --allowJs --checkJs false --jsx react-jsx --module NodeNext --moduleResolution NodeNext --target ES2022 --skipLibCheck app/src/main.jsx app/src/App.jsx app/src/LandingPage.jsx",
+    "typecheck": "tsc --noEmit --allowJs --checkJs false --jsx react-jsx --module NodeNext --moduleResolution NodeNext --target ES2022 --skipLibCheck app/src/main.jsx app/src/App.jsx app/src/LandingPage.jsx app/src/AiDevOpsChecker.jsx",
     "lint": "node scripts/lint-basic.mjs",
     "test": "node scripts/smoke-test.mjs",
     "test:watch": "npm run test"
