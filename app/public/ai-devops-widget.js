@@ -460,6 +460,53 @@
     }
   }
 
+  function landingDemoWorkspace() {
+    const rows = Array.from(document.querySelectorAll('.lp-root .dash-flag-row'));
+    if (rows.length < 5) return null;
+
+    const meta = {
+      'checkout.new_flow': { owner: 'Growth', criticality: 'high', expiresAt: '2026-11-27', dependencies: ['payments.stripe_v4'] },
+      'payments.stripe_v4': { owner: 'Payments', criticality: 'medium', expiresAt: '2026-11-30', dependencies: [] },
+      'eu.gdpr_consent_v2': { owner: 'Legal', criticality: 'medium', expiresAt: '2026-05-24', dependencies: [] },
+      'dark_mode_v3': { owner: 'Frontend', criticality: 'low', expiresAt: '2027-03-01', dependencies: [] },
+      'flash_sale_engine': { owner: 'Commerce', criticality: 'high', expiresAt: 'not set', dependencies: ['payments.stripe_v4'] },
+    };
+
+    const flags = rows.map(row => {
+      const name = row.querySelector('.dash-flag-name')?.textContent?.trim() || 'Demo flag';
+      const keyText = row.querySelector('.dash-flag-key')?.textContent?.trim() || '';
+      const risk = row.querySelector('.dash-risk-pill')?.textContent?.trim().toLowerCase() || 'medium';
+      const key = keyText.split('·')[0]?.trim() || name.toLowerCase().replace(/[^a-z0-9]+/g, '.').replace(/^\.|\.$/g, '');
+      const enabled = !/disabled/i.test(keyText);
+      const rollout = enabled ? Number(keyText.match(/(\d+)%/)?.[1] || 0) : 0;
+      const details = meta[key] || { owner: 'Product', criticality: risk, expiresAt: '2026-12-31', dependencies: [] };
+      return {
+        key,
+        name,
+        enabled,
+        rollout,
+        criticality: details.criticality || risk,
+        owner: details.owner,
+        expiresAt: details.expiresAt,
+        dependencies: details.dependencies,
+        source: 'Landing demo',
+      };
+    });
+
+    return {
+      source: 'landing-demo-dom',
+      workspaceName: 'Compass Ultra Landing Demo',
+      release: {
+        train: 'peak-sale-2026.11',
+        environment: 'production',
+        changeTicket: 'CHG-1850',
+        window: 'Thu 23:00-01:00 ET',
+      },
+      context: { environment: 'production' },
+      flags,
+    };
+  }
+
   function fallbackFlags() {
     return [
       { key: 'checkout.express_pay', enabled: true, criticality: 'high', rollout: 45, owner: 'Growth', expiresAt: '2026-12-01', dependencies: ['payments.stripe_v4'] },
@@ -482,11 +529,14 @@
   }
 
   function currentPayload(message) {
-    const workspace = getWorkspace();
+    const landingWorkspace = landingDemoWorkspace();
+    const storageWorkspace = getWorkspace();
+    const workspace = landingWorkspace || storageWorkspace;
     const flags = Array.isArray(workspace.flags) && workspace.flags.length ? workspace.flags : fallbackFlags();
     const release = workspace.release || { train: 'peak-sale-2026.11', environment: 'production', changeTicket: 'CHG-DEMO', window: 'next production deploy' };
     const context = workspace.context || { environment: 'production' };
-    summary.textContent = `${flags.length} flag(s), ${flags.filter(flag => flag.enabled).length} enabled, ${release.changeTicket || 'no change ticket'}.`;
+    const source = workspace.source ? ` · ${workspace.source}` : '';
+    summary.textContent = `${flags.length} flag(s), ${flags.filter(flag => flag.enabled).length} enabled, ${release.changeTicket || 'no change ticket'}${source}.`;
     return {
       message,
       release: {
