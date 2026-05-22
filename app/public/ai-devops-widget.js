@@ -42,7 +42,7 @@
       bottom: 148px;
       z-index: 2147483001;
       display: none;
-      width: min(520px, calc(100vw - 32px));
+      width: min(500px, calc(100vw - 32px));
       max-height: min(760px, calc(100vh - 176px));
       overflow: hidden;
       border: 1px solid rgba(255, 255, 255, 0.12);
@@ -88,7 +88,7 @@
     }
     .cu-ai-widget-card strong { display: block; margin-bottom: 5px; }
     .cu-ai-widget-card p { margin: 0; color: #d7e0ee; }
-    .cu-ai-widget-prompts, .cu-ai-widget-copybar { display: flex; flex-wrap: wrap; gap: 8px; }
+    .cu-ai-widget-prompts, .cu-ai-widget-copybar, .cu-ai-widget-actions { display: flex; flex-wrap: wrap; gap: 8px; }
     .cu-ai-widget-prompts button,
     .cu-ai-widget-send,
     .cu-ai-widget-copybar button {
@@ -145,6 +145,43 @@
       font-size: 13px;
       text-transform: none;
     }
+    .cu-ai-widget-brief {
+      display: grid;
+      gap: 10px;
+      margin-top: 12px;
+    }
+    .cu-ai-widget-brief ul {
+      margin: 0;
+      padding-left: 18px;
+      color: #d7e0ee;
+    }
+    .cu-ai-widget-brief li { margin: 6px 0; }
+    .cu-ai-widget-next {
+      border-left: 3px solid #33d69f;
+      padding: 8px 10px;
+      background: #0a1020;
+      color: #d7e0ee;
+      border-radius: 8px;
+    }
+    .cu-ai-widget-report {
+      margin-top: 12px;
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+      padding-top: 10px;
+    }
+    .cu-ai-widget-report summary {
+      width: fit-content;
+      border: 1px solid rgba(51, 214, 159, 0.3);
+      border-radius: 8px;
+      background: #162033;
+      color: #33d69f;
+      padding: 8px 10px;
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: 800;
+      list-style: none;
+    }
+    .cu-ai-widget-report summary::-webkit-details-marker { display: none; }
+    .cu-ai-widget-rendered { margin-top: 12px; }
     .cu-ai-widget-answer {
       color: #e8eef8;
       overflow-x: auto;
@@ -334,21 +371,62 @@
     return { decision: decision.replace(/[\-*|].*$/, '').trim(), risk };
   }
 
+  function cleanLine(value) {
+    return String(value || '')
+      .replace(/^[-*]\s+/, '')
+      .replace(/^\d+\.\s+/, '')
+      .replace(/^[|\s]+|[|\s]+$/g, '')
+      .replace(/\*\*/g, '')
+      .trim();
+  }
+
   function sectionText(answer, label) {
     const escaped = label.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    const match = String(answer || '').match(new RegExp(`(?:^|\\n)#{2,3}[^\\n]*${escaped}[^\\n]*\\n([\\s\\S]*?)(?=\\n#{2,3} |$)`, 'i'));
+    const match = String(answer || '').match(new RegExp(`(?:^|\n)#{2,3}[^\n]*${escaped}[^\n]*\n([\s\S]*?)(?=\n#{2,3} |$)`, 'i'));
     return (match?.[1] || answer || '').trim();
+  }
+
+  function extractBrief(answer, data) {
+    const text = String(answer || '');
+    const blockers = Array.isArray(data.blockers) ? data.blockers.map(blocker => blocker.detail || blocker.label || blocker).filter(Boolean) : [];
+    const actions = Array.isArray(data.actions) ? data.actions.map(action => action.detail || action.label || action).filter(Boolean) : [];
+    const lines = text.split('\n').map(cleanLine).filter(Boolean);
+
+    const issueLines = lines.filter(line => (
+      /critical|blocker|expires|depends|rollout|circuit|missing|disabled|warning/i.test(line)
+      && !/^#+/.test(line)
+      && !/^decision:/i.test(line)
+      && !/^risk:/i.test(line)
+      && !/^mode:/i.test(line)
+      && !/^table|flag|owner|status|check|result$/i.test(line)
+      && line.length > 12
+    ));
+
+    const nextAction = actions[0]
+      || lines.find(line => /extend|confirm|ramp|fix|obtain|verify|re-run|do not deploy|sign off/i.test(line))
+      || 'Review blockers, confirm owner sign-off, then re-run the readiness check.';
+
+    return {
+      blockers: [...blockers, ...issueLines].slice(0, 3),
+      nextAction,
+    };
   }
 
   function showResult(data, message) {
     lastAnswer = data.answer || data.summary || 'Checker completed.';
     const { decision, risk } = extractDecision(lastAnswer, data);
+    const brief = extractBrief(lastAnswer, data);
     const needsPayloadButtons = /github|jira|slack|payload/i.test(`${message}\n${lastAnswer}`);
     output.innerHTML = `
       <div class="cu-ai-widget-summary-strip">
         <span>Decision<strong>${escapeHtml(decision)}</strong></span>
         <span>Risk<strong>${escapeHtml(risk)}</strong></span>
         <span>Mode<strong>${escapeHtml(data.mode || 'checker')}</strong></span>
+      </div>
+      <div class="cu-ai-widget-brief">
+        <strong>Top findings</strong>
+        <ul>${brief.blockers.map(item => `<li>${inlineMarkdown(item)}</li>`).join('') || '<li>No hard blocker found in the response.</li>'}</ul>
+        <div class="cu-ai-widget-next"><strong>Next:</strong> ${inlineMarkdown(brief.nextAction)}</div>
       </div>
       ${needsPayloadButtons ? `
         <div class="cu-ai-widget-copybar">
@@ -357,7 +435,10 @@
           <button type="button" data-copy-section="Slack">Copy Slack</button>
         </div>
       ` : ''}
-      <div class="cu-ai-widget-rendered">${renderMarkdown(lastAnswer)}</div>
+      <details class="cu-ai-widget-report">
+        <summary>View Full Report</summary>
+        <div class="cu-ai-widget-rendered">${renderMarkdown(lastAnswer)}</div>
+      </details>
       ${data.providerError ? `<div class="cu-ai-widget-meta">Provider fallback: ${escapeHtml(data.providerError)}</div>` : ''}
     `;
     output.querySelectorAll('[data-copy-section]').forEach(copyButton => {
