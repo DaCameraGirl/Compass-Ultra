@@ -7,290 +7,80 @@
 
   const style = document.createElement('style');
   style.textContent = `
-    .cu-ai-widget-button {
-      position: fixed;
-      right: 24px;
-      bottom: 92px;
-      z-index: 2147483000;
-      display: inline-flex;
-      align-items: center;
-      gap: 9px;
-      border: 1px solid rgba(51, 214, 159, 0.42);
-      border-radius: 999px;
-      padding: 12px 16px;
-      background: linear-gradient(135deg, #101827, #162033);
-      color: #f4f7fb;
-      box-shadow: 0 18px 48px rgba(0, 0, 0, 0.42);
-      font: 800 13px/1.1 "Segoe UI", system-ui, sans-serif;
-      cursor: pointer;
-    }
-    .cu-ai-widget-button:hover { border-color: #33d69f; transform: translateY(-1px); }
-    .cu-ai-widget-button i {
-      display: grid;
-      width: 30px;
-      height: 30px;
-      place-items: center;
-      border-radius: 999px;
-      background: #33d69f;
-      color: #061713;
-      font-style: normal;
-      font-size: 17px;
-    }
-    .cu-ai-widget-panel {
-      position: fixed;
-      right: 24px;
-      bottom: 148px;
-      z-index: 2147483001;
-      display: none;
-      width: min(500px, calc(100vw - 32px));
-      max-height: min(760px, calc(100vh - 176px));
-      overflow: hidden;
-      border: 1px solid rgba(255, 255, 255, 0.12);
-      border-radius: 14px;
-      background: #0b1020;
-      color: #f4f7fb;
-      box-shadow: 0 24px 80px rgba(0, 0, 0, 0.55);
-      font: 14px/1.45 "Segoe UI", system-ui, sans-serif;
-    }
-    .cu-ai-widget-panel.is-open { display: grid; grid-template-rows: auto 1fr auto; }
-    .cu-ai-widget-head {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 12px;
-      padding: 14px 16px;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-      background: #101827;
-    }
-    .cu-ai-widget-title { display: grid; gap: 2px; }
-    .cu-ai-widget-title strong { font-size: 15px; }
-    .cu-ai-widget-title span { color: #9aa7bd; font-size: 12px; }
-    .cu-ai-widget-close {
-      border: 0;
-      border-radius: 8px;
-      width: 32px;
-      height: 32px;
-      background: #162033;
-      color: #f4f7fb;
-      cursor: pointer;
-    }
-    .cu-ai-widget-body {
-      overflow: auto;
-      padding: 14px;
-      display: grid;
-      gap: 12px;
-    }
-    .cu-ai-widget-card {
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      border-radius: 10px;
-      padding: 12px;
-      background: #101827;
-    }
-    .cu-ai-widget-card strong { display: block; margin-bottom: 5px; }
-    .cu-ai-widget-card p { margin: 0; color: #d7e0ee; }
-    .cu-ai-widget-prompts, .cu-ai-widget-copybar, .cu-ai-widget-actions { display: flex; flex-wrap: wrap; gap: 8px; }
-    .cu-ai-widget-prompts button,
-    .cu-ai-widget-send,
-    .cu-ai-widget-copybar button {
-      border: 1px solid rgba(255, 255, 255, 0.12);
-      border-radius: 8px;
-      background: #162033;
-      color: #f4f7fb;
-      padding: 8px 10px;
-      cursor: pointer;
-      font: inherit;
-      font-size: 12px;
-    }
-    .cu-ai-widget-composer {
-      display: grid;
-      gap: 10px;
-      padding: 14px;
-      border-top: 1px solid rgba(255, 255, 255, 0.1);
-      background: #0f1726;
-    }
-    .cu-ai-widget-composer textarea {
-      width: 100%;
-      min-height: 82px;
-      resize: vertical;
-      border: 1px solid rgba(255, 255, 255, 0.12);
-      border-radius: 8px;
-      padding: 10px;
-      background: #080d19;
-      color: #f4f7fb;
-      font: inherit;
-    }
-    .cu-ai-widget-send {
-      background: #33d69f;
-      color: #061713;
-      font-weight: 900;
-    }
-    .cu-ai-widget-summary-strip {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 8px;
-    }
-    .cu-ai-widget-summary-strip span {
-      display: grid;
-      gap: 3px;
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      border-radius: 8px;
-      background: #0a1020;
-      padding: 8px;
-      color: #9aa7bd;
-      font-size: 11px;
-      text-transform: uppercase;
-    }
-    .cu-ai-widget-summary-strip strong {
-      color: #f4f7fb;
-      font-size: 13px;
-      text-transform: none;
-    }
-    .cu-ai-widget-brief {
-      display: grid;
-      gap: 10px;
-      margin-top: 12px;
-    }
-    .cu-ai-widget-brief ul {
-      margin: 0;
-      padding-left: 18px;
-      color: #d7e0ee;
-    }
-    .cu-ai-widget-brief li { margin: 6px 0; }
-    .cu-ai-widget-next {
-      border-left: 3px solid #33d69f;
-      padding: 8px 10px;
-      background: #0a1020;
-      color: #d7e0ee;
-      border-radius: 8px;
-    }
-    .cu-ai-widget-report {
-      margin-top: 12px;
-      border-top: 1px solid rgba(255, 255, 255, 0.1);
-      padding-top: 10px;
-    }
-    .cu-ai-widget-report summary {
-      width: fit-content;
-      border: 1px solid rgba(51, 214, 159, 0.3);
-      border-radius: 8px;
-      background: #162033;
-      color: #33d69f;
-      padding: 8px 10px;
-      cursor: pointer;
-      font-size: 12px;
-      font-weight: 800;
-      list-style: none;
-    }
-    .cu-ai-widget-report summary::-webkit-details-marker { display: none; }
-    .cu-ai-widget-rendered { margin-top: 12px; }
-    .cu-ai-widget-answer {
-      color: #e8eef8;
-      overflow-x: auto;
-    }
-    .cu-ai-widget-answer h2,
-    .cu-ai-widget-answer h3,
-    .cu-ai-widget-answer h4 {
-      margin: 14px 0 8px;
-      color: #f4f7fb;
-      line-height: 1.2;
-    }
-    .cu-ai-widget-answer h2 { font-size: 17px; }
-    .cu-ai-widget-answer h3 { font-size: 15px; color: #33d69f; }
-    .cu-ai-widget-answer h4 { font-size: 13px; color: #e3b341; }
-    .cu-ai-widget-answer p { margin: 0 0 10px; color: #d7e0ee; }
-    .cu-ai-widget-answer ul,
-    .cu-ai-widget-answer ol { margin: 8px 0 12px; padding-left: 22px; }
-    .cu-ai-widget-answer li { margin: 5px 0; }
-    .cu-ai-widget-answer code {
-      border-radius: 5px;
-      background: #090e1a;
-      color: #9be8c9;
-      padding: 1px 5px;
-      font-family: Consolas, monospace;
-    }
-    .cu-ai-widget-answer pre {
-      margin: 10px 0;
-      overflow: auto;
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      border-radius: 8px;
-      background: #080d19;
-      padding: 10px;
-      color: #d7e0ee;
-      white-space: pre-wrap;
-      font-family: Consolas, monospace;
-      font-size: 12px;
-    }
-    .cu-ai-widget-answer table {
-      width: 100%;
-      border-collapse: collapse;
-      margin: 10px 0 14px;
-      font-size: 12px;
-    }
-    .cu-ai-widget-answer th,
-    .cu-ai-widget-answer td {
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      padding: 7px;
-      text-align: left;
-      vertical-align: top;
-    }
-    .cu-ai-widget-answer th { background: #162033; color: #f4f7fb; }
-    .cu-ai-widget-answer td { color: #d7e0ee; }
-    .cu-ai-widget-meta {
-      color: #9aa7bd;
-      font-size: 12px;
-      margin-top: 8px;
-    }
-    .cu-ai-widget-copybar { margin-top: 10px; }
-    .cu-ai-widget-copybar button { color: #33d69f; }
-    @media (max-width: 640px) {
-      .cu-ai-widget-button { right: 16px; bottom: 80px; }
-      .cu-ai-widget-panel { right: 16px; bottom: 136px; }
-      .cu-ai-widget-summary-strip { grid-template-columns: 1fr; }
-    }
+    .cu-aiw-button{position:fixed;right:24px;bottom:92px;z-index:2147483000;display:inline-flex;align-items:center;gap:9px;border:1px solid rgba(51,214,159,.42);border-radius:999px;padding:12px 16px;background:#101827;color:#f4f7fb;box-shadow:0 18px 48px rgba(0,0,0,.42);font:800 13px/1.1 "Segoe UI",system-ui,sans-serif;cursor:pointer}
+    .cu-aiw-button:hover{border-color:#33d69f;transform:translateY(-1px)}
+    .cu-aiw-dot{display:grid;width:30px;height:30px;place-items:center;border-radius:999px;background:#33d69f;color:#061713;font-style:normal;font-size:13px;font-weight:900}
+    .cu-aiw-panel{position:fixed;right:24px;bottom:148px;z-index:2147483001;display:none;width:min(500px,calc(100vw - 32px));max-height:min(760px,calc(100vh - 176px));overflow:hidden;border:1px solid rgba(255,255,255,.12);border-radius:14px;background:#0b1020;color:#f4f7fb;box-shadow:0 24px 80px rgba(0,0,0,.55);font:14px/1.45 "Segoe UI",system-ui,sans-serif}
+    .cu-aiw-panel.is-open{display:grid;grid-template-rows:auto 1fr auto}
+    .cu-aiw-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 16px;border-bottom:1px solid rgba(255,255,255,.1);background:#101827}
+    .cu-aiw-title{display:grid;gap:2px}.cu-aiw-title strong{font-size:15px}.cu-aiw-title span{color:#9aa7bd;font-size:12px}
+    .cu-aiw-close{border:0;border-radius:8px;width:32px;height:32px;background:#162033;color:#f4f7fb;cursor:pointer}
+    .cu-aiw-body{overflow:auto;padding:14px;display:grid;gap:12px}
+    .cu-aiw-card{border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:12px;background:#101827}
+    .cu-aiw-card strong{display:block;margin-bottom:5px}.cu-aiw-card p{margin:0;color:#d7e0ee}
+    .cu-aiw-prompts,.cu-aiw-copybar{display:flex;flex-wrap:wrap;gap:8px}
+    .cu-aiw-prompts button,.cu-aiw-copybar button,.cu-aiw-send{border:1px solid rgba(255,255,255,.12);border-radius:8px;background:#162033;color:#f4f7fb;padding:8px 10px;cursor:pointer;font:inherit;font-size:12px}
+    .cu-aiw-feed{display:grid;gap:10px}
+    .cu-aiw-msg{max-width:92%;border-radius:12px;padding:10px 12px;white-space:pre-wrap}
+    .cu-aiw-user{justify-self:end;background:#1f6feb;color:#fff}
+    .cu-aiw-bot{justify-self:start;background:#101827;border:1px solid rgba(255,255,255,.1);color:#e8eef8}
+    .cu-aiw-report{display:grid;gap:10px;border:1px solid rgba(255,255,255,.1);border-radius:12px;background:#101827;padding:12px}
+    .cu-aiw-strip{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+    .cu-aiw-strip span{display:grid;gap:3px;border:1px solid rgba(255,255,255,.1);border-radius:8px;background:#0a1020;padding:8px;color:#9aa7bd;font-size:11px;text-transform:uppercase}
+    .cu-aiw-strip strong{color:#f4f7fb;font-size:13px;text-transform:none}
+    .cu-aiw-answer h2,.cu-aiw-answer h3{margin:12px 0 8px;color:#f4f7fb;line-height:1.2}.cu-aiw-answer h2{font-size:17px}.cu-aiw-answer h3{font-size:15px;color:#33d69f}
+    .cu-aiw-answer p{margin:0 0 10px;color:#d7e0ee}.cu-aiw-answer ul,.cu-aiw-answer ol{margin:8px 0 12px;padding-left:22px}.cu-aiw-answer li{margin:5px 0}
+    .cu-aiw-answer code{border-radius:5px;background:#090e1a;color:#9be8c9;padding:1px 5px;font-family:Consolas,monospace}
+    .cu-aiw-composer{display:grid;gap:10px;padding:14px;border-top:1px solid rgba(255,255,255,.1);background:#0f1726}
+    .cu-aiw-composer textarea{width:100%;min-height:82px;resize:vertical;border:1px solid rgba(255,255,255,.12);border-radius:8px;padding:10px;background:#080d19;color:#f4f7fb;font:inherit}
+    .cu-aiw-send{background:#33d69f;color:#061713;font-weight:900}
+    @media(max-width:640px){.cu-aiw-button{right:16px;bottom:80px}.cu-aiw-panel{right:16px;bottom:136px}.cu-aiw-strip{grid-template-columns:1fr}}
   `;
   document.head.appendChild(style);
 
   const button = document.createElement('button');
-  button.className = 'cu-ai-widget-button';
+  button.className = 'cu-aiw-button';
   button.type = 'button';
-  button.innerHTML = '<i>🤖</i><span>AI DevOps</span>';
+  button.innerHTML = '<i class="cu-aiw-dot">AI</i><span>AI DevOps</span>';
 
   const panel = document.createElement('section');
-  panel.className = 'cu-ai-widget-panel';
+  panel.className = 'cu-aiw-panel';
   panel.innerHTML = `
-    <div class="cu-ai-widget-head">
-      <div class="cu-ai-widget-title">
+    <div class="cu-aiw-head">
+      <div class="cu-aiw-title">
         <strong>AI DevOps Checker</strong>
-        <span>Reads this workspace and checks release readiness.</span>
+        <span>Talks through this workspace and checks release readiness.</span>
       </div>
-      <button class="cu-ai-widget-close" type="button" aria-label="Close AI DevOps checker">x</button>
+      <button class="cu-aiw-close" type="button" aria-label="Close AI DevOps checker">x</button>
     </div>
-    <div class="cu-ai-widget-body">
-      <div class="cu-ai-widget-card">
-        <strong>Live workspace check</strong>
-        <p id="cu-ai-widget-summary">Open the platform demo or workspace, then ask what should block the release.</p>
+    <div class="cu-aiw-body">
+      <div class="cu-aiw-card">
+        <strong>Live workspace</strong>
+        <p id="cu-aiw-summary">Open the platform demo or workspace, then ask about the release.</p>
       </div>
-      <div class="cu-ai-widget-prompts">
+      <div class="cu-aiw-prompts">
         <button type="button" data-prompt="Run a live release readiness check.">Run check</button>
         <button type="button" data-prompt="What should block this release?">Blockers</button>
         <button type="button" data-prompt="Build a rollback plan from the current flags.">Rollback</button>
         <button type="button" data-prompt="What should GitHub, Jira, and Slack receive?">Payloads</button>
       </div>
-      <div id="cu-ai-widget-output" class="cu-ai-widget-card cu-ai-widget-answer">Ask the checker to review the current Compass Ultra workspace.</div>
+      <div id="cu-aiw-feed" class="cu-aiw-feed">
+        <div class="cu-aiw-msg cu-aiw-bot">Hi. Ask me about the release, blockers, rollback, Jira, Slack, or whether it is safe to ship.</div>
+      </div>
     </div>
-    <form class="cu-ai-widget-composer">
-      <textarea name="message" placeholder="Ask the AI DevOps checker..."></textarea>
-      <button class="cu-ai-widget-send" type="submit">Ask AI DevOps</button>
+    <form class="cu-aiw-composer">
+      <textarea name="message" placeholder="Ask AI DevOps..."></textarea>
+      <button class="cu-aiw-send" type="submit">Ask AI DevOps</button>
     </form>
   `;
 
   document.body.appendChild(button);
   document.body.appendChild(panel);
 
-  const output = panel.querySelector('#cu-ai-widget-output');
-  const summary = panel.querySelector('#cu-ai-widget-summary');
+  const feed = panel.querySelector('#cu-aiw-feed');
+  const summary = panel.querySelector('#cu-aiw-summary');
   const form = panel.querySelector('form');
   const textarea = panel.querySelector('textarea');
-  let lastAnswer = '';
 
   function escapeHtml(value) {
     return String(value || '')
@@ -307,16 +97,6 @@
       .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
   }
 
-  function renderTable(lines) {
-    const rows = lines.filter(line => line.trim().startsWith('|')).map(line =>
-      line.trim().replace(/^\||\|$/g, '').split('|').map(cell => cell.trim())
-    );
-    const usefulRows = rows.filter(row => !row.every(cell => /^-+$/.test(cell.replace(/\s/g, ''))));
-    if (!usefulRows.length) return '';
-    const [head, ...body] = usefulRows;
-    return `<table><thead><tr>${head.map(cell => `<th>${inlineMarkdown(cell)}</th>`).join('')}</tr></thead><tbody>${body.map(row => `<tr>${row.map(cell => `<td>${inlineMarkdown(cell)}</td>`).join('')}</tr>`).join('')}</tbody></table>`;
-  }
-
   function renderMarkdown(text) {
     const lines = String(text || '').split('\n');
     const html = [];
@@ -324,33 +104,17 @@
     while (i < lines.length) {
       const line = lines[i];
       if (!line.trim() || /^---+$/.test(line.trim())) { i += 1; continue; }
-      if (line.startsWith('```')) {
-        const code = [];
-        i += 1;
-        while (i < lines.length && !lines[i].startsWith('```')) { code.push(lines[i]); i += 1; }
-        html.push(`<pre>${escapeHtml(code.join('\n'))}</pre>`);
-      } else if (line.trim().startsWith('|') && lines[i + 1]?.trim().startsWith('|')) {
-        const table = [];
-        while (i < lines.length && lines[i].trim().startsWith('|')) { table.push(lines[i]); i += 1; }
-        html.push(renderTable(table));
-        continue;
-      } else if (line.startsWith('### ')) {
-        html.push(`<h4>${inlineMarkdown(line.slice(4))}</h4>`);
-      } else if (line.startsWith('## ')) {
-        html.push(`<h3>${inlineMarkdown(line.slice(3))}</h3>`);
-      } else if (line.startsWith('# ')) {
-        html.push(`<h2>${inlineMarkdown(line.slice(2))}</h2>`);
-      } else if (line.startsWith('- ') || line.startsWith('* ') || /^\d+\.\s/.test(line)) {
+      if (line.startsWith('## ')) html.push(`<h2>${inlineMarkdown(line.slice(3))}</h2>`);
+      else if (line.startsWith('# ')) html.push(`<h2>${inlineMarkdown(line.slice(2))}</h2>`);
+      else if (line.startsWith('- ') || /^\d+\.\s/.test(line)) {
         const ordered = /^\d+\.\s/.test(line);
         const items = [];
-        while (i < lines.length && (lines[i].startsWith('- ') || lines[i].startsWith('* ') || /^\d+\.\s/.test(lines[i]))) {
-          items.push(`<li>${inlineMarkdown(lines[i].replace(/^[-*]\s/, '').replace(/^\d+\.\s/, ''))}</li>`);
+        while (i < lines.length && (lines[i].startsWith('- ') || /^\d+\.\s/.test(lines[i]))) {
+          items.push(`<li>${inlineMarkdown(lines[i].replace(/^-\s/, '').replace(/^\d+\.\s/, ''))}</li>`);
           i += 1;
         }
         html.push(ordered ? `<ol>${items.join('')}</ol>` : `<ul>${items.join('')}</ul>`);
         continue;
-      } else if (line.startsWith('> ')) {
-        html.push(`<p><strong>${inlineMarkdown(line.slice(2))}</strong></p>`);
       } else {
         html.push(`<p>${inlineMarkdown(line)}</p>`);
       }
@@ -359,96 +123,50 @@
     return html.join('');
   }
 
-  function extractDecision(answer, fallback) {
-    const text = String(answer || '');
-    const decision = text.match(/Decision:\s*\*{0,2}([A-Z -]+)/i)?.[1]?.trim()
-      || text.match(/##\s*Decision:\s*\*{0,2}([A-Z -]+)/i)?.[1]?.trim()
-      || fallback?.decision
-      || 'CHECKED';
-    const risk = text.match(/Risk(?: level)?:\s*\*{0,2}([A-Z]+)/i)?.[1]?.trim()
-      || fallback?.risk
-      || (decision.includes('HOLD') ? 'HIGH' : decision.includes('CAUTION') ? 'MEDIUM' : 'REVIEW');
-    return { decision: decision.replace(/[\-*|].*$/, '').trim(), risk };
-  }
-
-  function cleanLine(value) {
-    return String(value || '')
-      .replace(/^[-*]\s+/, '')
-      .replace(/^\d+\.\s+/, '')
-      .replace(/^[|\s]+|[|\s]+$/g, '')
-      .replace(/\*\*/g, '')
+  function plainAnswer(answer) {
+    return String(answer || '')
+      .replace(/^#+\s*/gm, '')
+      .replace(/^Decision:\s.*$/gmi, '')
+      .replace(/^Risk:\s.*$/gmi, '')
+      .replace(/^Risk level:\s.*$/gmi, '')
+      .replace(/^Mode:\s.*$/gmi, '')
       .trim();
   }
 
-  function sectionText(answer, label) {
-    const escaped = label.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    const match = String(answer || '').match(new RegExp(`(?:^|\n)#{2,3}[^\n]*${escaped}[^\n]*\n([\s\S]*?)(?=\n#{2,3} |$)`, 'i'));
-    return (match?.[1] || answer || '').trim();
+  function addMessage(role, html) {
+    const node = document.createElement('div');
+    node.className = `cu-aiw-msg ${role === 'user' ? 'cu-aiw-user' : 'cu-aiw-bot'}`;
+    node.innerHTML = html;
+    feed.appendChild(node);
+    node.scrollIntoView({ block: 'end' });
   }
 
-  function extractBrief(answer, data) {
-    const text = String(answer || '');
-    const blockers = Array.isArray(data.blockers) ? data.blockers.map(blocker => blocker.detail || blocker.label || blocker).filter(Boolean) : [];
-    const actions = Array.isArray(data.actions) ? data.actions.map(action => action.detail || action.label || action).filter(Boolean) : [];
-    const lines = text.split('\n').map(cleanLine).filter(Boolean);
-
-    const issueLines = lines.filter(line => (
-      /critical|blocker|expires|depends|rollout|circuit|missing|disabled|warning/i.test(line)
-      && !/^#+/.test(line)
-      && !/^decision:/i.test(line)
-      && !/^risk:/i.test(line)
-      && !/^mode:/i.test(line)
-      && !/^table|flag|owner|status|check|result$/i.test(line)
-      && line.length > 12
-    ));
-
-    const nextAction = actions[0]
-      || lines.find(line => /extend|confirm|ramp|fix|obtain|verify|re-run|do not deploy|sign off/i.test(line))
-      || 'Review blockers, confirm owner sign-off, then re-run the readiness check.';
-
-    return {
-      blockers: [...blockers, ...issueLines].slice(0, 3),
-      nextAction,
-    };
-  }
-
-  function showResult(data, message) {
-    lastAnswer = data.answer || data.summary || 'Checker completed.';
-    const { decision, risk } = extractDecision(lastAnswer, data);
-    const brief = extractBrief(lastAnswer, data);
-    const needsPayloadButtons = /github|jira|slack|payload/i.test(`${message}\n${lastAnswer}`);
-    output.innerHTML = `
-      <div class="cu-ai-widget-summary-strip">
-        <span>Decision<strong>${escapeHtml(decision)}</strong></span>
-        <span>Risk<strong>${escapeHtml(risk)}</strong></span>
+  function addReport(data) {
+    const node = document.createElement('div');
+    node.className = 'cu-aiw-report cu-aiw-answer';
+    node.innerHTML = `
+      <div class="cu-aiw-strip">
+        <span>Decision<strong>${escapeHtml(data.decision || 'CHECKED')}</strong></span>
+        <span>Risk<strong>${escapeHtml(data.risk || 'REVIEW')}</strong></span>
         <span>Mode<strong>${escapeHtml(data.mode || 'checker')}</strong></span>
       </div>
-      <div class="cu-ai-widget-brief">
-        <strong>Top findings</strong>
-        <ul>${brief.blockers.map(item => `<li>${inlineMarkdown(item)}</li>`).join('') || '<li>No hard blocker found in the response.</li>'}</ul>
-        <div class="cu-ai-widget-next"><strong>Next:</strong> ${inlineMarkdown(brief.nextAction)}</div>
-      </div>
-      ${needsPayloadButtons ? `
-        <div class="cu-ai-widget-copybar">
-          <button type="button" data-copy-section="GitHub">Copy GitHub</button>
-          <button type="button" data-copy-section="Jira">Copy Jira</button>
-          <button type="button" data-copy-section="Slack">Copy Slack</button>
-        </div>
-      ` : ''}
-      <details class="cu-ai-widget-report">
-        <summary>View Full Report</summary>
-        <div class="cu-ai-widget-rendered">${renderMarkdown(lastAnswer)}</div>
-      </details>
-      ${data.providerError ? `<div class="cu-ai-widget-meta">Provider fallback: ${escapeHtml(data.providerError)}</div>` : ''}
+      <div>${renderMarkdown(data.answer || data.summary || 'Checker completed.')}</div>
+      ${/github|jira|slack|payload/i.test(data.answer || '') ? `
+        <div class="cu-aiw-copybar">
+          <button type="button" data-copy="GitHub">Copy GitHub</button>
+          <button type="button" data-copy="Jira">Copy Jira</button>
+          <button type="button" data-copy="Slack">Copy Slack</button>
+        </div>` : ''}
     `;
-    output.querySelectorAll('[data-copy-section]').forEach(copyButton => {
+    feed.appendChild(node);
+    node.querySelectorAll('[data-copy]').forEach((copyButton) => {
       copyButton.addEventListener('click', async () => {
-        const label = copyButton.dataset.copySection;
-        await navigator.clipboard.writeText(sectionText(lastAnswer, label));
-        copyButton.textContent = `Copied ${label}`;
-        setTimeout(() => { copyButton.textContent = `Copy ${label}`; }, 1400);
+        await navigator.clipboard.writeText(data.answer || '');
+        copyButton.textContent = `Copied ${copyButton.dataset.copy}`;
+        setTimeout(() => { copyButton.textContent = `Copy ${copyButton.dataset.copy}`; }, 1400);
       });
     });
+    node.scrollIntoView({ block: 'end' });
   }
 
   function getWorkspace() {
@@ -462,8 +180,7 @@
 
   function landingDemoWorkspace() {
     const rows = Array.from(document.querySelectorAll('.lp-root .dash-flag-row'));
-    if (rows.length < 5) return null;
-
+    if (rows.length < 3) return null;
     const meta = {
       'checkout.new_flow': { owner: 'Growth', criticality: 'high', expiresAt: '2026-11-27', dependencies: ['payments.stripe_v4'] },
       'payments.stripe_v4': { owner: 'Payments', criticality: 'medium', expiresAt: '2026-11-30', dependencies: [] },
@@ -471,37 +188,23 @@
       'dark_mode_v3': { owner: 'Frontend', criticality: 'low', expiresAt: '2027-03-01', dependencies: [] },
       'flash_sale_engine': { owner: 'Commerce', criticality: 'high', expiresAt: 'not set', dependencies: ['payments.stripe_v4'] },
     };
-
-    const flags = rows.map(row => {
+    const flags = rows.map((row) => {
       const name = row.querySelector('.dash-flag-name')?.textContent?.trim() || 'Demo flag';
       const keyText = row.querySelector('.dash-flag-key')?.textContent?.trim() || '';
-      const risk = row.querySelector('.dash-risk-pill')?.textContent?.trim().toLowerCase() || 'medium';
       const key = keyText.split('·')[0]?.trim() || name.toLowerCase().replace(/[^a-z0-9]+/g, '.').replace(/^\.|\.$/g, '');
-      const enabled = !/disabled/i.test(keyText);
-      const rollout = enabled ? Number(keyText.match(/(\d+)%/)?.[1] || 0) : 0;
-      const details = meta[key] || { owner: 'Product', criticality: risk, expiresAt: '2026-12-31', dependencies: [] };
+      const details = meta[key] || { owner: 'Product', criticality: 'medium', expiresAt: '2026-12-31', dependencies: [] };
       return {
         key,
         name,
-        enabled,
-        rollout,
-        criticality: details.criticality || risk,
-        owner: details.owner,
-        expiresAt: details.expiresAt,
-        dependencies: details.dependencies,
+        enabled: !/disabled/i.test(keyText),
+        rollout: Number(keyText.match(/(\d+)%/)?.[1] || 0),
         source: 'Landing demo',
+        ...details,
       };
     });
-
     return {
       source: 'landing-demo-dom',
-      workspaceName: 'Compass Ultra Landing Demo',
-      release: {
-        train: 'peak-sale-2026.11',
-        environment: 'production',
-        changeTicket: 'CHG-1850',
-        window: 'Thu 23:00-01:00 ET',
-      },
+      release: { train: 'peak-sale-2026.11', environment: 'production', changeTicket: 'CHG-1850', window: 'Thu 23:00-01:00 ET' },
       context: { environment: 'production' },
       flags,
     };
@@ -509,17 +212,17 @@
 
   function fallbackFlags() {
     return [
-      { key: 'checkout.express_pay', enabled: true, criticality: 'high', rollout: 45, owner: 'Growth', expiresAt: '2026-12-01', dependencies: ['payments.stripe_v4'] },
-      { key: 'payments.stripe_v4', enabled: true, criticality: 'critical', rollout: 100, owner: 'Payments', expiresAt: '2026-11-30', dependencies: [] },
-      { key: 'inventory.realtime_sync', enabled: true, criticality: 'high', rollout: 60, owner: 'Platform', expiresAt: '2026-11-28', dependencies: [] },
-      { key: 'promos.flash_sale_engine', enabled: false, criticality: 'high', rollout: 0, owner: 'Growth', expiresAt: 'not set', dependencies: ['inventory.realtime_sync'] },
+      { key: 'checkout.new_flow', enabled: true, criticality: 'high', rollout: 85, owner: 'Growth', expiresAt: '2026-11-27', dependencies: ['payments.stripe_v4'] },
+      { key: 'payments.stripe_v4', enabled: true, criticality: 'medium', rollout: 100, owner: 'Payments', expiresAt: '2026-11-30', dependencies: [] },
+      { key: 'eu.gdpr_consent_v2', enabled: true, criticality: 'medium', rollout: 100, owner: 'Legal', expiresAt: '2026-05-24', dependencies: [] },
+      { key: 'flash_sale_engine', enabled: true, criticality: 'high', rollout: 0, owner: 'Commerce', expiresAt: 'not set', dependencies: ['payments.stripe_v4'] },
     ];
   }
 
   function buildChecks(flags, release) {
-    const highRollout = flags.filter(flag => flag.enabled && ['high', 'critical'].includes(String(flag.criticality).toLowerCase()) && Number(flag.rollout || 0) >= 70);
-    const missingExpiry = flags.filter(flag => flag.enabled && (!flag.expiresAt || flag.expiresAt === 'not set'));
-    const brokenDeps = flags.filter(flag => flag.enabled && Array.isArray(flag.dependencies) && flag.dependencies.some(dep => !flags.find(item => item.key === dep && item.enabled)));
+    const missingExpiry = flags.filter((flag) => flag.enabled && (!flag.expiresAt || flag.expiresAt === 'not set'));
+    const highRollout = flags.filter((flag) => flag.enabled && ['high', 'critical'].includes(String(flag.criticality).toLowerCase()) && Number(flag.rollout || 0) >= 70);
+    const brokenDeps = flags.filter((flag) => flag.enabled && Array.isArray(flag.dependencies) && flag.dependencies.some((dep) => !flags.find((item) => item.key === dep && item.enabled)));
     return [
       { label: 'Change ticket attached', status: release?.changeTicket ? 'pass' : 'block', detail: release?.changeTicket || 'Missing change ticket' },
       { label: 'High-risk rollout exposure', status: highRollout.length ? 'warn' : 'pass', detail: highRollout.length ? `${highRollout.length} high-risk rollout(s) at 70%+` : 'No high-risk rollout over policy threshold' },
@@ -529,29 +232,28 @@
   }
 
   function currentPayload(message) {
-    const landingWorkspace = landingDemoWorkspace();
-    const storageWorkspace = getWorkspace();
-    const workspace = landingWorkspace || storageWorkspace;
+    const workspace = landingDemoWorkspace() || getWorkspace();
     const flags = Array.isArray(workspace.flags) && workspace.flags.length ? workspace.flags : fallbackFlags();
-    const release = workspace.release || { train: 'peak-sale-2026.11', environment: 'production', changeTicket: 'CHG-DEMO', window: 'next production deploy' };
-    const context = workspace.context || { environment: 'production' };
+    const release = workspace.release || { train: 'peak-sale-2026.11', environment: 'production', changeTicket: 'CHG-1850', window: 'next production deploy' };
     const source = workspace.source ? ` · ${workspace.source}` : '';
-    summary.textContent = `${flags.length} flag(s), ${flags.filter(flag => flag.enabled).length} enabled, ${release.changeTicket || 'no change ticket'}${source}.`;
+    summary.textContent = `${flags.length} flag(s), ${flags.filter((flag) => flag.enabled).length} enabled, ${release.changeTicket || 'no change ticket'}${source}.`;
     return {
       message,
-      release: {
-        train: release.train || 'demo-release',
-        environment: context.environment || release.environment || 'production',
-        changeTicket: release.changeTicket || '',
-        window: release.window || 'not set',
-      },
+      release,
+      context: workspace.context || { environment: 'production' },
       flags,
       checks: buildChecks(flags, release),
     };
   }
 
   async function ask(message) {
-    output.innerHTML = '<div class="cu-ai-widget-empty">Checking this workspace...</div>';
+    addMessage('user', escapeHtml(message));
+    const loading = document.createElement('div');
+    loading.className = 'cu-aiw-msg cu-aiw-bot';
+    loading.textContent = 'Thinking...';
+    feed.appendChild(loading);
+    loading.scrollIntoView({ block: 'end' });
+
     try {
       const response = await fetch(`${API_BASE}/api/v1/ai-devops/demo`, {
         method: 'POST',
@@ -560,10 +262,12 @@
       });
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || `HTTP ${response.status}`);
-      showResult(data, message);
+      loading.remove();
+      if (data.mode === 'conversation') addMessage('bot', renderMarkdown(plainAnswer(data.answer || data.summary)));
+      else addReport(data);
     } catch (error) {
-      const fallback = `## Decision: REVIEW\n\nRisk: UNKNOWN\n\nThe checker could not reach the backend yet. ${error.message}\n\n## Next Actions\n- Verify policy blockers.\n- Check high-risk rollouts.\n- Confirm missing expirations.\n- Validate dependency gaps and rollback evidence before launch.`;
-      showResult({ answer: fallback, decision: 'REVIEW', risk: 'UNKNOWN', mode: 'offline-fallback' }, message);
+      loading.remove();
+      addMessage('bot', `I could not reach the checker backend yet. ${escapeHtml(error.message)}`);
     }
   }
 
@@ -571,16 +275,17 @@
     panel.classList.toggle('is-open');
     currentPayload('summary');
   });
-  panel.querySelector('.cu-ai-widget-close').addEventListener('click', () => panel.classList.remove('is-open'));
-  panel.querySelectorAll('[data-prompt]').forEach(promptButton => {
+  panel.querySelector('.cu-aiw-close').addEventListener('click', () => panel.classList.remove('is-open'));
+  panel.querySelectorAll('[data-prompt]').forEach((promptButton) => {
     promptButton.addEventListener('click', () => {
       textarea.value = promptButton.dataset.prompt;
       ask(promptButton.dataset.prompt);
     });
   });
-  form.addEventListener('submit', event => {
+  form.addEventListener('submit', (event) => {
     event.preventDefault();
     const message = textarea.value.trim() || 'Run a live release readiness check.';
+    textarea.value = '';
     ask(message);
   });
 
