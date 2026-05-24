@@ -81,6 +81,10 @@
   const summary = panel.querySelector('#cu-aiw-summary');
   const form = panel.querySelector('form');
   const textarea = panel.querySelector('textarea');
+  const sendButton = panel.querySelector('.cu-aiw-send');
+  const promptButtons = Array.from(panel.querySelectorAll('[data-prompt]'));
+  const chatHistory = [];
+  let running = false;
 
   function escapeHtml(value) {
     return String(value || '')
@@ -133,12 +137,25 @@
       .trim();
   }
 
+  function sectionText(answer, label) {
+    const text = String(answer || '').trim();
+    const escaped = label.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const pattern = new RegExp(`(?:^|\\n)#{1,3}\\s*${escaped}[^\\n]*\\n([\\s\\S]*?)(?=\\n#{1,3}\\s+|$)`, 'i');
+    const match = text.match(pattern);
+    return (match?.[1] || text).trim();
+  }
+
   function addMessage(role, html) {
     const node = document.createElement('div');
     node.className = `cu-aiw-msg ${role === 'user' ? 'cu-aiw-user' : 'cu-aiw-bot'}`;
     node.innerHTML = html;
     feed.appendChild(node);
     node.scrollIntoView({ block: 'end' });
+  }
+
+  function remember(role, content) {
+    chatHistory.push({ role, content: String(content || '').slice(0, 1200) });
+    while (chatHistory.length > 8) chatHistory.shift();
   }
 
   function addReport(data) {
@@ -153,17 +170,18 @@
       <div>${renderMarkdown(data.answer || data.summary || 'Checker completed.')}</div>
       ${/github|jira|slack|payload/i.test(data.answer || '') ? `
         <div class="cu-aiw-copybar">
-          <button type="button" data-copy="GitHub">Copy GitHub</button>
-          <button type="button" data-copy="Jira">Copy Jira</button>
-          <button type="button" data-copy="Slack">Copy Slack</button>
+          <button type="button" data-copy="GitHub">Copy GitHub text</button>
+          <button type="button" data-copy="Jira">Copy Jira text</button>
+          <button type="button" data-copy="Slack">Copy Slack text</button>
         </div>` : ''}
     `;
     feed.appendChild(node);
     node.querySelectorAll('[data-copy]').forEach((copyButton) => {
       copyButton.addEventListener('click', async () => {
-        await navigator.clipboard.writeText(data.answer || '');
+        const label = copyButton.dataset.copy;
+        await navigator.clipboard.writeText(sectionText(data.answer || data.summary || '', label));
         copyButton.textContent = `Copied ${copyButton.dataset.copy}`;
-        setTimeout(() => { copyButton.textContent = `Copy ${copyButton.dataset.copy}`; }, 1400);
+        setTimeout(() => { copyButton.textContent = `Copy ${copyButton.dataset.copy} text`; }, 1400);
       });
     });
     node.scrollIntoView({ block: 'end' });
@@ -239,6 +257,7 @@
     summary.textContent = `${flags.length} flag(s), ${flags.filter((flag) => flag.enabled).length} enabled, ${release.changeTicket || 'no change ticket'}${source}.`;
     return {
       message,
+      history: chatHistory.slice(-8),
       release,
       context: workspace.context || { environment: 'production' },
       flags,
@@ -247,7 +266,12 @@
   }
 
   async function ask(message) {
+    if (running) return;
+    running = true;
+    sendButton.disabled = true;
+    promptButtons.forEach((promptButton) => { promptButton.disabled = true; });
     addMessage('user', escapeHtml(message));
+    remember('user', message);
     const loading = document.createElement('div');
     loading.className = 'cu-aiw-msg cu-aiw-bot';
     loading.textContent = 'Thinking...';
@@ -263,11 +287,21 @@
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || `HTTP ${response.status}`);
       loading.remove();
-      if (data.mode === 'conversation') addMessage('bot', renderMarkdown(plainAnswer(data.answer || data.summary)));
-      else addReport(data);
+      if (data.mode === 'conversation') {
+        const answer = plainAnswer(data.answer || data.summary);
+        addMessage('bot', renderMarkdown(answer));
+        remember('assistant', answer);
+      } else {
+        addReport(data);
+        remember('assistant', data.answer || data.summary || 'Release check completed.');
+      }
     } catch (error) {
       loading.remove();
       addMessage('bot', `I could not reach the checker backend yet. ${escapeHtml(error.message)}`);
+    } finally {
+      running = false;
+      sendButton.disabled = false;
+      promptButtons.forEach((promptButton) => { promptButton.disabled = false; });
     }
   }
 
@@ -276,14 +310,21 @@
     currentPayload('summary');
   });
   panel.querySelector('.cu-aiw-close').addEventListener('click', () => panel.classList.remove('is-open'));
-  panel.querySelectorAll('[data-prompt]').forEach((promptButton) => {
+  promptButtons.forEach((promptButton) => {
     promptButton.addEventListener('click', () => {
+      if (running) return;
       textarea.value = promptButton.dataset.prompt;
       ask(promptButton.dataset.prompt);
     });
   });
+  textarea.addEventListener('keydown', (event) => {
+    if (event.key !== 'Enter' || event.shiftKey) return;
+    event.preventDefault();
+    form.requestSubmit();
+  });
   form.addEventListener('submit', (event) => {
     event.preventDefault();
+    if (running) return;
     const message = textarea.value.trim() || 'Run a live release readiness check.';
     textarea.value = '';
     ask(message);
