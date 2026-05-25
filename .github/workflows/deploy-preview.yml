@@ -1,0 +1,71 @@
+﻿name: Deploy Preview
+
+on:
+  pull_request:
+    branches: [main]
+
+jobs:
+  release-gate:
+    runs-on: ubuntu-latest
+    name: Compass Ultra Release Gate
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+
+      - id: compass-check
+        uses: ./.github/actions/compass-check
+        with:
+          api-key: ${{ secrets.COMPASS_API_KEY }}
+          workspace: fixtures/compass-workspace.demo.json
+          fail-on: high
+        continue-on-error: true
+
+      - uses: actions/github-script@v7
+        if: always() && github.event_name == 'pull_request'
+        env:
+          COMPASS_RESULT: ${{ steps.compass-check.outputs.result || '{}' }}
+        with:
+          script: |
+            let result = {};
+            try {
+              result = JSON.parse(process.env.COMPASS_RESULT || '{}');
+            } catch (error) {
+              result = {
+                failed: true,
+                markdown: 'Compass release gate completed, but result JSON could not be parsed.',
+                parseError: String(error),
+              };
+            }
+            const body = [
+              '## Compass Ultra Release Gate',
+              '',
+              result.markdown || result.summary || 'Release gate completed.',
+              '',
+              result.failed
+                ? '> âŒ **Release gate failed** â€” fix the flagged issues before merging.'
+                : '> âœ… **Release gate passed** â€” safe to proceed.',
+            ].join('\n');
+            await github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body,
+            });
+
+  preview-build:
+    needs: release-gate
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+
+      - uses: actions/setup-node@39370e3970a6d050c480ffad4ff0ed4d3fdee5af
+        with:
+          node-version: 20
+          cache: npm
+
+      - run: npm ci
+      - run: npm run build
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: compass-ultra-preview
+          path: dist
