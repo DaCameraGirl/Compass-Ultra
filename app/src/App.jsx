@@ -774,8 +774,23 @@ export default function App() {
     [context, flags, policyChecks, release, workspaceName]
   );
 
+  const safeForStorage = (integrationsList) => integrationsList.map((integration) => ({
+    ...integration,
+    apiKey: '',
+    endpoint: '',
+    projectId: '',
+  }));
+
   useEffect(() => {
-    window.localStorage.setItem(storageKey, JSON.stringify({ workspaceName, release, team, integrations, context, flags, audit }));
+    window.localStorage.setItem(storageKey, JSON.stringify({
+      workspaceName,
+      release,
+      team,
+      integrations: safeForStorage(integrations),
+      context,
+      flags,
+      audit,
+    }));
   }, [audit, context, flags, integrations, release, team, workspaceName]);
 
   useEffect(() => {
@@ -1070,7 +1085,11 @@ export default function App() {
   };
 
   const exportWorkspace = () => {
-    const stamped = JSON.stringify({ ...workspace, exportedAt: new Date().toISOString() }, null, 2);
+    const stamped = JSON.stringify({
+      ...workspace,
+      integrations: safeForStorage(workspace.integrations),
+      exportedAt: new Date().toISOString(),
+    }, null, 2);
     const blob = new Blob([stamped], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
@@ -1299,7 +1318,11 @@ export default function App() {
 
   const copyShareLink = async () => {
     const url = new URL(window.location.href);
-    url.searchParams.set('workspace', encodeWorkspace({ ...workspace, exportedAt: new Date().toISOString() }));
+    url.searchParams.set('workspace', encodeWorkspace({
+      ...workspace,
+      integrations: safeForStorage(workspace.integrations),
+      exportedAt: new Date().toISOString(),
+    }));
     await copyText(url.toString(), 'Share link copied');
   };
 
