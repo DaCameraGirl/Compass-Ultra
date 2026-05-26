@@ -1,12 +1,13 @@
-import React from 'react';
+import React, { lazy, Suspense } from 'react';
 import { createRoot } from 'react-dom/client';
 import { Auth0Provider } from '@auth0/auth0-react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { Analytics } from '@vercel/analytics/react';
-import App from './App.jsx';
-import LandingPage from './LandingPage.jsx';
-import AiDevOpsChecker from './AiDevOpsChecker.jsx';
 import './styles.css';
+
+const App = lazy(() => import('./App.jsx'));
+const LandingPage = lazy(() => import('./LandingPage.jsx'));
+const AiDevOpsChecker = lazy(() => import('./AiDevOpsChecker.jsx'));
 
 const domain   = import.meta.env.VITE_AUTH0_DOMAIN || 'compassultra.us.auth0.com';
 const clientId = import.meta.env.VITE_AUTH0_CLIENT_ID || 'XnScfnNJsKiooRvxExyX9geuWGnJb2QV';
@@ -155,19 +156,21 @@ createRoot(document.getElementById('root')).render(
       }}
     >
       <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<LandingPage />} />
-          <Route path="/pricing" element={<LandingPage initialAnchor="pricing" />} />
-          <Route path="/features" element={<LandingPage initialAnchor="features" />} />
-          <Route path="/demo" element={<LandingPage initialAnchor="demo" />} />
-          <Route path="/ai-devops" element={<AiDevOpsChecker />} />
-          <Route path="/app" element={<App />} />
-          <Route path="/app/*" element={<App />} />
-          <Route path="/privacy" element={<LegalPage type="privacy" />} />
-          <Route path="/terms" element={<LegalPage type="terms" />} />
-          <Route path="/trust" element={<TrustPage />} />
-        </Routes>
-        <Analytics />
+        <Suspense fallback={<div className="route-loading">Loading…</div>}>
+          <Routes>
+            <Route path="/" element={<LandingPage />} />
+            <Route path="/pricing" element={<LandingPage initialAnchor="pricing" />} />
+            <Route path="/features" element={<LandingPage initialAnchor="features" />} />
+            <Route path="/demo" element={<LandingPage initialAnchor="demo" />} />
+            <Route path="/ai-devops" element={<AiDevOpsChecker />} />
+            <Route path="/app" element={<App />} />
+            <Route path="/app/*" element={<App />} />
+            <Route path="/privacy" element={<LegalPage type="privacy" />} />
+            <Route path="/terms" element={<LegalPage type="terms" />} />
+            <Route path="/trust" element={<TrustPage />} />
+          </Routes>
+          <Analytics />
+        </Suspense>
       </BrowserRouter>
     </Auth0Provider>
   </React.StrictMode>
