@@ -1498,6 +1498,11 @@ export default function App() {
       window.history.replaceState({}, '', window.location.pathname);
       setTimeout(() => setUpgradeNotice(''), 6000);
     }
+    const planParam = params.get('plan');
+    if (planParam) {
+      window.history.replaceState({}, '', window.location.pathname);
+      setShowPricing(true);
+    }
     const snapId = params.get('snapshot');
     if (!snapId) return;
     api.getSnapshot(snapId).then((snap) => {

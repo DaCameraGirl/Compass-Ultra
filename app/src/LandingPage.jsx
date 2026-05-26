@@ -101,6 +101,7 @@ const PRICING = [
     name: 'Team', price: '$299', period: 'per month', color: '#3fb950', highlight: true,
     badge: 'BEST FOR RELEASE TEAMS',
     persona: 'Organization · up to 15',
+    plan: 'team',
     description: 'Release teams that need shared readiness scoring, CAB workflows, and audit trails.',
     features: ['Everything in Pro', 'Up to 15 team seats', 'Release Readiness scoring across workspaces', 'CAB-ready certificate workflow', 'Multi-environment snapshot diff', 'Audit log streaming', 'SSO-ready (Google + Email)'],
     cta: 'Start Free Trial',
@@ -638,7 +639,7 @@ export default function LandingPage({ initialAnchor }) {
     return () => window.cancelAnimationFrame(raf);
   }, [initialAnchor]);
 
-  const goToApp = () => navigate('/app');
+  const goToApp = (plan) => navigate(plan ? `/app?plan=${plan}` : '/app');
   const goToDemo = () => navigate('/app?demo=true');
   const bookDemo = () => {
     window.location.href = 'mailto:hello@compassultra.com?subject=Book%20a%2015-min%20Compass%20Ultra%20demo';
@@ -1133,7 +1134,7 @@ export default function LandingPage({ initialAnchor }) {
                 <button
                   className={tier.highlight ? 'lp-btn-primary' : 'lp-btn-outline'}
                   style={tier.highlight ? { justifyContent: 'center' } : { borderColor: tier.color, color: tier.color }}
-                  onClick={tier.name === 'Enterprise' ? () => window.location.href = 'mailto:hello@compassultra.com' : goToApp}
+                  onClick={tier.name === 'Enterprise' ? () => window.location.href = 'mailto:hello@compassultra.com' : () => goToApp(tier.plan)}
                 >
                   {tier.cta}
                 </button>
