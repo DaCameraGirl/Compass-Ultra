@@ -11,42 +11,98 @@ const FEATURES = [
   {
     icon: <Shield size={22} />, color: '#3fb950',
     title: 'CI Release Gate',
-    description: 'Block PRs that fail release policy. Add one GitHub Action to your workflow and every PR gets scanned — change ticket coverage, canary limits, dependency health, expiration dates. Merge only when the gate passes.',
+    description: 'Block PRs that fail release policy. Add one GitHub Action and every PR gets scanned — change ticket coverage, canary limits, dependency health, expiration dates.',
+    detail: [
+      '🔧 How: One YAML step in your GitHub Actions workflow with a COMPASS_API_KEY secret — no infrastructure changes.',
+      '🎯 What: Scans change tickets, canary rollout limits, dependency health, flag expiration, and approver coverage on every PR.',
+      '⏱️ When: Fires on every pull request and merge attempt — before a single line reaches production.',
+      '📍 Where: Lives in your CI pipeline; results post directly to the PR as a check status with a link to the full report.',
+      '💡 Why: Catching a release policy violation at merge time costs minutes to fix. Catching it post-deploy costs hours — or your on-call rotation.',
+    ],
   },
   {
     icon: <Brain size={22} />, color: '#bc8cff',
     title: 'Risk Analyzer',
     description: 'Provider-flexible ship/no-ship assessment with specific flag keys called out, dependency gap analysis, and concrete remediation steps before you deploy.',
+    detail: [
+      '🔧 How: Run analysis from the app or API — live AI service with a deterministic fallback so you always get a result.',
+      '🎯 What: Returns a SHIP / HOLD / FIX-FIRST verdict with every affected flag key named, dependency gaps mapped, and a financial impact estimate.',
+      '⏱️ When: Run it before any production deploy, especially during high-traffic windows (peak sales, launches, migrations).',
+      '📍 Where: In-app dashboard, API endpoint, or embedded in your CI workflow via the GitHub Action.',
+      '💡 Why: Generic risk tools don\'t know your flags. Compass Ultra reads your actual workspace state — specific keys, actual rollouts, real dependency chains.',
+    ],
   },
   {
     icon: <Shield size={22} />, color: '#58a6ff',
     title: 'Automated Policy Checks',
     description: '9 enterprise gates run automatically — change ticket coverage, approver assignments, traceability, expiration dates, canary limits, dependency health, and provider readiness.',
+    detail: [
+      '🔧 How: Runs automatically on every workspace state change — no manual trigger needed.',
+      '🎯 What: 9 gates covering change tickets, critical flag approvers, flag traceability, expiration dates, production override discipline, canary rollout limits, dependency graph, and provider/outbound hook readiness.',
+      '⏱️ When: Real-time — the gate panel updates the moment you toggle a flag, change a rollout, or edit release metadata.',
+      '📍 Where: Displayed as a live gate panel in the release workspace; also embedded in every PDF export and API response.',
+      '💡 Why: SOX, HIPAA, and CAB review boards need evidence of process. These 9 gates are designed around what auditors and compliance teams actually ask for.',
+    ],
   },
   {
     icon: <Cloud size={22} />, color: '#58a6ff',
     title: 'Cloud Snapshots & Env Diff',
-    description: 'Save named checkpoints of your full release state. Compare staging vs production in one click — see exactly what flags differ, what rollouts changed, and what is missing between environments.',
+    description: 'Save named checkpoints of your full release state. Compare staging vs production in one click — see exactly what flags differ, what rollouts changed, and what is missing.',
+    detail: [
+      '🔧 How: Hit "Save Snapshot" at any point — before a deploy, after a hotfix, or when a release is approved. Name it, describe it, share it.',
+      '🎯 What: Captures every flag, rollout percentage, criticality, owner, approver, override, expiry, and dependency in a timestamped record.',
+      '⏱️ When: Save before and after every deploy. Diff them to produce a change record. Share the link with your CAB or on-call team.',
+      '📍 Where: Cloud-synced under your account; accessible from any device. Public share links work without a login.',
+      '💡 Why: "What changed between staging and production?" is the most common question in a production incident. Now you can answer it in one click.',
+    ],
   },
   {
     icon: <FileDown size={22} />, color: '#3fb950',
     title: 'PDF Release Runbooks',
     description: 'One-click export with gate status, policy results, active evaluations, and per-flag rollback procedures. Ready for CAB submission or management review.',
+    detail: [
+      '🔧 How: Click "Export Certificate" — jsPDF generates the full document client-side in seconds with no upload required.',
+      '🎯 What: Includes release metadata, deploy window, policy gate results, active flag evaluations, risk summary, per-flag rollback instructions, approver list, and full audit history.',
+      '⏱️ When: Export before your CAB review window, before a high-risk deploy, or any time you need paper trail evidence.',
+      '📍 Where: Downloaded as a PDF to your device. Filename is timestamped and workspace-keyed for easy filing.',
+      '💡 Why: Change advisory boards and compliance teams need a document, not a dashboard link. This gives them everything on one page.',
+    ],
   },
   {
     icon: <BarChart3 size={22} />, color: '#f78166',
     title: 'Flag Evaluation Engine',
     description: 'Evaluate every flag against real user segments — environment, plan, role, region, device. See exactly why each flag is on or off for any given user.',
+    detail: [
+      '🔧 How: Set a user context (key, email, tenant, plan, role, region, country, device, environment) and every flag evaluates instantly against it.',
+      '🎯 What: Shows the resolved value for each flag — the actual result, not the default — plus the reason: rule match, rollout bucket, override, or default value.',
+      '⏱️ When: Use it during QA to verify a specific user segment, during an incident to understand who is affected, or before a deploy to check edge-case users.',
+      '📍 Where: In the flag inspector panel. Switch between 3 saved context presets (Production admin, EU customer, Mobile guest) or create your own.',
+      '💡 Why: "Is this flag on for EU enterprise mobile users?" used to require reading SDK source code. Now it\'s a context switch.',
+    ],
   },
   {
     icon: <Zap size={22} />, color: '#ffb800',
     title: 'Embeddable Dev HUD',
-    description: 'Drop <CompassUltra /> into any React app. Ctrl+Shift+D opens a full debug panel — toggle flags, inject latency, mock APIs, capture logs. Devs install it for debugging and discover the platform.',
+    description: 'Drop <CompassUltra /> into any React app. Ctrl+Shift+D opens a full debug panel — toggle flags, inject latency, mock APIs, capture logs.',
+    detail: [
+      '🔧 How: Import the <CompassUltra /> React component and add it anywhere in your app tree. One component, zero config required to start.',
+      '🎯 What: A full debug HUD with live flag toggles, rollout sliders, latency injection (Instant → 2G → Offline), API mocking, error log capture, build info, and experiment variant switching.',
+      '⏱️ When: Leave it in staging and development. Use Ctrl+Shift+D to open it without touching your UI. Disable it by not rendering the component in production.',
+      '📍 Where: Renders as a floating overlay inside your app — no separate tab, no browser extension needed.',
+      '💡 Why: Devs install it for debugging and discover the platform. It\'s also a great demo tool for showing stakeholders exactly what a flag change does in real time.',
+    ],
   },
   {
     icon: <Users size={22} />, color: '#bc8cff',
     title: 'Team RBAC & Audit Log',
-    description: 'Admin, Operator, and Viewer roles with hard-enforced permissions. Every action logged with actor, role, timestamp, and the exact gate that fired.',
+    description: 'Admin, Approver, Operator, and Viewer roles with hard-enforced permissions. Every action logged with actor, role, timestamp, and the exact gate that fired.',
+    detail: [
+      '🔧 How: Assign roles per workspace member. Permissions are enforced at the action level — not just in the UI but in every write operation.',
+      '🎯 What: 4 roles — Admin (full access), Approver (approve releases, view all), Operator (edit flags and release metadata), Viewer (read only). Every blocked action is logged.',
+      '⏱️ When: Set roles during onboarding. The audit log runs continuously — every flag toggle, release edit, snapshot save, and blocked action is timestamped and attributed.',
+      '📍 Where: Team panel in the workspace for role management. Audit log exports as part of the PDF runbook and is available as a separate JSON export on Team plan.',
+      '💡 Why: When something goes wrong in production, "who changed what and when" is the first question. The audit log is the answer.',
+    ],
   },
 ];
 
@@ -1006,11 +1062,27 @@ export default function LandingPage({ initialAnchor }) {
           <div className="lp-features-grid">
             {FEATURES.map((f) => (
               <div key={f.title} className="lp-feature-card">
-                <div className="lp-feature-icon" style={{ color: f.color, background: `${f.color}18` }}>
-                  {f.icon}
+                <div className="lp-feature-card-inner">
+                  {/* Front */}
+                  <div className="lp-feature-card-front">
+                    <div className="lp-feature-icon" style={{ color: f.color, background: `${f.color}18` }}>
+                      {f.icon}
+                    </div>
+                    <h3>{f.title}</h3>
+                    <p>{f.description}</p>
+                    <span className="lp-feature-hint">hover to explore →</span>
+                  </div>
+                  {/* Back */}
+                  <div className="lp-feature-card-back" style={{ '--feature-color': f.color }}>
+                    <div className="lp-feature-back-icon" style={{ color: f.color, background: `${f.color}18` }}>
+                      {f.icon}
+                    </div>
+                    <h3 style={{ color: f.color }}>{f.title}</h3>
+                    <ul className="lp-feature-detail">
+                      {f.detail.map((item) => <li key={item}>{item}</li>)}
+                    </ul>
+                  </div>
                 </div>
-                <h3>{f.title}</h3>
-                <p>{f.description}</p>
               </div>
             ))}
           </div>
