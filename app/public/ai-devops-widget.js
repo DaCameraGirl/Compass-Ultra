@@ -1,17 +1,65 @@
 (() => {
   const API_BASE = (window.__COMPASS_API_BASE__ || 'https://compass-ultra-backend-production.up.railway.app').replace(/\/+$/, '');
   const STORAGE_KEY = 'compass-ultra-workspace-v4';
+  const SESSION_KEY = 'cu-aiw-session-id';
+  const SESSIONS_LOCAL_KEY = 'cu-aiw-local-session-log';
 
   if (window.__compassAiDevOpsWidgetLoaded) return;
   window.__compassAiDevOpsWidgetLoaded = true;
 
+  // ── Session tracking ──────────────────────────────────────────────────────
+  // Each unique browser session gets one ID (stored in sessionStorage so it
+  // resets on every new tab/window). We also keep a running log of unique
+  // session IDs in localStorage so we can show a rough local count before
+  // the backend stats endpoint is wired up.
+
+  function getOrCreateSessionId() {
+    let id = sessionStorage.getItem(SESSION_KEY);
+    if (!id) {
+      id = 'sess-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 8);
+      sessionStorage.setItem(SESSION_KEY, id);
+      try {
+        const log = JSON.parse(localStorage.getItem(SESSIONS_LOCAL_KEY) || '[]');
+        if (!log.includes(id)) {
+          log.push(id);
+          localStorage.setItem(SESSIONS_LOCAL_KEY, JSON.stringify(log.slice(-500)));
+        }
+      } catch {}
+    }
+    return id;
+  }
+
+  function localSessionCount() {
+    try {
+      return JSON.parse(localStorage.getItem(SESSIONS_LOCAL_KEY) || '[]').length;
+    } catch {
+      return 0;
+    }
+  }
+
+  const sessionId = getOrCreateSessionId();
+  let liveStats = null;
+
+  async function fetchStats() {
+    try {
+      const res = await fetch(`${API_BASE}/api/v1/ai-devops/stats`, { method: 'GET' });
+      if (res.ok) {
+        liveStats = await res.json();
+        refreshStatsBar();
+      }
+    } catch {
+      // Endpoint not yet deployed — local count is the fallback
+    }
+  }
+
+  // ── Styles ────────────────────────────────────────────────────────────────
   const style = document.createElement('style');
   style.textContent = `
     .cu-aiw-button{position:fixed;right:24px;bottom:92px;z-index:2147483000;display:inline-flex;align-items:center;gap:9px;border:1px solid rgba(51,214,159,.42);border-radius:999px;padding:12px 16px;background:#101827;color:#f4f7fb;box-shadow:0 18px 48px rgba(0,0,0,.42);font:800 13px/1.1 "Segoe UI",system-ui,sans-serif;cursor:pointer}
     .cu-aiw-button:hover{border-color:#33d69f;transform:translateY(-1px)}
     .cu-aiw-dot{display:grid;width:30px;height:30px;place-items:center;border-radius:999px;background:#33d69f;color:#061713;font-style:normal;font-size:13px;font-weight:900}
     .cu-aiw-panel{position:fixed;right:24px;bottom:148px;z-index:2147483001;display:none;width:min(500px,calc(100vw - 32px));max-height:min(760px,calc(100vh - 176px));overflow:hidden;border:1px solid rgba(255,255,255,.12);border-radius:14px;background:#0b1020;color:#f4f7fb;box-shadow:0 24px 80px rgba(0,0,0,.55);font:14px/1.45 "Segoe UI",system-ui,sans-serif}
-    .cu-aiw-panel.is-open{display:grid;grid-template-rows:auto 1fr auto}
+    .cu-aiw-panel.is-open{display:grid;grid-template-rows:auto 1fr auto auto}
     .cu-aiw-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 16px;border-bottom:1px solid rgba(255,255,255,.1);background:#101827}
     .cu-aiw-title{display:grid;gap:2px}.cu-aiw-title strong{font-size:15px}.cu-aiw-title span{color:#9aa7bd;font-size:12px}
     .cu-aiw-close{border:0;border-radius:8px;width:32px;height:32px;background:#162033;color:#f4f7fb;cursor:pointer}
@@ -34,10 +82,13 @@
     .cu-aiw-composer{display:grid;gap:10px;padding:14px;border-top:1px solid rgba(255,255,255,.1);background:#0f1726}
     .cu-aiw-composer textarea{width:100%;min-height:82px;resize:vertical;border:1px solid rgba(255,255,255,.12);border-radius:8px;padding:10px;background:#080d19;color:#f4f7fb;font:inherit}
     .cu-aiw-send{background:#33d69f;color:#061713;font-weight:900}
+    .cu-aiw-statsbar{display:flex;gap:16px;align-items:center;padding:8px 14px;border-top:1px solid rgba(255,255,255,.06);background:#08101e;font-size:11px;color:#9aa7bd;flex-wrap:wrap}
+    .cu-aiw-statsbar b{color:#33d69f}
     @media(max-width:640px){.cu-aiw-button{right:16px;bottom:80px}.cu-aiw-panel{right:16px;bottom:136px}.cu-aiw-strip{grid-template-columns:1fr}}
   `;
   document.head.appendChild(style);
 
+  // ── DOM ───────────────────────────────────────────────────────────────────
   const button = document.createElement('button');
   button.className = 'cu-aiw-button';
   button.type = 'button';
@@ -72,6 +123,11 @@
       <textarea name="message" placeholder="Ask AI DevOps..."></textarea>
       <button class="cu-aiw-send" type="submit">Ask AI DevOps</button>
     </form>
+    <div class="cu-aiw-statsbar" id="cu-aiw-statsbar" title="Session counter — powered by Compass Ultra">
+      <span>Sessions: <b id="cu-aiw-session-count">—</b></span>
+      <span>Messages: <b id="cu-aiw-msg-count">—</b></span>
+      <span style="margin-left:auto;color:#3d4451;font-size:10px" id="cu-aiw-stats-source"></span>
+    </div>
   `;
 
   document.body.appendChild(button);
@@ -83,9 +139,27 @@
   const textarea = panel.querySelector('textarea');
   const sendButton = panel.querySelector('.cu-aiw-send');
   const promptButtons = Array.from(panel.querySelectorAll('[data-prompt]'));
+  const sessionCountEl = panel.querySelector('#cu-aiw-session-count');
+  const msgCountEl = panel.querySelector('#cu-aiw-msg-count');
+  const statsSourceEl = panel.querySelector('#cu-aiw-stats-source');
   const chatHistory = [];
   let running = false;
+  let messageCount = 0;
 
+  function refreshStatsBar() {
+    if (liveStats) {
+      sessionCountEl.textContent = (liveStats.unique_sessions ?? liveStats.sessions ?? '—').toLocaleString();
+      msgCountEl.textContent = (liveStats.total_messages ?? liveStats.messages ?? '—').toLocaleString();
+      statsSourceEl.textContent = 'live ✓';
+    } else {
+      const local = localSessionCount();
+      sessionCountEl.textContent = local > 0 ? local.toLocaleString() : '—';
+      msgCountEl.textContent = messageCount > 0 ? messageCount.toLocaleString() : '—';
+      statsSourceEl.textContent = 'local';
+    }
+  }
+
+  // ── Helpers ───────────────────────────────────────────────────────────────
   function escapeHtml(value) {
     return String(value || '')
       .replaceAll('&', '&amp;')
@@ -185,6 +259,11 @@
       });
     });
     node.scrollIntoView({ block: 'end' });
+    // If the backend echoes stats back, use them to update the bar
+    if (data.session_count != null || data.total_sessions != null) {
+      liveStats = { ...liveStats, unique_sessions: data.session_count ?? data.total_sessions, total_messages: data.total_messages };
+      refreshStatsBar();
+    }
   }
 
   function getWorkspace() {
@@ -262,9 +341,16 @@
       context: workspace.context || { environment: 'production' },
       flags,
       checks: buildChecks(flags, release),
+      // ── Session tracking ──────────────────────────────────────────────
+      // session_id is stable for the browser tab; resets on a new tab so
+      // each new visitor gets a fresh ID. local_session_count lets the AI
+      // mention visitor count in conversation before backend stats are live.
+      session_id: sessionId,
+      local_session_count: liveStats?.unique_sessions ?? localSessionCount(),
     };
   }
 
+  // ── Send a message ────────────────────────────────────────────────────────
   async function ask(message) {
     if (running) return;
     running = true;
@@ -287,6 +373,7 @@
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || `HTTP ${response.status}`);
       loading.remove();
+      messageCount += 1;
       if (data.mode === 'conversation') {
         const answer = plainAnswer(data.answer || data.summary);
         addMessage('bot', renderMarkdown(answer));
@@ -295,6 +382,11 @@
         addReport(data);
         remember('assistant', data.answer || data.summary || 'Release check completed.');
       }
+      // Update stats bar from backend response if available
+      if (data.session_count != null || data.total_sessions != null) {
+        liveStats = { ...liveStats, unique_sessions: data.session_count ?? data.total_sessions, total_messages: data.total_messages };
+      }
+      refreshStatsBar();
     } catch (error) {
       loading.remove();
       addMessage('bot', `I could not reach the checker backend yet. ${escapeHtml(error.message)}`);
@@ -305,9 +397,14 @@
     }
   }
 
+  // ── Event wiring ──────────────────────────────────────────────────────────
   button.addEventListener('click', () => {
     panel.classList.toggle('is-open');
     currentPayload('summary');
+    if (panel.classList.contains('is-open')) {
+      refreshStatsBar();
+      fetchStats(); // async — updates bar when it resolves
+    }
   });
   panel.querySelector('.cu-aiw-close').addEventListener('click', () => panel.classList.remove('is-open'));
   promptButtons.forEach((promptButton) => {
