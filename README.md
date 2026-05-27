@@ -1,10 +1,10 @@
-﻿# 🧭 Compass Ultra
+# 🧭 Compass Ultra
 
 > **Release intelligence for teams that ship behind feature flags.**
 
 Compass Ultra is a release control room for feature-flagged software. It helps product, engineering, QA, DevOps, and compliance teams review flag state, policy gates, rollout risk, snapshot diffs, AI-assisted risk analysis, and audit-ready release proof before production changes go live.
 
-[🚀 Live App](https://www.compassultra.com) · [🎮 Try the Demo](https://www.compassultra.com/app?demo=true)
+[🚀 Live App](https://www.compassultra.com) · [🎮 Try the Demo](https://www.compassultra.com/app?demo=true) · [🤖 AI DevOps Checker](https://www.compassultra.com/ai-devops)
 
 ---
 
@@ -26,7 +26,7 @@ But over time, they can become a release surface of their own:
 
 Instead of asking:
 
-> “Are we good to ship?”
+> "Are we good to ship?"
 
 Your team can answer:
 
@@ -61,15 +61,17 @@ The demo works without an account:
 
 **Demo:** [https://www.compassultra.com/app?demo=true](https://www.compassultra.com/app?demo=true)
 
-The demo simulates a risky retail release with:
+The demo simulates a risky retail release (Black Friday eve, `peak-sale-2026.11`) with:
 
-* 🛒 High-risk checkout and flash-sale flags
-* 🚧 Policy blockers and warnings
-* 🔗 Dependency checks
+* 🏁 10 feature flags across LaunchDarkly, Statsig, and Firebase
+* 🛒 High-risk checkout, flash-sale, and same-day shipping flags
+* 🚧 Policy blockers and warnings (dependency gaps, canary violations)
+* 🔗 Dependency graph checks
 * 🧾 Snapshot comparison
 * 📄 PDF runbook export
 * 🔌 GitHub, Jira, and Slack payload generation
 * 🧯 Kill-switch rollback flow for demo state
+* 💰 Financial impact estimate for peak-traffic deploy window
 
 ---
 
@@ -83,6 +85,8 @@ Compass Ultra reviews the current release workspace and returns a practical rele
 * 🟡 **Hold**
 * 🔴 **Fix first**
 
+Powered by a live AI service with a deterministic fallback — analysis is never blocked even when the AI service is unavailable.
+
 It can detect issues such as:
 
 * 🔥 High-risk active flags
@@ -92,6 +96,7 @@ It can detect issues such as:
 * 🐤 Canary rollout violations
 * 🚨 Production overrides
 * 🧾 Compliance-sensitive rollout patterns
+* 💰 Financial impact estimates for peak-traffic deploy windows
 
 ---
 
@@ -99,42 +104,90 @@ It can detect issues such as:
 
 Evaluate every flag against a specific user context.
 
-| Field          | Description                                             |
-| -------------- | ------------------------------------------------------- |
-| 👤 User key    | Unique user identifier                                  |
-| 📧 Email       | User email address                                      |
-| 🏢 Tenant      | Customer or account tenant                              |
-| 💳 Plan        | Pricing or entitlement plan                             |
-| 🛂 Role        | User role or permission group                           |
-| 🌎 Region      | Geographic or infrastructure region                     |
-| 🏳️ Country    | Country-level targeting                                 |
-| 📱 Device      | Device or platform type                                 |
+| Field | Description |
+| --- | --- |
+| 👤 User key | Unique user identifier |
+| 📧 Email | User email address |
+| 🏢 Tenant | Customer or account tenant |
+| 💳 Plan | Pricing or entitlement plan |
+| 🛂 Role | User role or permission group |
+| 🌎 Region | Geographic or infrastructure region |
+| 🏳️ Country | Country-level targeting |
+| 📱 Device | Device or platform type |
 | 🌐 Environment | Development, staging, production, or custom environment |
 
 Each flag shows:
 
 * 🎚️ Evaluated value
-* 🧠 Resolution reason
+* 🧠 Resolution reason (rule match, rollout bucket, default, or override)
 * 🧩 Matching rule or condition
 * 📌 Relevant context used during evaluation
 
+Switch between saved context presets — Production admin, EU customer, Mobile guest — to see how flags behave per segment.
+
 ---
 
-### 🛡️ Policy Gates
+### 🛡️ Enterprise Policy Gates (9 Checks)
 
-Compass Ultra runs release readiness checks before changes go live.
+Compass Ultra runs automated release checks on every workspace state change.
 
-Example gates:
+| 🔒 Gate | What it checks |
+| --- | --- |
+| 🎟️ Change ticket attached | CHG or Jira ticket is present before production |
+| 👥 Critical flags have approvers | All high/critical active flags have named approvers |
+| 🧬 Every flag has traceability | All flags have Jira/change IDs |
+| ⏳ No expired flags enabled | No enabled flags are past expiration |
+| 🚫 Production override discipline | No manual overrides active in production |
+| 🐤 Canary rollout limit | Canary-required flags stay within 50% rollout |
+| 🔗 Dependencies enabled | No enabled flag has a disabled dependency |
+| 🔌 Live provider adapters configured | At least one provider token is connected |
+| 📤 Outbound DevOps hooks configured | GitHub/Jira/Slack endpoints are set |
 
-* 🎟️ Change ticket attached
-* 👥 Required approver assigned
-* 🧬 Every flag traceable
-* ⏳ Expiration dates present
-* 🐤 Canary limits respected
-* 🔗 Dependencies enabled
-* 🚫 No production overrides
-* 🔌 Provider readiness verified
-* 📤 Outbound workflow readiness verified
+---
+
+### 🤖 AI DevOps Chat Widget
+
+A floating AI chat assistant that can be embedded on any page with a single script tag:
+
+```html
+<script src="https://www.compassultra.com/ai-devops-widget.js"></script>
+```
+
+* 💬 Ask release questions in natural language
+* 🔍 Reads the live workspace state automatically
+* 📊 Session counter shows how many visitors have used it
+* ⚡ Graceful fallback when AI service is unavailable
+* 🧠 Maintains chat history across messages in the same session
+
+Try it live: [https://www.compassultra.com/ai-devops](https://www.compassultra.com/ai-devops)
+
+---
+
+### 🔌 Provider Integrations (Read-Only Sync)
+
+Import live flag state from your flag provider via a customer-owned read-only token through the server proxy.
+
+| 🏴 Provider | Type |
+| --- | --- |
+| 🚀 LaunchDarkly | Provider sync |
+| 📊 Statsig | Provider sync |
+| 🔓 Unleash | Provider sync |
+| 🏳️ Flagsmith | Provider sync |
+| 🔥 Firebase Remote Config | Provider sync |
+
+🔒 API keys never leave the backend proxy. The browser only calls the Compass Ultra API.
+
+---
+
+### 📤 Outbound DevOps Integrations
+
+One-click payload copy or POST to your existing tools:
+
+| 🔌 Integration | Type |
+| --- | --- |
+| 🐙 GitHub Issues | Release evidence issue |
+| 🎫 Jira Change | CHG ticket update |
+| 💬 Slack War Room | Release blocks / rich message |
 
 ---
 
@@ -148,37 +201,52 @@ Diffs can identify:
 * ➖ Removed flags
 * 📈 Rollout changes
 * 🚨 Criticality changes
-* 👤 Owner changes
-* ✅ Approver changes
+* 👤 Owner or approver changes
 * 🛠️ Override changes
 
 ---
 
-### 📄 PDF Release Runbooks
+### 📄 PDF Release Runbooks & Certificates
 
-Export release-ready PDFs for QA, CAB, leadership, DevOps, or audit review.
+Export CAB-ready PDFs for QA, leadership, DevOps, or audit review.
 
-Runbooks can include:
+Runbooks include:
 
-* 🏷️ Release metadata
-* 🎯 Flag evaluations
+* 🏷️ Release metadata and deploy window
+* 🎯 Flag evaluations and rollout states
 * 🛡️ Policy gate results
-* 🧠 Risk summary
-* 🧯 Rollback notes
-* ✍️ Approvers
+* 🧠 Risk summary and financial impact
+* 🧯 Rollback notes per flag
+* ✍️ Approver sign-off list
 * 🧾 Audit history
 
 ---
 
-### 🔌 Workflow Payloads
+### 🐙 GitHub Action CI Gate
 
-Compass Ultra can generate workflow-ready payloads for:
+Block deploys in CI when release risk exceeds a configured threshold:
 
-* 🐙 GitHub
-* 🎫 Jira
-* 💬 Slack
+```yaml
+- uses: ./.github/actions/compass-check
+  with:
+    compass_api_key: ${{ secrets.COMPASS_API_KEY }}
+    risk_threshold: high
+```
 
-These payloads help teams move release evidence into the tools they already use.
+🚦 The action fails the workflow automatically if blockers are found — no more "we forgot to check the flags before merging."
+
+---
+
+### 👥 RBAC (4 Roles)
+
+| 🎭 Role | Permissions |
+| --- | --- |
+| 🔑 Admin | Full access — flags, release, team, integrations |
+| ✅ Approver | Approve releases, view all |
+| 🛠️ Operator | Edit flags and release metadata |
+| 👁️ Viewer | Read only |
+
+All blocked actions are logged with actor, role, gate triggered, and exact timestamp.
 
 ---
 
@@ -190,19 +258,19 @@ It is the **release review layer** around feature flags.
 
 Use it when you need a clear answer to:
 
-> “Can we safely ship this feature-flagged release, and can we prove it?”
+> "Can we safely ship this feature-flagged release, and can we prove it?"
 
 ---
 
 ## 💸 Pricing
 
-| Plan          |   Price |          Seats | Best for                                                                  |
-| ------------- | ------: | -------------: | ------------------------------------------------------------------------- |
-| 🆓 Free       |      $0 |     Local only | Trying the workspace and local release review                             |
-| 🧍 Solo       |  $49/mo |         1 seat | Solo operators who need cloud sync, risk analysis, snapshots, and exports |
-| 🚀 Pro        | $149/mo |  Up to 5 seats | Small teams that need shared release review and diffing                   |
-| 👥 Team       | $299/mo | Up to 15 seats | Release teams that need RBAC, audit export, alerts, and org workflows     |
-| 🏢 Enterprise |  Custom |         Custom | Security review, onboarding, custom terms, and integrations               |
+| Plan | Price | Seats | Best for |
+| --- | ---: | ---: | --- |
+| 🆓 Free | $0 | Local only | Trying the workspace and local release review |
+| 🧍 Solo | $49/mo | 1 seat | Solo operators who need cloud sync, risk analysis, snapshots, and exports |
+| 🚀 Pro | $149/mo | Up to 5 seats | Small teams that need shared release review and diffing |
+| 👥 Team | $299/mo | Up to 15 seats | Release teams that need RBAC, audit export, alerts, and org workflows |
+| 🏢 Enterprise | Custom | Custom | Security review, onboarding, custom terms, and integrations |
 
 Paid plans start with a **7-day free trial**.
 
@@ -210,70 +278,23 @@ No credit card required. Trials downgrade to Free automatically unless the custo
 
 ---
 
-## 🧾 Seat and Trial Auditing
-
-Seat limits should be enforced by the backend, not only the UI.
-
-### 📊 Recommended Plan Limits
-
-| Plan          | Included Seats |
-| ------------- | -------------: |
-| 🧍 Solo       |              1 |
-| 🚀 Pro        |              5 |
-| 👥 Team       |             15 |
-| 🏢 Enterprise |         Custom |
-
-### 🧪 Recommended Trial Controls
-
-* ✅ Require verified Auth0 email.
-* 🕒 Store `trial_started_at`, `trial_expires_at`, `trial_plan`, and `trial_used`.
-* 📧 Limit one trial per email.
-* 🏢 Limit one Pro or Team trial per company domain within a cooldown window.
-* 🚦 Rate limit AI analysis and other expensive backend actions during trials.
-* 🚫 Block disposable email domains if abuse becomes real.
-* 🧾 Log invite, remove, role-change, and over-limit attempts in the audit trail.
-
-### 🗂️ Recommended Seat Audit Fields
-
-```txt
-workspace_id
-user_id
-email
-role
-status
-invited_at
-accepted_at
-removed_at
-last_active_at
-```
-
-### 🚦 Recommended Enforcement Logic
-
-```txt
-active_seats = accepted members + pending invites
-
-if active_seats >= plan_seat_limit:
-  block invite
-  show upgrade prompt
-  write audit event
-```
-
----
-
 ## 🛠️ Tech Stack
 
-| Layer               | Technology                                     |
-| ------------------- | ---------------------------------------------- |
-| ⚛️ Frontend         | React, Vite                                    |
-| 🧭 Routing          | React Router                                   |
-| 🎨 UI icons         | Lucide React                                   |
-| 📄 PDF export       | jsPDF                                          |
-| 🔐 Auth             | Auth0                                          |
-| 💳 Payments         | Stripe                                         |
-| 📈 Analytics        | Vercel Analytics                               |
-| 🧱 Backend          | Express API in the backend repo                |
-| 🐘 Database         | PostgreSQL through backend                     |
+| Layer | Technology |
+| --- | --- |
+| ⚛️ Frontend | React, Vite |
+| 🧭 Routing | React Router |
+| ✂️ Code splitting | React.lazy + Suspense |
+| 🎨 UI icons | Lucide React |
+| 📄 PDF export | jsPDF |
+| 🔐 Auth | Auth0 |
+| 💳 Payments | Stripe |
+| 📈 Analytics | Vercel Analytics |
+| 🔒 Security headers | X-Frame-Options, CSP, HSTS, cache control |
+| 🧱 Backend | Express API in the backend repo |
+| 🐘 Database | PostgreSQL through backend |
 | 🤖 AI risk analysis | Backend AI service with deterministic fallback |
+| ☁️ Hosting | Vercel (frontend) · Railway (backend) |
 
 ---
 
@@ -285,88 +306,14 @@ Public users can explore the live app and demo without access to the source code
 
 ---
 
-## 🧑‍💻 Run Locally
-
-Install dependencies and start the local development server:
-
-```bash
-npm install
-npm run dev
-```
-
-Build for production:
-
-```bash
-npm run build
-```
-
-Preview the production build:
-
-```bash
-npm run preview
-```
-
----
-
-## 📜 Scripts
-
-```bash
-npm run dev
-npm run build
-npm run preview
-npm run typecheck
-npm run lint
-npm test
-```
-
----
-
-## 🔐 Environment Variables
-
-### ⚛️ Frontend
-
-```bash
-VITE_API_URL=
-VITE_AUTH0_DOMAIN=
-VITE_AUTH0_CLIENT_ID=
-VITE_AUTH0_AUDIENCE=
-```
-
-### 🧱 Backend
-
-Configured in the backend deployment:
-
-```bash
-DATABASE_URL=
-AUTH0_DOMAIN=
-AUTH0_AUDIENCE=
-ANTHROPIC_API_KEY=
-STRIPE_SECRET_KEY=
-STRIPE_WEBHOOK_SECRET=
-STRIPE_SOLO_PRICE_ID=
-STRIPE_PRO_PRICE_ID=
-STRIPE_TEAM_PRICE_ID=
-```
-
-### 💳 Current Stripe Price Mapping
-
-```bash
-STRIPE_SOLO_PRICE_ID=price_1TXAM9L4Pybu5TTYBrazmLDJ
-STRIPE_PRO_PRICE_ID=price_1TXAMrL4Pybu5TTYj1c0mIBV
-STRIPE_TEAM_PRICE_ID=price_1TXANVL4Pybu5TTYZ9k3ip4l
-```
-
-> ⚠️ Do not commit real secrets.
-
----
-
 ## 🔒 Security Model
 
 Compass Ultra is designed as a release review layer.
 
 * 🧪 Local demo works without login.
 * 🔐 Cloud snapshots require authentication.
-* 🔌 Provider sync should use read-only tokens or backend proxy flows.
+* 🔌 Provider sync uses read-only tokens through the backend proxy — API keys never pass through the browser.
+* 🛡️ Security headers on all responses: `X-Frame-Options`, `Content-Security-Policy`, `Strict-Transport-Security`, `X-Content-Type-Options`.
 * 💳 Stripe handles card data.
 * 🪪 Auth0 is the identity provider.
 * 🔗 Share links encode workspace state and should not be used for secrets.
@@ -386,6 +333,7 @@ Compass Ultra is designed as a release review layer.
 * 🐙 GitHub Action release gate expansion
 * 📤 More export formats
 * 🔒 Security review package for Enterprise
+* 📊 Live backend session and message counts for AI DevOps widget
 
 ---
 
@@ -397,10 +345,12 @@ Compass Ultra is live:
 
 **Demo:** [https://www.compassultra.com/app?demo=true](https://www.compassultra.com/app?demo=true)
 
+**AI DevOps Checker:** [https://www.compassultra.com/ai-devops](https://www.compassultra.com/ai-devops)
+
 ---
 
 ## 🚀 Built For
 
 Teams that ship fast and still need proof before production.
 
-**Ship with confidence. Review with evidence. Prove every release.**
+**Ship with confidence. Review with evidence. Prove every release.** 🧭
