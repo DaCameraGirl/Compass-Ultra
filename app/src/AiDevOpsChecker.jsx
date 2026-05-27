@@ -6,19 +6,24 @@ import './AiDevOpsChecker.css';
 const STORAGE_KEY = 'compass-ultra-workspace-v4';
 
 const demoWorkspace = {
-  workspaceName: 'Demo Retail - Peak Sale Command',
+  workspaceName: 'Demo Retail — Peak Sale Release',
   release: {
     train: 'peak-sale-2026.11',
     environment: 'production',
-    changeTicket: 'CHG-20261120',
+    changeTicket: 'CHG-1850',
     window: 'Thu 23:00-01:00 ET',
   },
   flags: [
     { key: 'checkout.express_pay', enabled: true, criticality: 'high', rollout: 45, owner: 'Growth', expiresAt: '2026-12-01', dependencies: ['payments.stripe_v4'] },
-    { key: 'payments.stripe_v4', enabled: true, criticality: 'critical', rollout: 100, owner: 'Payments', expiresAt: '2026-11-30', dependencies: [] },
-    { key: 'inventory.realtime_sync', enabled: true, criticality: 'high', rollout: 60, owner: 'Platform', expiresAt: '2026-11-28', dependencies: [] },
-    { key: 'search.ai_rankings', enabled: true, criticality: 'medium', rollout: 35, owner: 'Search', expiresAt: '2027-01-15', dependencies: [] },
-    { key: 'promos.flash_sale_engine', enabled: false, criticality: 'high', rollout: 0, owner: 'Growth', expiresAt: 'not set', dependencies: ['inventory.realtime_sync'] },
+    { key: 'payments.stripe_v4', enabled: false, criticality: 'critical', rollout: 100, owner: 'Payments', expiresAt: '2026-11-30', dependencies: [] },
+    { key: 'fraud.ml_scoring_v2', enabled: false, criticality: 'critical', rollout: 100, owner: 'Trust & Safety', expiresAt: '2026-12-31', dependencies: [] },
+    { key: 'inventory.realtime_sync', enabled: false, criticality: 'high', rollout: 60, owner: 'Platform', expiresAt: '2026-11-28', dependencies: [] },
+    { key: 'search.ai_rankings', enabled: true, criticality: 'medium', rollout: 25, owner: 'Search', expiresAt: '2027-01-15', dependencies: [] },
+    { key: 'shipping.same_day', enabled: true, criticality: 'high', rollout: 35, owner: 'Logistics', expiresAt: '2026-12-26', dependencies: ['inventory.realtime_sync'] },
+    { key: 'ui.dark_mode', enabled: true, criticality: 'low', rollout: 10, owner: 'Frontend', expiresAt: '2027-03-01', dependencies: [] },
+    { key: 'ops.circuit_breaker', enabled: true, criticality: 'critical', rollout: 0, owner: 'SRE', expiresAt: '2027-12-31', dependencies: [] },
+    { key: 'data.gdpr_consent_v3', enabled: true, criticality: 'critical', rollout: 100, owner: 'Legal', expiresAt: '2027-12-31', dependencies: [] },
+    { key: 'promos.flash_sale_engine', enabled: true, criticality: 'critical', rollout: 100, owner: 'Commerce', expiresAt: '2026-11-30', dependencies: ['payments.stripe_v4', 'inventory.realtime_sync'] },
   ],
 };
 
@@ -55,9 +60,12 @@ function makeChecks(flags, release) {
   const missingExpiry = flags.filter((flag) => flag.enabled && (!flag.expiresAt || flag.expiresAt === 'not set'));
   const brokenDeps = flags.filter((flag) => flag.enabled && Array.isArray(flag.dependencies) && flag.dependencies.some((dep) => !flags.find((item) => item.key === dep && item.enabled)));
   const missingOwner = flags.filter((flag) => flag.enabled && !flag.owner);
+  const hasCriticalFlags = flags.some((flag) => ['high', 'critical'].includes(String(flag.criticality).toLowerCase()));
+  const allCriticalDark = hasCriticalFlags && !flags.some((flag) => flag.enabled && ['high', 'critical'].includes(String(flag.criticality).toLowerCase()));
 
   return [
     { label: 'Change ticket attached', status: release?.changeTicket ? 'pass' : 'block', detail: release?.changeTicket || 'Missing change ticket' },
+    { label: 'Critical flags active', status: allCriticalDark ? 'block' : 'pass', detail: allCriticalDark ? 'All high/critical flags are disabled — intended deploy state is dark' : 'High/critical flags have active coverage' },
     { label: 'High-risk rollout exposure', status: highRollout.length ? 'warn' : 'pass', detail: highRollout.length ? `${highRollout.length} high-risk rollout(s) at 70%+` : 'No high-risk rollout over policy threshold' },
     { label: 'Flag expirations', status: missingExpiry.length ? 'block' : 'pass', detail: missingExpiry.length ? `${missingExpiry.length} enabled flag(s) missing expiration` : 'Expiration metadata present' },
     { label: 'Dependencies enabled', status: brokenDeps.length ? 'block' : 'pass', detail: brokenDeps.length ? `${brokenDeps.length} dependency gap(s)` : 'Dependency graph is satisfied' },
@@ -81,14 +89,16 @@ export default function AiDevOpsChecker() {
   const checks = useMemo(() => makeChecks(flags, release), [flags, release]);
 
   const readiness = useMemo(() => {
-    const enabledHigh = flags.filter((flag) => flag.enabled && ['high', 'critical'].includes(String(flag.criticality).toLowerCase())).length;
-    const issues = checks.filter((check) => check.status !== 'pass').length;
-    return Math.max(34, 92 - enabledHigh * 10 - issues * 9);
-  }, [checks, flags]);
+    const passed = checks.filter((check) => check.status === 'pass').length;
+    return Math.round((passed / checks.length) * 100);
+  }, [checks]);
 
   function refreshWorkspace() {
-    const nextWorkspace = safeWorkspaceFromStorage();
-    setWorkspace(nextWorkspace);
+    // Always fall back to the demo workspace so the page shows a meaningful
+    // starting state even if the user has toggled everything dark in the main app.
+    const stored = safeWorkspaceFromStorage();
+    const hasLiveFlags = stored.source === 'live app workspace' && stored.flags.some((f) => f.enabled);
+    setWorkspace(hasLiveFlags ? stored : { ...demoWorkspace, source: 'demo workspace' });
     setResult(null);
     setError('');
   }
