@@ -2,9 +2,11 @@
 
 > **Release intelligence for teams that ship behind feature flags.**
 
-Compass Ultra is a release control room for feature-flagged software. It helps product, engineering, QA, DevOps, and compliance teams review flag state, policy gates, rollout risk, snapshot diffs, AI-assisted risk analysis, and audit-ready release proof before production changes go live.
+Compass Ultra is a release control room for feature-flagged software. Review flag state, policy gates, rollout risk, snapshot diffs, AI-assisted risk analysis, and audit-ready release proof — before production changes go live.
 
 [🚀 Live App](https://www.compassultra.com) · [🎮 Try the Demo](https://www.compassultra.com/app?demo=true) · [🤖 AI DevOps Checker](https://www.compassultra.com/ai-devops)
+
+![demo](docs/demo.gif)
 
 ---
 
