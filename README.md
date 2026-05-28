@@ -2,6 +2,8 @@
 
 Release intelligence for teams that ship behind feature flags.
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT) [![Version](https://img.shields.io/badge/version-1.1.0-blue.svg)](CHANGELOG.md)
+
 Compass Ultra is a release control room for feature-flagged software. It helps teams review flag state, policy gates, rollout risk, snapshot diffs, AI risk analysis, and audit-ready release proof before production changes go live.
 
 [Live app](https://www.compassultra.com) | [Try the demo](https://www.compassultra.com/app?demo=true) | [Trust](https://www.compassultra.com/trust)
