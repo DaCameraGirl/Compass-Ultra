@@ -40,6 +40,7 @@
 
   const sessionId = getOrCreateSessionId();
   let liveStats = null;
+  let statsPollTimer = null;
 
   async function fetchStats() {
     try {
@@ -73,6 +74,20 @@
     } catch {
       // Tracking should never block the widget.
     }
+  }
+
+  function startStatsPolling() {
+    if (statsPollTimer) return;
+    statsPollTimer = window.setInterval(() => {
+      if (document.hidden || !panel.classList.contains('is-open')) return;
+      fetchStats();
+    }, 15000);
+  }
+
+  function stopStatsPolling() {
+    if (!statsPollTimer) return;
+    window.clearInterval(statsPollTimer);
+    statsPollTimer = null;
   }
 
   // ── Styles ────────────────────────────────────────────────────────────────
@@ -661,9 +676,18 @@
       refreshStatsBar();
       trackWidgetEvent('widget_open');
       fetchStats(); // async — updates bar when it resolves
+      startStatsPolling();
+    } else {
+      stopStatsPolling();
     }
   });
-  panel.querySelector('.cu-aiw-close').addEventListener('click', () => panel.classList.remove('is-open'));
+  panel.querySelector('.cu-aiw-close').addEventListener('click', () => {
+    panel.classList.remove('is-open');
+    stopStatsPolling();
+  });
+  document.addEventListener('visibilitychange', () => {
+    if (!document.hidden && panel.classList.contains('is-open')) fetchStats();
+  });
   statsAskButton.addEventListener('click', () => {
     if (running) return;
     ask('How many people have talked to you?');
