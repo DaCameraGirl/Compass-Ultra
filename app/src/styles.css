@@ -1494,7 +1494,7 @@ input[type="range"] {
 
 .flag-row {
   display: grid;
-  grid-template-columns: minmax(230px, 1fr) 82px 96px minmax(82px, 118px) 82px 30px 30px;
+  grid-template-columns: minmax(0, 1fr) 82px 96px minmax(82px, 118px) 82px 30px 30px;
   gap: 8px;
   align-items: center;
   border-bottom: 1px solid var(--line);
@@ -1514,6 +1514,10 @@ input[type="range"] {
   display: flex;
   align-items: center;
   gap: 9px;
+  min-width: 0;
+}
+
+.flag-primary > div {
   min-width: 0;
 }
 
