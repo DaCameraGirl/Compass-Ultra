@@ -53,6 +53,28 @@
     }
   }
 
+  async function trackWidgetEvent(eventType, details = {}) {
+    try {
+      const res = await fetch(`${API_BASE}/api/v1/ai-devops/event`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          event_type: eventType,
+          session_id: sessionId,
+          page_path: window.location.pathname,
+          page_title: document.title,
+          details,
+        }),
+      });
+      if (res.ok) {
+        liveStats = await res.json();
+        refreshStatsBar();
+      }
+    } catch {
+      // Tracking should never block the widget.
+    }
+  }
+
   // ── Styles ────────────────────────────────────────────────────────────────
   const style = document.createElement('style');
   style.textContent = `
@@ -87,7 +109,7 @@
     .cu-aiw-statsbar b{color:#33d69f}
     .cu-aiw-stats-actions{display:flex;gap:10px;margin-left:auto}
     .cu-aiw-statsbar button{border:0;background:none;color:#33d69f;font:inherit;font-weight:800;cursor:pointer;padding:0}
-    @media(max-width:640px){.cu-aiw-button{right:14px;bottom:14px}.cu-aiw-panel{right:10px;bottom:72px;width:calc(100vw - 20px);max-width:none;height:min(520px,calc(100vh - 94px))}.cu-aiw-strip{grid-template-columns:1fr}}
+    @media(max-width:640px){.cu-aiw-button{right:12px;bottom:12px}.cu-aiw-panel{right:8px;bottom:66px;width:calc(100vw - 16px);max-width:none;height:min(620px,calc(100dvh - 82px));font-size:13.5px}.cu-aiw-head{padding:11px 12px}.cu-aiw-title strong{font-size:14px}.cu-aiw-title span{font-size:11px}.cu-aiw-body{padding:10px}.cu-aiw-prompts button,.cu-aiw-copybar button,.cu-aiw-send{min-height:36px}.cu-aiw-composer{padding:10px}.cu-aiw-composer textarea{min-height:72px}.cu-aiw-strip{grid-template-columns:1fr}.cu-aiw-statsbar{font-size:11px;align-items:flex-start}.cu-aiw-stats-actions{width:100%;margin-left:0;justify-content:space-between;gap:8px}.cu-aiw-statsbar button{padding:4px 0}}
   `;
   document.head.appendChild(style);
 
@@ -133,6 +155,8 @@
       <span>Memory: <b id="cu-aiw-memory-state">on</b></span>
       <span class="cu-aiw-stats-actions">
         <button type="button" id="cu-aiw-stats-ask">Ask count</button>
+        <button type="button" id="cu-aiw-send-slack">Slack chat</button>
+        <button type="button" id="cu-aiw-send-email">Email chat</button>
         <button type="button" id="cu-aiw-memory-clear">Forget</button>
       </span>
       <span style="color:#3d4451;font-size:10px" id="cu-aiw-stats-source"></span>
@@ -152,6 +176,8 @@
   const msgCountEl = panel.querySelector('#cu-aiw-msg-count');
   const memoryStateEl = panel.querySelector('#cu-aiw-memory-state');
   const statsAskButton = panel.querySelector('#cu-aiw-stats-ask');
+  const sendSlackButton = panel.querySelector('#cu-aiw-send-slack');
+  const sendEmailButton = panel.querySelector('#cu-aiw-send-email');
   const memoryClearButton = panel.querySelector('#cu-aiw-memory-clear');
   const statsSourceEl = panel.querySelector('#cu-aiw-stats-source');
   const chatHistory = loadChatMemory();
@@ -368,6 +394,43 @@
     chatHistory.push({ role, content: String(content || '').slice(0, 1200) });
     while (chatHistory.length > 12) chatHistory.shift();
     saveChatMemory();
+  }
+
+  async function sendTranscript(channel) {
+    const transcript = chatHistory.slice(-30);
+    if (!transcript.length) {
+      addMessage('bot', 'No chat transcript to send yet.');
+      return;
+    }
+
+    let email = '';
+    if (channel === 'email') {
+      email = window.prompt('Email transcript to:', '') || '';
+    }
+
+    const loading = addLoadingMessage(channel === 'email' ? 'Emailing transcript...' : 'Sending transcript to Slack...');
+    try {
+      const response = await fetch(`${API_BASE}/api/v1/ai-devops/transcript`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          channel,
+          email,
+          session_id: sessionId,
+          page_path: window.location.pathname,
+          page_title: document.title,
+          transcript,
+        }),
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(data.error || `HTTP ${response.status}`);
+      loading.remove();
+      addMessage('bot', renderMarkdown(data.message || `Transcript sent to ${channel}.`));
+      await trackWidgetEvent(`transcript_${channel}`, { sent: data.sent || [channel] });
+    } catch (error) {
+      loading.remove();
+      addMessage('bot', `Could not send transcript yet. ${escapeHtml(error.message)}`);
+    }
   }
 
   function addReport(data) {
@@ -589,6 +652,7 @@
     currentPayload('summary');
     if (panel.classList.contains('is-open')) {
       refreshStatsBar();
+      trackWidgetEvent('widget_open');
       fetchStats(); // async — updates bar when it resolves
     }
   });
@@ -600,6 +664,14 @@
   memoryClearButton.addEventListener('click', () => {
     if (running) return;
     clearChatMemory();
+  });
+  sendSlackButton.addEventListener('click', () => {
+    if (running) return;
+    sendTranscript('slack');
+  });
+  sendEmailButton.addEventListener('click', () => {
+    if (running) return;
+    sendTranscript('email');
   });
   promptButtons.forEach((promptButton) => {
     promptButton.addEventListener('click', () => {
@@ -623,4 +695,5 @@
 
   currentPayload('summary');
   saveChatMemory();
+  trackWidgetEvent('page_view', { source: 'ai-devops-widget' });
 })();
