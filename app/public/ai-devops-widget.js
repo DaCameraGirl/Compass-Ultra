@@ -150,7 +150,8 @@
       <button class="cu-aiw-send" type="submit">Ask AI DevOps</button>
     </form>
     <div class="cu-aiw-statsbar" id="cu-aiw-statsbar" title="Session counter — powered by Compass Ultra">
-      <span>Visitors: <b id="cu-aiw-session-count">—</b></span>
+      <span>Sessions: <b id="cu-aiw-session-count">—</b></span>
+      <span>Views: <b id="cu-aiw-view-count">—</b></span>
       <span>Messages: <b id="cu-aiw-msg-count">—</b></span>
       <span>Memory: <b id="cu-aiw-memory-state">on</b></span>
       <span class="cu-aiw-stats-actions">
@@ -173,6 +174,7 @@
   const sendButton = panel.querySelector('.cu-aiw-send');
   const promptButtons = Array.from(panel.querySelectorAll('[data-prompt]'));
   const sessionCountEl = panel.querySelector('#cu-aiw-session-count');
+  const viewCountEl = panel.querySelector('#cu-aiw-view-count');
   const msgCountEl = panel.querySelector('#cu-aiw-msg-count');
   const memoryStateEl = panel.querySelector('#cu-aiw-memory-state');
   const statsAskButton = panel.querySelector('#cu-aiw-stats-ask');
@@ -187,11 +189,13 @@
   function refreshStatsBar() {
     if (liveStats) {
       sessionCountEl.textContent = (liveStats.unique_sessions ?? liveStats.sessions ?? '—').toLocaleString();
+      viewCountEl.textContent = (liveStats.page_views ?? liveStats.views ?? '—').toLocaleString();
       msgCountEl.textContent = (liveStats.total_messages ?? liveStats.messages ?? '—').toLocaleString();
       statsSourceEl.textContent = 'live';
     } else {
       const local = localSessionCount();
       sessionCountEl.textContent = local > 0 ? local.toLocaleString() : '—';
+      viewCountEl.textContent = '—';
       msgCountEl.textContent = messageCount > 0 ? messageCount.toLocaleString() : '—';
       statsSourceEl.textContent = 'local';
     }
@@ -199,9 +203,11 @@
 
   function statsSnapshot() {
     const liveSessions = liveStats?.unique_sessions ?? liveStats?.sessions ?? liveStats?.session_count ?? liveStats?.total_sessions;
+    const liveViews = liveStats?.page_views ?? liveStats?.views ?? liveStats?.view_count;
     const liveMessages = liveStats?.total_messages ?? liveStats?.messages ?? liveStats?.message_count;
     return {
       sessions: Number.isFinite(Number(liveSessions)) ? Number(liveSessions) : localSessionCount(),
+      views: Number.isFinite(Number(liveViews)) ? Number(liveViews) : 0,
       messages: Number.isFinite(Number(liveMessages)) ? Number(liveMessages) : messageCount,
       source: liveStats ? 'live backend' : 'this browser',
       isLive: Boolean(liveStats),
@@ -216,9 +222,10 @@
   function statsAnswer() {
     const stats = statsSnapshot();
     const sessions = stats.sessions > 0 ? stats.sessions.toLocaleString() : '0';
+    const views = stats.views > 0 ? stats.views.toLocaleString() : '0';
     const messages = stats.messages > 0 ? stats.messages.toLocaleString() : '0';
     if (stats.isLive) {
-      return `Yep. I can count it now: ${sessions} visitor session(s) and ${messages} message(s) have been tracked by the AI DevOps assistant.`;
+      return `Yep. I can count it now: ${sessions} browser session(s), ${views} page view(s), and ${messages} message(s) have been tracked by the AI DevOps assistant. Refreshes raise page views, but they do not create a new session in the same tab.`;
     }
     return `Yep. I can count this browser right now: ${sessions} visitor session(s) and ${messages} message(s). The live all-user total will show here automatically when the backend stats endpoint is available.`;
   }
