@@ -592,11 +592,19 @@
 }
 
 .lp-step-number {
+  display: inline-grid;
+  width: 86px;
+  min-height: 64px;
+  place-items: center;
+  border: 1px solid rgba(88,166,255,0.28);
+  border-radius: 12px;
+  background: rgba(88,166,255,0.1);
   font-size: 52px;
   font-weight: 800;
-  color: rgba(88,166,255,0.12);
+  color: #79b8ff;
   line-height: 1;
   margin-bottom: 16px;
+  box-shadow: 0 14px 34px rgba(88,166,255,0.08);
 }
 .lp-step h3 {
   font-size: 17px;

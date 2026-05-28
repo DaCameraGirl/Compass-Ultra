@@ -3,6 +3,7 @@
   const STORAGE_KEY = 'compass-ultra-workspace-v4';
   const SESSION_KEY = 'cu-aiw-session-id';
   const SESSIONS_LOCAL_KEY = 'cu-aiw-local-session-log';
+  const CHAT_MEMORY_KEY = 'cu-aiw-chat-memory-v1';
 
   if (window.__compassAiDevOpsWidgetLoaded) return;
   window.__compassAiDevOpsWidgetLoaded = true;
@@ -55,36 +56,38 @@
   // ── Styles ────────────────────────────────────────────────────────────────
   const style = document.createElement('style');
   style.textContent = `
-    .cu-aiw-button{position:fixed;right:24px;bottom:92px;z-index:2147483000;display:inline-flex;align-items:center;gap:9px;border:1px solid rgba(51,214,159,.42);border-radius:999px;padding:12px 16px;background:#101827;color:#f4f7fb;box-shadow:0 18px 48px rgba(0,0,0,.42);font:800 13px/1.1 "Segoe UI",system-ui,sans-serif;cursor:pointer}
+    .cu-aiw-button{position:fixed;right:20px;bottom:20px;z-index:2147483000;display:inline-flex;align-items:center;gap:8px;border:1px solid rgba(51,214,159,.42);border-radius:999px;padding:10px 13px;background:#101827;color:#f4f7fb;box-shadow:0 18px 48px rgba(0,0,0,.42);font:800 12px/1.1 "Segoe UI",system-ui,sans-serif;cursor:pointer}
     .cu-aiw-button:hover{border-color:#33d69f;transform:translateY(-1px)}
-    .cu-aiw-dot{display:grid;width:30px;height:30px;place-items:center;border-radius:999px;background:#33d69f;color:#061713;font-style:normal;font-size:13px;font-weight:900}
-    .cu-aiw-panel{position:fixed;right:24px;bottom:148px;z-index:2147483001;display:none;width:min(500px,calc(100vw - 32px));max-height:min(760px,calc(100vh - 176px));overflow:hidden;border:1px solid rgba(255,255,255,.12);border-radius:14px;background:#0b1020;color:#f4f7fb;box-shadow:0 24px 80px rgba(0,0,0,.55);font:14px/1.45 "Segoe UI",system-ui,sans-serif}
-    .cu-aiw-panel.is-open{display:grid;grid-template-rows:auto 1fr auto auto}
-    .cu-aiw-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 16px;border-bottom:1px solid rgba(255,255,255,.1);background:#101827}
-    .cu-aiw-title{display:grid;gap:2px}.cu-aiw-title strong{font-size:15px}.cu-aiw-title span{color:#9aa7bd;font-size:12px}
-    .cu-aiw-close{border:0;border-radius:8px;width:32px;height:32px;background:#162033;color:#f4f7fb;cursor:pointer}
-    .cu-aiw-body{overflow:auto;padding:14px;display:grid;gap:12px}
-    .cu-aiw-card{border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:12px;background:#101827}
+    .cu-aiw-dot{display:grid;width:26px;height:26px;place-items:center;border-radius:999px;background:#33d69f;color:#061713;font-style:normal;font-size:12px;font-weight:900}
+    .cu-aiw-panel{position:fixed;right:20px;bottom:78px;z-index:2147483001;display:none;width:clamp(280px,24vw,340px);max-width:calc(100vw - 40px);height:min(460px,calc(100vh - 104px));overflow:hidden;border:1px solid rgba(255,255,255,.12);border-radius:12px;background:#0b1020;color:#f4f7fb;box-shadow:0 20px 64px rgba(0,0,0,.5);font:12px/1.4 "Segoe UI",system-ui,sans-serif}
+    .cu-aiw-panel.is-open{display:grid;grid-template-rows:auto minmax(0,1fr) auto auto}
+    .cu-aiw-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 14px;border-bottom:1px solid rgba(255,255,255,.1);background:#101827}
+    .cu-aiw-title{display:grid;gap:2px}.cu-aiw-title strong{font-size:14px}.cu-aiw-title span{color:#9aa7bd;font-size:11px}
+    .cu-aiw-close{border:0;border-radius:8px;width:28px;height:28px;background:#162033;color:#f4f7fb;cursor:pointer}
+    .cu-aiw-body{overflow:auto;padding:10px;display:grid;gap:9px}
+    .cu-aiw-card{border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:9px;background:#101827}
     .cu-aiw-card strong{display:block;margin-bottom:5px}.cu-aiw-card p{margin:0;color:#d7e0ee}
     .cu-aiw-prompts,.cu-aiw-copybar{display:flex;flex-wrap:wrap;gap:8px}
-    .cu-aiw-prompts button,.cu-aiw-copybar button,.cu-aiw-send{border:1px solid rgba(255,255,255,.12);border-radius:8px;background:#162033;color:#f4f7fb;padding:8px 10px;cursor:pointer;font:inherit;font-size:12px}
-    .cu-aiw-feed{display:grid;gap:10px}
-    .cu-aiw-msg{max-width:92%;border-radius:12px;padding:10px 12px;white-space:pre-wrap}
+    .cu-aiw-prompts button,.cu-aiw-copybar button,.cu-aiw-send{border:1px solid rgba(255,255,255,.12);border-radius:8px;background:#162033;color:#f4f7fb;padding:7px 9px;cursor:pointer;font:inherit;font-size:11px}
+    .cu-aiw-feed{display:grid;gap:8px}
+    .cu-aiw-msg{max-width:94%;border-radius:10px;padding:8px 10px;white-space:pre-wrap}
     .cu-aiw-user{justify-self:end;background:#1f6feb;color:#fff}
     .cu-aiw-bot{justify-self:start;background:#101827;border:1px solid rgba(255,255,255,.1);color:#e8eef8}
-    .cu-aiw-report{display:grid;gap:10px;border:1px solid rgba(255,255,255,.1);border-radius:12px;background:#101827;padding:12px}
+    .cu-aiw-report{display:grid;gap:9px;border:1px solid rgba(255,255,255,.1);border-radius:10px;background:#101827;padding:10px}
     .cu-aiw-strip{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
     .cu-aiw-strip span{display:grid;gap:3px;border:1px solid rgba(255,255,255,.1);border-radius:8px;background:#0a1020;padding:8px;color:#9aa7bd;font-size:11px;text-transform:uppercase}
     .cu-aiw-strip strong{color:#f4f7fb;font-size:13px;text-transform:none}
     .cu-aiw-answer h2,.cu-aiw-answer h3{margin:12px 0 8px;color:#f4f7fb;line-height:1.2}.cu-aiw-answer h2{font-size:17px}.cu-aiw-answer h3{font-size:15px;color:#33d69f}
     .cu-aiw-answer p{margin:0 0 10px;color:#d7e0ee}.cu-aiw-answer ul,.cu-aiw-answer ol{margin:8px 0 12px;padding-left:22px}.cu-aiw-answer li{margin:5px 0}
     .cu-aiw-answer code{border-radius:5px;background:#090e1a;color:#9be8c9;padding:1px 5px;font-family:Consolas,monospace}
-    .cu-aiw-composer{display:grid;gap:10px;padding:14px;border-top:1px solid rgba(255,255,255,.1);background:#0f1726}
-    .cu-aiw-composer textarea{width:100%;min-height:82px;resize:vertical;border:1px solid rgba(255,255,255,.12);border-radius:8px;padding:10px;background:#080d19;color:#f4f7fb;font:inherit}
+    .cu-aiw-composer{display:grid;gap:8px;padding:10px;border-top:1px solid rgba(255,255,255,.1);background:#0f1726}
+    .cu-aiw-composer textarea{width:100%;min-height:52px;max-height:96px;resize:vertical;border:1px solid rgba(255,255,255,.12);border-radius:8px;padding:9px;background:#080d19;color:#f4f7fb;font:inherit}
     .cu-aiw-send{background:#33d69f;color:#061713;font-weight:900}
-    .cu-aiw-statsbar{display:flex;gap:16px;align-items:center;padding:8px 14px;border-top:1px solid rgba(255,255,255,.06);background:#08101e;font-size:11px;color:#9aa7bd;flex-wrap:wrap}
+    .cu-aiw-statsbar{display:flex;gap:8px 12px;align-items:center;padding:7px 10px;border-top:1px solid rgba(255,255,255,.06);background:#08101e;font-size:10px;color:#9aa7bd;flex-wrap:wrap}
     .cu-aiw-statsbar b{color:#33d69f}
-    @media(max-width:640px){.cu-aiw-button{right:16px;bottom:80px}.cu-aiw-panel{right:16px;bottom:136px}.cu-aiw-strip{grid-template-columns:1fr}}
+    .cu-aiw-stats-actions{display:flex;gap:10px;margin-left:auto}
+    .cu-aiw-statsbar button{border:0;background:none;color:#33d69f;font:inherit;font-weight:800;cursor:pointer;padding:0}
+    @media(max-width:640px){.cu-aiw-button{right:14px;bottom:14px}.cu-aiw-panel{right:10px;bottom:68px;width:calc(100vw - 20px);max-width:none;height:min(440px,calc(100vh - 88px))}.cu-aiw-strip{grid-template-columns:1fr}}
   `;
   document.head.appendChild(style);
 
@@ -114,6 +117,7 @@
         <button type="button" data-prompt="What should block this release?">Blockers</button>
         <button type="button" data-prompt="Build a rollback plan from the current flags.">Rollback</button>
         <button type="button" data-prompt="What should GitHub, Jira, and Slack receive?">Payloads</button>
+        <button type="button" data-prompt="How many people have talked to you?">Visitors</button>
       </div>
       <div id="cu-aiw-feed" class="cu-aiw-feed">
         <div class="cu-aiw-msg cu-aiw-bot">Hi. Ask me about the release, blockers, rollback, Jira, Slack, or whether it is safe to ship.</div>
@@ -124,9 +128,14 @@
       <button class="cu-aiw-send" type="submit">Ask AI DevOps</button>
     </form>
     <div class="cu-aiw-statsbar" id="cu-aiw-statsbar" title="Session counter — powered by Compass Ultra">
-      <span>Sessions: <b id="cu-aiw-session-count">—</b></span>
+      <span>Visitors: <b id="cu-aiw-session-count">—</b></span>
       <span>Messages: <b id="cu-aiw-msg-count">—</b></span>
-      <span style="margin-left:auto;color:#3d4451;font-size:10px" id="cu-aiw-stats-source"></span>
+      <span>Memory: <b id="cu-aiw-memory-state">on</b></span>
+      <span class="cu-aiw-stats-actions">
+        <button type="button" id="cu-aiw-stats-ask">Ask count</button>
+        <button type="button" id="cu-aiw-memory-clear">Forget</button>
+      </span>
+      <span style="color:#3d4451;font-size:10px" id="cu-aiw-stats-source"></span>
     </div>
   `;
 
@@ -141,8 +150,11 @@
   const promptButtons = Array.from(panel.querySelectorAll('[data-prompt]'));
   const sessionCountEl = panel.querySelector('#cu-aiw-session-count');
   const msgCountEl = panel.querySelector('#cu-aiw-msg-count');
+  const memoryStateEl = panel.querySelector('#cu-aiw-memory-state');
+  const statsAskButton = panel.querySelector('#cu-aiw-stats-ask');
+  const memoryClearButton = panel.querySelector('#cu-aiw-memory-clear');
   const statsSourceEl = panel.querySelector('#cu-aiw-stats-source');
-  const chatHistory = [];
+  const chatHistory = loadChatMemory();
   let running = false;
   let messageCount = 0;
 
@@ -150,12 +162,124 @@
     if (liveStats) {
       sessionCountEl.textContent = (liveStats.unique_sessions ?? liveStats.sessions ?? '—').toLocaleString();
       msgCountEl.textContent = (liveStats.total_messages ?? liveStats.messages ?? '—').toLocaleString();
-      statsSourceEl.textContent = 'live ✓';
+      statsSourceEl.textContent = 'live';
     } else {
       const local = localSessionCount();
       sessionCountEl.textContent = local > 0 ? local.toLocaleString() : '—';
       msgCountEl.textContent = messageCount > 0 ? messageCount.toLocaleString() : '—';
       statsSourceEl.textContent = 'local';
+    }
+  }
+
+  function statsSnapshot() {
+    const liveSessions = liveStats?.unique_sessions ?? liveStats?.sessions ?? liveStats?.session_count ?? liveStats?.total_sessions;
+    const liveMessages = liveStats?.total_messages ?? liveStats?.messages ?? liveStats?.message_count;
+    return {
+      sessions: Number.isFinite(Number(liveSessions)) ? Number(liveSessions) : localSessionCount(),
+      messages: Number.isFinite(Number(liveMessages)) ? Number(liveMessages) : messageCount,
+      source: liveStats ? 'live backend' : 'this browser',
+      isLive: Boolean(liveStats),
+    };
+  }
+
+  function wantsStatsAnswer(message) {
+    return /\b(how many|count|visitor|visitors|user|users|people|session|sessions|message|messages|talked|talk)\b/i.test(message)
+      && /\b(you|u|chat|bot|ai|assistant|app|site|here|talked|talk)\b/i.test(message);
+  }
+
+  function statsAnswer() {
+    const stats = statsSnapshot();
+    const sessions = stats.sessions > 0 ? stats.sessions.toLocaleString() : '0';
+    const messages = stats.messages > 0 ? stats.messages.toLocaleString() : '0';
+    if (stats.isLive) {
+      return `Yep. I can count it now: ${sessions} visitor session(s) and ${messages} message(s) have been tracked by the AI DevOps assistant.`;
+    }
+    return `Yep. I can count this browser right now: ${sessions} visitor session(s) and ${messages} message(s). The live all-user total will show here automatically when the backend stats endpoint is available.`;
+  }
+
+  function loadChatMemory() {
+    try {
+      const memory = JSON.parse(localStorage.getItem(CHAT_MEMORY_KEY) || '[]');
+      return Array.isArray(memory)
+        ? memory.filter((item) => ['user', 'assistant'].includes(item?.role) && item.content).slice(-12)
+        : [];
+    } catch {
+      return [];
+    }
+  }
+
+  function saveChatMemory() {
+    try {
+      localStorage.setItem(CHAT_MEMORY_KEY, JSON.stringify(chatHistory.slice(-12)));
+      memoryStateEl.textContent = chatHistory.length ? `${chatHistory.length}` : 'on';
+    } catch {
+      memoryStateEl.textContent = 'off';
+    }
+  }
+
+  function clearChatMemory() {
+    chatHistory.length = 0;
+    try {
+      localStorage.removeItem(CHAT_MEMORY_KEY);
+    } catch {}
+    memoryStateEl.textContent = 'on';
+    addMessage('bot', 'Memory cleared for this browser.');
+  }
+
+  function wantsMemoryAnswer(message) {
+    return /\b(memory|remember|forgot|forget|persistent|persist)\b/i.test(message);
+  }
+
+  function memoryAnswer(message) {
+    if (/\b(forget|clear|wipe|reset)\b/i.test(message)) {
+      clearChatMemory();
+      return '';
+    }
+    return `Yes. I have browser-local memory now. I keep the recent conversation on this device and send it with future checks, and you can clear it with the Forget button.`;
+  }
+
+  function wantsWebSearchAnswer(message) {
+    return /\b(web search|search the web|browse|internet|google|latest|look up|lookup)\b/i.test(message);
+  }
+
+  function formatSearchResults(data) {
+    const results = Array.isArray(data?.results) ? data.results : Array.isArray(data?.sources) ? data.sources : [];
+    const provider = data?.provider || 'web search';
+    const answer = data?.answer || data?.summary || '';
+    if (!results.length && answer) {
+      return `${answer}\n\nSource: ${provider}`;
+    }
+    if (!results.length) {
+      return `I searched, but no useful results came back. Source: ${provider}`;
+    }
+    const lines = answer ? [answer, '', 'Sources:'] : ['Here is what I found:', '', 'Sources:'];
+    results.slice(0, 5).forEach((item, index) => {
+      const title = item.title || item.name || `Result ${index + 1}`;
+      const url = item.url || item.href || '';
+      const snippet = item.content || item.snippet || item.description || '';
+      lines.push(`${index + 1}. ${title}${url ? ` - ${url}` : ''}`);
+      if (snippet) lines.push(`   ${String(snippet).slice(0, 240)}`);
+    });
+    return lines.join('\n');
+  }
+
+  async function webSearchAnswer(message) {
+    try {
+      const response = await fetch(`${API_BASE}/api/v1/ai-devops/search`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          query: message,
+          session_id: sessionId,
+          history: chatHistory.slice(-6),
+          max_results: 5,
+        }),
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(data.error || `HTTP ${response.status}`);
+      return formatSearchResults(data);
+    } catch (error) {
+      return `I can use web search once the backend proxy is deployed. Add TAVILY_API_KEY to Railway and expose POST /api/v1/ai-devops/search. Current status: ${escapeHtml(error.message)}.`;
     }
   }
 
@@ -227,9 +351,19 @@
     node.scrollIntoView({ block: 'end' });
   }
 
+  function addLoadingMessage(text) {
+    const loading = document.createElement('div');
+    loading.className = 'cu-aiw-msg cu-aiw-bot';
+    loading.textContent = text;
+    feed.appendChild(loading);
+    loading.scrollIntoView({ block: 'end' });
+    return loading;
+  }
+
   function remember(role, content) {
     chatHistory.push({ role, content: String(content || '').slice(0, 1200) });
-    while (chatHistory.length > 8) chatHistory.shift();
+    while (chatHistory.length > 12) chatHistory.shift();
+    saveChatMemory();
   }
 
   function addReport(data) {
@@ -337,6 +471,10 @@
     return {
       message,
       history: chatHistory.slice(-8),
+      capabilities: {
+        persistent_memory: true,
+        web_search: 'backend_proxy',
+      },
       release,
       context: workspace.context || { environment: 'production' },
       flags,
@@ -358,11 +496,45 @@
     promptButtons.forEach((promptButton) => { promptButton.disabled = true; });
     addMessage('user', escapeHtml(message));
     remember('user', message);
-    const loading = document.createElement('div');
-    loading.className = 'cu-aiw-msg cu-aiw-bot';
-    loading.textContent = 'Thinking...';
-    feed.appendChild(loading);
-    loading.scrollIntoView({ block: 'end' });
+    if (wantsStatsAnswer(message)) {
+      await fetchStats();
+      messageCount += 1;
+      const answer = statsAnswer();
+      addMessage('bot', renderMarkdown(answer));
+      remember('assistant', answer);
+      refreshStatsBar();
+      running = false;
+      sendButton.disabled = false;
+      promptButtons.forEach((promptButton) => { promptButton.disabled = false; });
+      return;
+    }
+    if (wantsMemoryAnswer(message)) {
+      messageCount += 1;
+      const answer = memoryAnswer(message);
+      if (answer) {
+        addMessage('bot', renderMarkdown(answer));
+        remember('assistant', answer);
+      }
+      refreshStatsBar();
+      running = false;
+      sendButton.disabled = false;
+      promptButtons.forEach((promptButton) => { promptButton.disabled = false; });
+      return;
+    }
+    if (wantsWebSearchAnswer(message)) {
+      messageCount += 1;
+      const loading = addLoadingMessage('Searching the web...');
+      const answer = await webSearchAnswer(message);
+      loading.remove();
+      addMessage('bot', renderMarkdown(answer));
+      remember('assistant', answer);
+      refreshStatsBar();
+      running = false;
+      sendButton.disabled = false;
+      promptButtons.forEach((promptButton) => { promptButton.disabled = false; });
+      return;
+    }
+    const loading = addLoadingMessage('Thinking...');
 
     try {
       const response = await fetch(`${API_BASE}/api/v1/ai-devops/demo`, {
@@ -407,6 +579,14 @@
     }
   });
   panel.querySelector('.cu-aiw-close').addEventListener('click', () => panel.classList.remove('is-open'));
+  statsAskButton.addEventListener('click', () => {
+    if (running) return;
+    ask('How many people have talked to you?');
+  });
+  memoryClearButton.addEventListener('click', () => {
+    if (running) return;
+    clearChatMemory();
+  });
   promptButtons.forEach((promptButton) => {
     promptButton.addEventListener('click', () => {
       if (running) return;
@@ -428,4 +608,5 @@
   });
 
   currentPayload('summary');
+  saveChatMemory();
 })();
