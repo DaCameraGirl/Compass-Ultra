@@ -6,6 +6,7 @@
 - Added configurable social connection names with `VITE_AUTH0_GOOGLE_CONNECTION` and `VITE_AUTH0_GITHUB_CONNECTION`.
 - Removed the visible email/password Auth0 fallback from the app UI so normal login and checkout paths use Gmail or GitHub.
 - Updated unauthenticated save, risk analysis, rollback, and checkout actions to start social login instead of the generic Auth0 email screen.
+- Restored regular email login as an explicit fallback alongside Gmail and GitHub.
 
 ## 1.1.0 - 2026-05-28
 

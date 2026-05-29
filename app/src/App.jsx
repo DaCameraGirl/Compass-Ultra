@@ -26,6 +26,7 @@ import {
   ListChecks,
   ListFilter,
   LockKeyhole,
+  LogIn,
   LogOut,
   Mail,
   Plus,
@@ -631,6 +632,7 @@ export default function App() {
     },
   });
 
+  const loginWithEmail = (options) => loginWithProvider('email', options);
   const loginWithGoogle = (options) => loginWithProvider('google', options);
   const loginWithGitHub = (options) => loginWithProvider('github', options);
 
@@ -1834,6 +1836,9 @@ export default function App() {
               <button type="button" onClick={() => loginWithGitHub()} title="Continue with GitHub" aria-label="Continue with GitHub">
                 <Github size={17} aria-hidden="true" />
               </button>
+              <button type="button" onClick={() => loginWithEmail()} title="Login with email" aria-label="Login with email">
+                <LogIn size={17} aria-hidden="true" />
+              </button>
             </>
           )}
           <input ref={importRef} className="hidden-file" type="file" accept="application/json,.json" onChange={importWorkspace} />
@@ -1973,6 +1978,10 @@ export default function App() {
             <button type="button" className="sandbox-login-btn sandbox-login-btn--github" onClick={() => loginWithGitHub()}>
               <Github size={15} />
               Continue with GitHub
+            </button>
+            <button type="button" className="sandbox-login-btn" onClick={() => loginWithEmail()}>
+              <LogIn size={15} />
+              Email login
             </button>
             <button type="button" className="sandbox-dismiss-btn" onClick={() => setShowPricing(true)}>
               View Pricing
@@ -2643,6 +2652,10 @@ export default function App() {
                 <button className="full-button" type="button" onClick={() => loginWithGitHub()}>
                   <Github size={16} aria-hidden="true" />
                   GitHub
+                </button>
+                <button className="full-button" type="button" onClick={() => loginWithEmail()}>
+                  <LogIn size={16} aria-hidden="true" />
+                  Email
                 </button>
               </div>
             )}
