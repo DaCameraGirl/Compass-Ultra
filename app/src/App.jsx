@@ -20,6 +20,7 @@ import {
   FileJson,
   Gauge,
   GitBranch,
+  Github,
   KeyRound,
   Link,
   ListChecks,
@@ -27,6 +28,7 @@ import {
   LockKeyhole,
   LogIn,
   LogOut,
+  Mail,
   Plus,
   Share2,
   RefreshCw,
@@ -50,6 +52,11 @@ import {
 import { api } from './api.js';
 
 const storageKey = 'compass-ultra-workspace-v4';
+const authConnections = {
+  email: import.meta.env.VITE_AUTH0_CONNECTION || 'Username-Password-Authentication',
+  google: import.meta.env.VITE_AUTH0_GOOGLE_CONNECTION || 'google-oauth2',
+  github: import.meta.env.VITE_AUTH0_GITHUB_CONNECTION || 'github',
+};
 
 const defaultContext = {
   key: 'demo_admin_001',
@@ -617,18 +624,18 @@ export default function App() {
     window.location.hostname === 'localhost' ? window.location.origin : 'https://www.compassultra.com'
   );
 
-  const loginWithEmail = () => loginWithRedirect({
+  const loginWithProvider = (provider = 'email', { signup = false, returnTo } = {}) => loginWithRedirect({
+    ...(returnTo ? { appState: { returnTo } } : {}),
     authorizationParams: {
-      connection: import.meta.env.VITE_AUTH0_CONNECTION || 'Username-Password-Authentication',
+      connection: authConnections[provider] || authConnections.email,
+      ...(signup ? { screen_hint: 'signup' } : {}),
     },
   });
 
-  const signupWithEmail = () => loginWithRedirect({
-    authorizationParams: {
-      connection: import.meta.env.VITE_AUTH0_CONNECTION || 'Username-Password-Authentication',
-      screen_hint: 'signup',
-    },
-  });
+  const loginWithEmail = (options) => loginWithProvider('email', options);
+  const signupWithEmail = () => loginWithProvider('email', { signup: true });
+  const loginWithGoogle = (options) => loginWithProvider('google', options);
+  const loginWithGitHub = (options) => loginWithProvider('github', options);
 
   const hydrateSignupDetails = (profile = {}) => {
     setSignupDetails((current) => ({
@@ -1823,9 +1830,17 @@ export default function App() {
               <LogOut size={17} aria-hidden="true" />
             </button>
           ) : (
-            <button type="button" onClick={() => loginWithEmail()} title="Login" aria-label="Login">
-              <LogIn size={17} aria-hidden="true" />
-            </button>
+            <>
+              <button type="button" onClick={() => loginWithGoogle()} title="Continue with Gmail" aria-label="Continue with Gmail">
+                <Mail size={17} aria-hidden="true" />
+              </button>
+              <button type="button" onClick={() => loginWithGitHub()} title="Continue with GitHub" aria-label="Continue with GitHub">
+                <Github size={17} aria-hidden="true" />
+              </button>
+              <button type="button" onClick={() => loginWithEmail()} title="Login with email" aria-label="Login with email">
+                <LogIn size={17} aria-hidden="true" />
+              </button>
+            </>
           )}
           <input ref={importRef} className="hidden-file" type="file" accept="application/json,.json" onChange={importWorkspace} />
         </div>
@@ -1957,6 +1972,14 @@ export default function App() {
             <span>Exploring Compass Ultra — no account needed. Toggle flags, run risk analysis, export PDFs.</span>
           </div>
           <div className="sandbox-banner-actions">
+            <button type="button" className="sandbox-login-btn sandbox-login-btn--google" onClick={() => loginWithGoogle()}>
+              <Mail size={15} />
+              Continue with Gmail
+            </button>
+            <button type="button" className="sandbox-login-btn sandbox-login-btn--github" onClick={() => loginWithGitHub()}>
+              <Github size={15} />
+              Continue with GitHub
+            </button>
             <button type="button" className="sandbox-login-btn" onClick={() => loginWithEmail()}>
               <LogIn size={15} />
               Sign in to save
@@ -2626,10 +2649,20 @@ export default function App() {
               )}
             </div>
             {!isAuthenticated && (
-              <button className="full-button" type="button" onClick={() => loginWithEmail()}>
-                <LogIn size={16} aria-hidden="true" />
-                Login to save &amp; load snapshots
-              </button>
+              <div className="auth-provider-row">
+                <button className="full-button" type="button" onClick={() => loginWithGoogle()}>
+                  <Mail size={16} aria-hidden="true" />
+                  Gmail
+                </button>
+                <button className="full-button" type="button" onClick={() => loginWithGitHub()}>
+                  <Github size={16} aria-hidden="true" />
+                  GitHub
+                </button>
+                <button className="full-button" type="button" onClick={() => loginWithEmail()}>
+                  <LogIn size={16} aria-hidden="true" />
+                  Email
+                </button>
+              </div>
             )}
             {isAuthenticated && (
               <>
@@ -2909,7 +2942,7 @@ export default function App() {
                       if (isCurrent) return;
                       if (tier.plan === 'enterprise') { window.location.href = 'mailto:hello@compassultra.com?subject=Compass Ultra Enterprise Plan Inquiry'; return; }
                       if (tier.plan === 'free' || !tier.plan) { setShowPricing(false); return; }
-                      if (!isAuthenticated) { loginWithEmail(); return; }
+                      if (!isAuthenticated) { loginWithGoogle({ returnTo: `/app?plan=${tier.plan}` }); return; }
                       if (alreadyPaid && (isUpgrade || isDowngrade)) {
                         try {
                           const token = await getAccessTokenSilently({ authorizationParams: { audience: import.meta.env.VITE_AUTH0_AUDIENCE } });

@@ -1938,10 +1938,26 @@ input[type="range"] {
   color: var(--brand-contrast);
 }
 
+.sandbox-login-btn--google {
+  background: #fff;
+  color: #1f2328;
+}
+
+.sandbox-login-btn--github {
+  background: #24292f;
+  color: #fff;
+}
+
 .sandbox-dismiss-btn {
   border: 1px solid var(--line);
   background: var(--panel-soft);
   color: var(--ink);
+}
+
+.auth-provider-row {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
 }
 
 .demo-guide-bar,
