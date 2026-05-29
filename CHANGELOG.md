@@ -7,6 +7,7 @@
 - Removed the visible email/password Auth0 fallback from the app UI so normal login and checkout paths use Gmail or GitHub.
 - Updated unauthenticated save, risk analysis, rollback, and checkout actions to start social login instead of the generic Auth0 email screen.
 - Restored regular email login as an explicit fallback alongside Gmail and GitHub.
+- Added a public Compass Ultra logo asset for Auth0 Universal Login branding.
 
 ## 1.1.0 - 2026-05-28
 

@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512" role="img" aria-labelledby="title desc">
+  <title id="title">Compass Ultra logo</title>
+  <desc id="desc">Compass Ultra CU mark with a compass pointer.</desc>
+  <rect width="512" height="512" rx="96" fill="#0e1117"/>
+  <circle cx="256" cy="256" r="176" fill="#161b22" stroke="#58a6ff" stroke-width="18"/>
+  <path d="M322 134 270 276 134 328 186 186z" fill="#58a6ff"/>
+  <path d="M322 134 270 276 378 242z" fill="#3fb950"/>
+  <circle cx="256" cy="256" r="28" fill="#e6edf3"/>
+  <text x="256" y="428" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="72" font-weight="800" letter-spacing="0" fill="#e6edf3">CU</text>
+</svg>
