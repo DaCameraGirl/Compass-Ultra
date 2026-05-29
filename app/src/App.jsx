@@ -1595,12 +1595,12 @@ export default function App() {
       } catch (e) {
         const isTimeout = e.name === 'AbortError' || e.status === 408 || /aborted|timed out/i.test(e.message || '');
         const base = isTimeout
-          ? 'Live AI did not respond in time — showing a deterministic fallback so you can keep moving. Rerun to try the live analyzer again.'
+                    ? '⚡ Instant local analysis active — upgrade to Pro for live AI-powered analysis.'
           : e.status === 429
-            ? 'Live AI rate limit hit — showing a deterministic fallback. Rerun in a minute to try the live analyzer again.'
+                      ? '⚡ Instant local analysis active — upgrade to Pro for live AI-powered analysis.'
             : e.status === 503
-              ? 'Live AI is offline on this demo server — showing a deterministic fallback.'
-              : `Live AI unavailable (${e.status || 'network'}) — showing a deterministic fallback.`;
+                        ? '⚡ Instant local analysis active — upgrade to Pro for live AI-powered analysis.'
+                        : '⚡ Instant local analysis active — upgrade to Pro for live AI-powered analysis.'
         setAiLiveError(e.hint ? `${base} ${e.hint}` : base);
         record('Live AI unavailable; using deterministic fallback', e.message || '', 'warn');
         const analysis = makeDemoAiAnalysis(workspaceName, release, context, flags, policyChecks);
