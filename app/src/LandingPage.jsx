@@ -1299,6 +1299,15 @@ export default function LandingPage({ initialAnchor }) {
               <button className="lp-footer-app-link" onClick={goToApp}>Launch App →</button>
             </div>
           </div>
+          <div className="lp-footer-ph">
+            <a href="https://www.producthunt.com/posts/compass-ultra" target="_blank" rel="noreferrer">
+              <img
+                src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=compass-ultra&theme=dark"
+                alt="Compass Ultra on Product Hunt"
+                style={{ height: 40 }}
+              />
+            </a>
+          </div>
           <div className="lp-footer-bottom">
             <span>© 2026 Compass Ultra. All rights reserved.</span>
             <span>AI-assisted release risk review</span>
