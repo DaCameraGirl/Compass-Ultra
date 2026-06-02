@@ -9,7 +9,7 @@ jobs:
     runs-on: ubuntu-latest
     name: Compass Ultra Release Gate
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
 
       - id: compass-check
         uses: ./.github/actions/compass-check
@@ -19,7 +19,7 @@ jobs:
           fail-on: high
         continue-on-error: true
 
-      - uses: actions/github-script@v7
+      - uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b
         if: always() && github.event_name == 'pull_request'
         env:
           COMPASS_RESULT: ${{ steps.compass-check.outputs.result || '{}' }}
@@ -55,9 +55,9 @@ jobs:
     needs: release-gate
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
         with:
           node-version: 20
           cache: npm
@@ -65,7 +65,7 @@ jobs:
       - run: npm ci
       - run: npm run build
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
           name: compass-ultra-preview
           path: dist
