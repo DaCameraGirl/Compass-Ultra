@@ -391,28 +391,6 @@ const emptyDraft = {
   defaultValue: 'false',
 };
 
-const emptySignupDetails = {
-  name: '',
-  company: '',
-  roleTitle: '',
-  teamSize: '',
-  primaryProvider: '',
-  useCase: '',
-};
-
-const signupProviderOptions = [
-  'LaunchDarkly',
-  'Unleash',
-  'Flagsmith',
-  'OpenFeature',
-  'Statsig',
-  'Firebase Remote Config',
-  'Not using one yet',
-  'Other',
-];
-
-const teamSizeOptions = ['1-5', '6-20', '21-50', '51-200', '201-1000', '1000+'];
-
 let riskAudioContext;
 
 function getRiskLevelFromAnalysis(analysis) {
@@ -502,11 +480,6 @@ export default function App() {
       ? new URLSearchParams(window.location.search).get('upgraded') || 'free'
       : 'free'
   ));
-  const [signupProfile, setSignupProfile] = useState(null);
-  const [showSignupDetails, setShowSignupDetails] = useState(false);
-  const [signupDetails, setSignupDetails] = useState(emptySignupDetails);
-  const [signupDetailsSaving, setSignupDetailsSaving] = useState(false);
-  const [signupDetailsNotice, setSignupDetailsNotice] = useState('');
   const [upgradeNotice, setUpgradeNotice] = useState('');
   const [gateNotice, setGateNotice] = useState('');
   const [showOnboarding, setShowOnboarding] = useState(() => {
@@ -636,62 +609,9 @@ export default function App() {
   const loginWithGoogle = (options) => loginWithProvider('google', options);
   const loginWithGitHub = (options) => loginWithProvider('github', options);
 
-  const hydrateSignupDetails = (profile = {}) => {
-    setSignupDetails((current) => ({
-      name: current.name || profile.name || user?.name || '',
-      company: current.company || profile.company || profile.signup_details?.company || '',
-      roleTitle: current.roleTitle || profile.role_title || profile.signup_details?.roleTitle || '',
-      teamSize: current.teamSize || profile.team_size || profile.signup_details?.teamSize || '',
-      primaryProvider: current.primaryProvider || profile.primary_provider || profile.signup_details?.primaryProvider || '',
-      useCase: current.useCase || profile.use_case || profile.signup_details?.useCase || '',
-    }));
-  };
-
-  const updateSignupDetails = (field, value) => {
-    setSignupDetails((current) => ({ ...current, [field]: value }));
-    if (signupDetailsNotice) setSignupDetailsNotice('');
-  };
-
-  const submitSignupDetails = async () => {
-    const details = {
-      name: signupDetails.name.trim(),
-      company: signupDetails.company.trim(),
-      roleTitle: signupDetails.roleTitle.trim(),
-      teamSize: signupDetails.teamSize.trim(),
-      primaryProvider: signupDetails.primaryProvider.trim(),
-      useCase: signupDetails.useCase.trim(),
-    };
-
-    if (!details.name || !details.company || !details.roleTitle || !details.teamSize || !details.primaryProvider || !details.useCase) {
-      setSignupDetailsNotice('Please complete every field so the signup log is useful.');
-      return;
-    }
-
-    setSignupDetailsSaving(true);
-    try {
-      const token = await getAccessTokenSilently({ authorizationParams: { audience: import.meta.env.VITE_AUTH0_AUDIENCE } });
-      const response = await api.syncUser(token, {
-        email: user?.email,
-        name: details.name,
-        picture: user?.picture,
-        source: 'signup_details',
-        details,
-      });
-      setSignupProfile(response.user);
-      setShowSignupDetails(false);
-      setSignupDetailsNotice('');
-    } catch (e) {
-      setSignupDetailsNotice(e.message || 'Could not save signup details. Try again.');
-    } finally {
-      setSignupDetailsSaving(false);
-    }
-  };
-
   const handleLogout = () => {
     checkoutPlanRef.current = null;
     setUserPlan('free');
-    setSignupProfile(null);
-    setShowSignupDetails(false);
     setCloudSnapshots([]);
     setCloudNotice('');
     setUpgradeNotice('');
@@ -1396,17 +1316,11 @@ export default function App() {
       try {
         const token = await getAccessTokenSilently({ authorizationParams: { audience: import.meta.env.VITE_AUTH0_AUDIENCE } });
         if (cancelled) return;
-        const response = await api.syncUser(token, {
+        await api.syncUser(token, {
           email: user.email,
           name: user.name,
           picture: user.picture,
         });
-        if (cancelled) return;
-        setSignupProfile(response.user);
-        hydrateSignupDetails(response.user);
-        if (!response.user?.signup_completed_at) {
-          setShowSignupDetails(true);
-        }
       } catch {
         // Signup tracking should never block the local demo workspace.
       }
@@ -1663,82 +1577,6 @@ export default function App() {
 
   return (
     <main className={`app-shell theme-${workspaceTheme}`}>
-      {showSignupDetails && isAuthenticated && (
-        <div className="signup-details-backdrop" role="presentation">
-          <section className="signup-details-modal" role="dialog" aria-modal="true" aria-labelledby="signup-details-title">
-            <div className="signup-details-heading">
-              <div>
-                <span>Account intake</span>
-                <h2 id="signup-details-title">Finish your Compass Ultra signup</h2>
-              </div>
-              <button type="button" onClick={handleLogout} aria-label="Sign out">
-                <LogOut size={17} aria-hidden="true" />
-              </button>
-            </div>
-
-            <div className="signup-details-grid">
-              <label>
-                <span>Full name</span>
-                <input
-                  value={signupDetails.name}
-                  onChange={(event) => updateSignupDetails('name', event.target.value)}
-                  autoComplete="name"
-                />
-              </label>
-              <label>
-                <span>Work email</span>
-                <input value={user?.email || signupProfile?.email || ''} disabled />
-              </label>
-              <label>
-                <span>Company or team</span>
-                <input
-                  value={signupDetails.company}
-                  onChange={(event) => updateSignupDetails('company', event.target.value)}
-                  autoComplete="organization"
-                />
-              </label>
-              <label>
-                <span>Role or title</span>
-                <input
-                  value={signupDetails.roleTitle}
-                  onChange={(event) => updateSignupDetails('roleTitle', event.target.value)}
-                  autoComplete="organization-title"
-                />
-              </label>
-              <label>
-                <span>Team size</span>
-                <select value={signupDetails.teamSize} onChange={(event) => updateSignupDetails('teamSize', event.target.value)}>
-                  <option value="">Select team size</option>
-                  {teamSizeOptions.map((option) => <option key={option} value={option}>{option}</option>)}
-                </select>
-              </label>
-              <label>
-                <span>Feature flag provider</span>
-                <select value={signupDetails.primaryProvider} onChange={(event) => updateSignupDetails('primaryProvider', event.target.value)}>
-                  <option value="">Select provider</option>
-                  {signupProviderOptions.map((option) => <option key={option} value={option}>{option}</option>)}
-                </select>
-              </label>
-              <label className="signup-details-wide">
-                <span>What are you trying to improve?</span>
-                <textarea
-                  value={signupDetails.useCase}
-                  onChange={(event) => updateSignupDetails('useCase', event.target.value)}
-                  rows={4}
-                />
-              </label>
-            </div>
-
-            {signupDetailsNotice && <p className="signup-details-notice">{signupDetailsNotice}</p>}
-            <div className="signup-details-actions">
-              <button type="button" onClick={submitSignupDetails} disabled={signupDetailsSaving}>
-                <UserRound size={16} aria-hidden="true" />
-                {signupDetailsSaving ? 'Saving...' : 'Complete signup'}
-              </button>
-            </div>
-          </section>
-        </div>
-      )}
       {upgradeNotice && (
         <div style={{ background: '#3fb950', color: '#000', padding: '10px 20px', textAlign: 'center', fontWeight: 600, fontSize: '0.95rem', position: 'fixed', top: 0, left: 0, right: 0, zIndex: 9999, boxShadow: '0 2px 8px rgba(0,0,0,0.3)' }}>
           {upgradeNotice}
@@ -1824,22 +1662,10 @@ export default function App() {
               style={{ fontSize: '0.7rem', fontWeight: 700, background: '#3fb950', color: '#000', borderRadius: 4, padding: '2px 7px', textTransform: 'uppercase', letterSpacing: '0.05em', border: 'none', cursor: 'pointer' }}
             >{userPlan}</button>
           )}
-          {isAuthenticated ? (
+          {isAuthenticated && (
             <button type="button" onClick={handleLogout} title={`Logout ${user?.email}`} aria-label="Logout">
               <LogOut size={17} aria-hidden="true" />
             </button>
-          ) : (
-            <>
-              <button type="button" onClick={() => loginWithGoogle()} title="Continue with Gmail" aria-label="Continue with Gmail">
-                <Mail size={17} aria-hidden="true" />
-              </button>
-              <button type="button" onClick={() => loginWithGitHub()} title="Continue with GitHub" aria-label="Continue with GitHub">
-                <Github size={17} aria-hidden="true" />
-              </button>
-              <button type="button" onClick={() => loginWithEmail()} title="Login with email" aria-label="Login with email">
-                <LogIn size={17} aria-hidden="true" />
-              </button>
-            </>
           )}
           <input ref={importRef} className="hidden-file" type="file" accept="application/json,.json" onChange={importWorkspace} />
         </div>
@@ -1979,9 +1805,9 @@ export default function App() {
               <Github size={15} />
               Continue with GitHub
             </button>
-            <button type="button" className="sandbox-login-btn" onClick={() => loginWithEmail()}>
+            <button type="button" className="sandbox-login-btn" onClick={() => loginWithEmail({ signup: true })}>
               <LogIn size={15} />
-              Email login
+              Email signup
             </button>
             <button type="button" className="sandbox-dismiss-btn" onClick={() => setShowPricing(true)}>
               View Pricing
