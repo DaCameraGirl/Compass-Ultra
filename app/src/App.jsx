@@ -52,12 +52,6 @@ import {
 import { api } from './api.js';
 
 const storageKey = 'compass-ultra-workspace-v4';
-const authConnections = {
-  email: import.meta.env.VITE_AUTH0_CONNECTION || 'Username-Password-Authentication',
-  google: import.meta.env.VITE_AUTH0_GOOGLE_CONNECTION || 'google-oauth2',
-  github: import.meta.env.VITE_AUTH0_GITHUB_CONNECTION || 'github',
-};
-
 const defaultContext = {
   key: 'demo_admin_001',
   email: 'admin@example.test',
@@ -597,17 +591,12 @@ export default function App() {
     window.location.hostname === 'localhost' ? window.location.origin : 'https://www.compassultra.com'
   );
 
-  const loginWithProvider = (provider = 'email', { signup = false, returnTo } = {}) => loginWithRedirect({
+  const loginToAccount = ({ signup = false, returnTo } = {}) => loginWithRedirect({
     ...(returnTo ? { appState: { returnTo } } : {}),
     authorizationParams: {
-      connection: authConnections[provider] || authConnections.email,
       ...(signup ? { screen_hint: 'signup' } : {}),
     },
   });
-
-  const loginWithEmail = (options) => loginWithProvider('email', options);
-  const loginWithGoogle = (options) => loginWithProvider('google', options);
-  const loginWithGitHub = (options) => loginWithProvider('github', options);
 
   const handleLogout = () => {
     checkoutPlanRef.current = null;
@@ -1433,7 +1422,7 @@ export default function App() {
   }, [authLoading, isAuthenticated]);
 
   const saveToCloud = () => {
-    if (!isAuthenticated) { loginWithGoogle(); return; }
+    if (!isAuthenticated) { loginToAccount(); return; }
     if (cloudSnapshots.length >= snapshotCap) {
       requirePlan('Pro', `Free plan is limited to ${snapshotCap} snapshots`);
       return;
@@ -1532,7 +1521,7 @@ export default function App() {
       }
       return;
     }
-    if (!isAuthenticated) { loginWithGoogle(); return; }
+    if (!isAuthenticated) { loginToAccount(); return; }
     if (!canUseAI) { requirePlan('Solo', 'risk analyzer'); return; }
     setAiLoading(true);
     setAiAnalysis('');
@@ -1545,7 +1534,7 @@ export default function App() {
       record('AI risk analysis complete');
     } catch (e) {
       if (e.error === 'login_required' || e.error === 'consent_required') {
-        loginWithGoogle();
+        loginToAccount();
         return;
       }
       const base = e.status === 503
@@ -1773,7 +1762,7 @@ export default function App() {
               </div>
               <button
                 type="button"
-                onClick={() => { if (!isAuthenticated) { loginWithGoogle(); return; } setShowRollbackModal(true); }}
+                onClick={() => { if (!isAuthenticated) { loginToAccount(); return; } setShowRollbackModal(true); }}
               >
                 Rollback to Safe State
               </button>
@@ -1797,17 +1786,9 @@ export default function App() {
             <span>Exploring Compass Ultra — no account needed. Toggle flags, run risk analysis, export PDFs.</span>
           </div>
           <div className="sandbox-banner-actions">
-            <button type="button" className="sandbox-login-btn sandbox-login-btn--google" onClick={() => loginWithGoogle()}>
-              <Mail size={15} />
-              Continue with Gmail
-            </button>
-            <button type="button" className="sandbox-login-btn sandbox-login-btn--github" onClick={() => loginWithGitHub()}>
-              <Github size={15} />
-              Continue with GitHub
-            </button>
-            <button type="button" className="sandbox-login-btn" onClick={() => loginWithEmail({ signup: true })}>
+            <button type="button" className="sandbox-login-btn" onClick={() => loginToAccount()}>
               <LogIn size={15} />
-              Email signup
+              Log in or sign up
             </button>
             <button type="button" className="sandbox-dismiss-btn" onClick={() => setShowPricing(true)}>
               View Pricing
@@ -2471,17 +2452,9 @@ export default function App() {
             </div>
             {!isAuthenticated && (
               <div className="auth-provider-row">
-                <button className="full-button" type="button" onClick={() => loginWithGoogle()}>
-                  <Mail size={16} aria-hidden="true" />
-                  Gmail
-                </button>
-                <button className="full-button" type="button" onClick={() => loginWithGitHub()}>
-                  <Github size={16} aria-hidden="true" />
-                  GitHub
-                </button>
-                <button className="full-button" type="button" onClick={() => loginWithEmail()}>
+                <button className="full-button" type="button" onClick={() => loginToAccount()}>
                   <LogIn size={16} aria-hidden="true" />
-                  Email
+                  Log in or sign up
                 </button>
               </div>
             )}
@@ -2763,7 +2736,7 @@ export default function App() {
                       if (isCurrent) return;
                       if (tier.plan === 'enterprise') { window.location.href = 'mailto:hello@compassultra.com?subject=Compass Ultra Enterprise Plan Inquiry'; return; }
                       if (tier.plan === 'free' || !tier.plan) { setShowPricing(false); return; }
-                      if (!isAuthenticated) { loginWithGoogle({ returnTo: `/app?plan=${tier.plan}` }); return; }
+                      if (!isAuthenticated) { loginToAccount({ returnTo: `/app?plan=${tier.plan}` }); return; }
                       if (alreadyPaid && (isUpgrade || isDowngrade)) {
                         try {
                           const token = await getAccessTokenSilently({ authorizationParams: { audience: import.meta.env.VITE_AUTH0_AUDIENCE } });
