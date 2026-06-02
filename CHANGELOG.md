@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.1.2 - 2026-06-02
+
+- Added configurable Auth0 redirect and logout URLs to prevent callback mismatch errors across production, preview, and local deployments.
+
 ## 1.1.1 - 2026-05-29
 
 - Added Auth0 social login buttons for Gmail/Google and GitHub.

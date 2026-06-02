@@ -268,7 +268,18 @@ VITE_API_URL=
 VITE_AUTH0_DOMAIN=
 VITE_AUTH0_CLIENT_ID=
 VITE_AUTH0_AUDIENCE=
+VITE_AUTH0_REDIRECT_URI=
+VITE_AUTH0_LOGOUT_RETURN_TO=
 ```
+
+Auth0 redirects must match exactly. Add the deployed callback URL to the Auth0 application under **Allowed Callback URLs**:
+
+```text
+https://www.compassultra.com/app
+http://localhost:5173/app
+```
+
+If a deployment uses another origin, set `VITE_AUTH0_REDIRECT_URI` to that exact `/app` URL and add the same URL in Auth0. Add the matching origin, such as `https://www.compassultra.com` or `http://localhost:5173`, under **Allowed Logout URLs**. The app falls back to the current browser origin plus `/app` when `VITE_AUTH0_REDIRECT_URI` is not set.
 
 ## Backend Environment
 

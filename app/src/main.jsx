@@ -4,15 +4,11 @@ import { Auth0Provider } from '@auth0/auth0-react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { Analytics } from '@vercel/analytics/react';
 import './styles.css';
+import { auth0Audience, auth0ClientId, auth0Domain, getAuth0RedirectUri } from './authConfig.js';
 
 const App = lazy(() => import('./App.jsx'));
 const LandingPage = lazy(() => import('./LandingPage.jsx'));
 const AiDevOpsChecker = lazy(() => import('./AiDevOpsChecker.jsx'));
-
-const domain   = import.meta.env.VITE_AUTH0_DOMAIN || 'compassultra.us.auth0.com';
-const clientId = import.meta.env.VITE_AUTH0_CLIENT_ID || 'XnScfnNJsKiooRvxExyX9geuWGnJb2QV';
-const audience = import.meta.env.VITE_AUTH0_AUDIENCE || 'https://api.compass-ultra.com';
-const appOrigin = window.location.hostname === 'localhost' ? window.location.origin : 'https://www.compassultra.com';
 
 function LegalPage({ type }) {
   const isPrivacy = type === 'privacy';
@@ -146,11 +142,11 @@ function TrustPage() {
 createRoot(document.getElementById('root')).render(
   <React.StrictMode>
     <Auth0Provider
-      domain={domain}
-      clientId={clientId}
+      domain={auth0Domain}
+      clientId={auth0ClientId}
       authorizationParams={{
-        redirect_uri: `${appOrigin}/app`,
-        audience,
+        redirect_uri: getAuth0RedirectUri(),
+        audience: auth0Audience,
       }}
     >
       <BrowserRouter>

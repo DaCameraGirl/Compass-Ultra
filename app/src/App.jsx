@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useAuth0 } from '@auth0/auth0-react';
+import { getAuth0LogoutReturnTo } from './authConfig.js';
 import { jsPDF } from 'jspdf';
 import {
   Activity,
@@ -587,10 +588,6 @@ export default function App() {
     setTimeout(() => setGateNotice(''), 100);
   };
 
-  const getPublicReturnUrl = () => (
-    window.location.hostname === 'localhost' ? window.location.origin : 'https://www.compassultra.com'
-  );
-
   const loginToAccount = ({ signup = false, returnTo } = {}) => loginWithRedirect({
     ...(returnTo ? { appState: { returnTo } } : {}),
     authorizationParams: {
@@ -604,7 +601,7 @@ export default function App() {
     setCloudSnapshots([]);
     setCloudNotice('');
     setUpgradeNotice('');
-    logout({ logoutParams: { returnTo: getPublicReturnUrl() } });
+    logout({ logoutParams: { returnTo: getAuth0LogoutReturnTo() } });
   };
 
   const selectedFlag = flags.find((flag) => flag.key === selectedKey) || flags[0];
