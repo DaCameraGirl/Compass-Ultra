@@ -16,12 +16,6 @@ Checklist:
 - Push `main` to `origin` so Vercel can deploy frontend changes.
 - Tell the user the latest commit hash and whether the working tree is clean.
 
-## Selection Improvement Task Habit
-
-Use [docs/selection-improvement-task-checklist.md](docs/selection-improvement-task-checklist.md) before submitting benchmark tasks.
-
-Key reminder: worker resources must not expose direct answer fixtures. For the Git recovery task, the worker zip should use `recovery_plan.json`; exact refs, graph topology, and blob IDs belong in hidden golden-side verifier inputs.
-
 ## Current Auth Setup Notes
 
 - Frontend is deployed on Vercel.
