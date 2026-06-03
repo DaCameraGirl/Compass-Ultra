@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useRef } from 'react';
 import { ArrowRight, Bot, BrainCircuit, CheckCircle2, CircleAlert, FileDown, GitBranch, MessageSquareText, RefreshCw, Rocket, ShieldCheck, Sparkles } from 'lucide-react';
 import { api } from './api.js';
 import './AiDevOpsChecker.css';
@@ -83,6 +83,7 @@ export default function AiDevOpsChecker() {
   const [result, setResult] = useState(null);
   const [running, setRunning] = useState(false);
   const [error, setError] = useState('');
+  const resultRef = useRef(null);
 
   const release = workspace.release || demoWorkspace.release;
   const flags = Array.isArray(workspace.flags) ? workspace.flags : demoWorkspace.flags;
@@ -127,8 +128,10 @@ export default function AiDevOpsChecker() {
         checks: nextChecks,
       });
       setResult(response);
+      resultRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     } catch (err) {
       setError(err.message || 'AI DevOps checker failed');
+      resultRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     } finally {
       setRunning(false);
     }
@@ -207,7 +210,7 @@ export default function AiDevOpsChecker() {
 
           {error && <div className="ai-devops-error"><CircleAlert size={16} /> {error}</div>}
 
-          <div className="ai-devops-result">
+          <div className="ai-devops-result" ref={resultRef}>
             {!result && !running && (
               <div className="ai-devops-empty">
                 <Sparkles size={22} />
@@ -229,7 +232,7 @@ export default function AiDevOpsChecker() {
           </div>
         </section>
 
-        <aside className="ai-devops-panel">
+        <aside className="ai-devops-panel ai-devops-panel--verifies">
           <h2><GitBranch size={18} /> What It Verifies</h2>
           {[
             ['AI risk analysis', 'Decision and blocker summary'],

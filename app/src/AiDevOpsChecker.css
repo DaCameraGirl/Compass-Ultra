@@ -350,3 +350,29 @@
     grid-template-columns: 1fr;
   }
 }
+
+@media (max-width: 600px) {
+  .ai-devops-page { padding: 16px 14px 40px; }
+
+  .ai-devops-hero h1 { font-size: 28px; line-height: 1.1; margin: 12px 0; }
+  .ai-devops-hero p  { font-size: 15px; }
+
+  .ai-devops-score-card strong { font-size: 40px; }
+
+  .ai-devops-grid       { gap: 12px; }
+  .ai-devops-chat       { order: -1; }
+
+  .ai-devops-panel--verifies { display: none; }
+
+  .ai-devops-flags {
+    max-height: 160px;
+    overflow-y: auto;
+  }
+
+  .ai-devops-result { min-height: 120px; }
+  .ai-devops-empty  { min-height: 120px; }
+
+  .ai-devops-chat textarea { min-height: 72px; }
+
+  .ai-devops-prompts button { font-size: 12px; padding: 7px 9px; }
+}

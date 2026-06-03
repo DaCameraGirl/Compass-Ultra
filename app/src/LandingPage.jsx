@@ -173,6 +173,46 @@ const PRICING = [
 
 const BUILT_FOR = ['LaunchDarkly', 'Unleash', 'Flagsmith', 'OpenFeature', 'Statsig', 'Firebase', 'Any JSON'];
 
+const COMPARE_TIERS = ['Free', 'Solo', 'Pro', 'Team', 'Enterprise'];
+const COMPARE_ROWS = [
+  { group: 'Core', rows: [
+    { label: 'Local workspace (no login)',           vals: [true,  true,  true,  true,  true]  },
+    { label: '9 automated policy gates',             vals: [true,  true,  true,  true,  true]  },
+    { label: 'Flag evaluation engine',               vals: [true,  true,  true,  true,  true]  },
+    { label: 'PDF runbook export',                   vals: [true,  true,  true,  true,  true]  },
+    { label: 'Saved snapshots',                      vals: ['3',   'Unlimited', 'Unlimited', 'Unlimited', 'Unlimited'] },
+  ]},
+  { group: 'Intelligence', rows: [
+    { label: 'AI risk analyzer',                     vals: [false, true,  true,  true,  true]  },
+    { label: 'Cloud snapshots',                      vals: [false, true,  true,  true,  true]  },
+    { label: 'Snapshot diff viewer',                 vals: [false, true,  true,  true,  true]  },
+    { label: 'Flag expiration alerts',               vals: [false, true,  true,  true,  true]  },
+    { label: 'Shareable certificate links',          vals: [false, true,  true,  true,  true]  },
+    { label: 'Audit log export',                     vals: [false, true,  true,  true,  true]  },
+  ]},
+  { group: 'Team & Access', rows: [
+    { label: 'Seats',                                vals: ['-',  '1',   '5',   '15',  'Custom'] },
+    { label: 'Team RBAC (Admin / Operator / Viewer)', vals: [false, false, true,  true,  true] },
+    { label: 'Shared team workspace',                vals: [false, false, true,  true,  true]  },
+    { label: 'SSO (Google + Email)',                  vals: [false, false, false, true,  true]  },
+    { label: 'SSO/SAML + SCIM',                      vals: [false, false, false, false, true]  },
+  ]},
+  { group: 'Integrations', rows: [
+    { label: 'Slack workflow payloads',              vals: [false, false, true,  true,  true]  },
+    { label: 'Jira & GitHub release handoff',        vals: [false, false, true,  true,  true]  },
+    { label: 'Multi-environment snapshot diff',      vals: [false, false, false, true,  true]  },
+    { label: 'CAB certificate workflow',             vals: [false, false, false, true,  true]  },
+    { label: 'Audit log streaming',                  vals: [false, false, false, true,  true]  },
+    { label: 'Custom integrations & workflows',      vals: [false, false, false, false, true]  },
+  ]},
+  { group: 'Support', rows: [
+    { label: 'Community support',                    vals: [true,  true,  false, false, false] },
+    { label: 'Priority support',                     vals: [false, false, true,  true,  true]  },
+    { label: 'SLA targets',                          vals: [false, false, false, false, true]  },
+    { label: 'Dedicated onboarding',                 vals: [false, false, false, false, true]  },
+  ]},
+];
+
 const TRUST_SIGNALS = [
   {
     title: 'Blocked release demo',
@@ -1213,6 +1253,43 @@ export default function LandingPage({ initialAnchor }) {
               </div>
             ))}
           </div>
+          <div className="lp-compare-wrap">
+            <h3 className="lp-compare-heading">Full feature comparison</h3>
+            <div className="lp-compare-table-wrap">
+              <table className="lp-compare-table">
+                <thead>
+                  <tr>
+                    <th></th>
+                    {COMPARE_TIERS.map((t, i) => (
+                      <th key={t} className={i === 3 ? 'lp-compare-th--featured' : ''}>{t}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {COMPARE_ROWS.map(group => (
+                    <React.Fragment key={group.group}>
+                      <tr className="lp-compare-group">
+                        <td colSpan={6}>{group.group}</td>
+                      </tr>
+                      {group.rows.map(row => (
+                        <tr key={row.label}>
+                          <td className="lp-compare-label">{row.label}</td>
+                          {row.vals.map((val, i) => (
+                            <td key={i} className={`lp-compare-cell ${i === 3 ? 'lp-compare-cell--featured' : ''}`}>
+                              {val === true  ? <span className="lp-compare-yes">Yes</span>
+                             : val === false ? <span className="lp-compare-no">-</span>
+                             : <span className="lp-compare-val">{val}</span>}
+                            </td>
+                          ))}
+                        </tr>
+                      ))}
+                    </React.Fragment>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
           <div className="lp-pricing-proof">
             <div>
               <span>Designed for teams using</span>
