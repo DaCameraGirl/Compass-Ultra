@@ -3,6 +3,7 @@
 ## 1.1.2 - 2026-06-02
 
 - Added configurable Auth0 redirect and logout URLs to prevent callback mismatch errors across production, preview, and local deployments.
+- Aligned the default logout return URL with the Auth0 app callback path and documented the GitHub OAuth callback required for Auth0 social login.
 
 ## 1.1.1 - 2026-05-29
 

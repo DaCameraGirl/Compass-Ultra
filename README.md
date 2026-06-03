@@ -276,10 +276,19 @@ Auth0 redirects must match exactly. Add the deployed callback URL to the Auth0 a
 
 ```text
 https://www.compassultra.com/app
+https://compass-ultra.vercel.app/app
 http://localhost:5173/app
 ```
 
-If a deployment uses another origin, set `VITE_AUTH0_REDIRECT_URI` to that exact `/app` URL and add the same URL in Auth0. Add the matching origin, such as `https://www.compassultra.com` or `http://localhost:5173`, under **Allowed Logout URLs**. The app falls back to the current browser origin plus `/app` when `VITE_AUTH0_REDIRECT_URI` is not set.
+If a deployment uses another origin, set `VITE_AUTH0_REDIRECT_URI` to that exact `/app` URL and add the same URL in Auth0. Add the same `/app` URLs under **Allowed Logout URLs** unless `VITE_AUTH0_LOGOUT_RETURN_TO` is set to a different exact URL. The app falls back to the current browser origin plus `/app` when `VITE_AUTH0_REDIRECT_URI` is not set.
+
+For Auth0 social login with GitHub, the GitHub OAuth App callback is different from the Compass app callback. In GitHub's OAuth App settings, set **Authorization callback URL** to:
+
+```text
+https://compassultra.us.auth0.com/login/callback
+```
+
+If Auth0 is using a custom authentication domain, use that Auth0 domain plus `/login/callback` instead.
 
 ## Backend Environment
 

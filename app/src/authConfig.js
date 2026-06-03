@@ -22,9 +22,5 @@ export function getAuth0LogoutReturnTo() {
   const configuredReturnTo = import.meta.env.VITE_AUTH0_LOGOUT_RETURN_TO;
   if (configuredReturnTo) return configuredReturnTo;
 
-  try {
-    return new URL(getAuth0RedirectUri()).origin;
-  } catch {
-    return window.location.origin;
-  }
+  return getAuth0RedirectUri();
 }

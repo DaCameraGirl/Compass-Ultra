@@ -10,11 +10,17 @@ jobs:
   release-gate:
     runs-on: ubuntu-latest
     name: Compass Ultra Release Gate
+    env:
+      COMPASS_API_KEY: ${{ secrets.COMPASS_API_KEY }}
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+      - name: Skip Compass release gate when API key is missing
+        if: ${{ env.COMPASS_API_KEY == '' }}
+        run: echo "::warning title=Compass Release Gate::Skipping release gate because COMPASS_API_KEY is not configured."
       - uses: ./.github/actions/compass-check
+        if: ${{ env.COMPASS_API_KEY != '' }}
         with:
-          api-key: ${{ secrets.COMPASS_API_KEY }}
+          api-key: ${{ env.COMPASS_API_KEY }}
           workspace: fixtures/compass-workspace.demo.json
           fail-on: high
 
