@@ -15,10 +15,30 @@ inputs:
     description: Risk threshold that fails the workflow. One of low, medium, high, critical.
     required: false
     default: high
+outputs:
+  result:
+    description: Full Compass check response JSON.
+    value: ${{ steps.compass-check.outputs.result }}
+  decision:
+    description: Compass release decision.
+    value: ${{ steps.compass-check.outputs.decision }}
+  riskLevel:
+    description: Highest risk level detected by Compass.
+    value: ${{ steps.compass-check.outputs.riskLevel }}
+  failed:
+    description: Whether the release gate failed.
+    value: ${{ steps.compass-check.outputs.failed }}
+  summary:
+    description: Human-readable Compass check summary.
+    value: ${{ steps.compass-check.outputs.summary }}
+  findings:
+    description: Compass findings JSON.
+    value: ${{ steps.compass-check.outputs.findings }}
 runs:
   using: composite
   steps:
-    - name: Run Compass release gate
+    - id: compass-check
+      name: Run Compass release gate
       shell: bash
       run: node "$GITHUB_ACTION_PATH/compass-check.mjs"
       env:

@@ -1016,54 +1016,111 @@ export default function App() {
     const doc = new jsPDF({ unit: 'pt', format: 'letter' });
     const margin = 48;
     const pageW = doc.internal.pageSize.getWidth();
+    const pageH = doc.internal.pageSize.getHeight();
     const maxW = pageW - margin * 2;
     let y = margin;
 
-    const addPage = () => { doc.addPage(); y = margin; };
-    const checkY = (needed = 20) => { if (y + needed > doc.internal.pageSize.getHeight() - margin) addPage(); };
-    const addSectionTitle = (title) => {
-      checkY(28);
-      doc.setFontSize(11);
-      doc.setFont('helvetica', 'bold');
-      doc.setTextColor(255, 184, 0);
-      doc.text(title, margin, y);
-      y += 16;
+    const pdfColors = {
+      ink: [17, 24, 39],
+      muted: [75, 85, 99],
+      quiet: [107, 114, 128],
+      line: [209, 213, 219],
+      panel: [249, 250, 251],
+      header: [7, 9, 14],
+      brand: [11, 99, 206],
+      green: [8, 116, 67],
+      amber: [181, 71, 8],
+      red: [180, 35, 24],
+      white: [255, 255, 255],
     };
-    const addWrappedText = (text, indent = 0, color = [139, 148, 158], fontSize = 9) => {
+
+    const pdfText = (value) => String(value ?? '')
+      .replace(/\u00c2\u00b7/g, ' - ')
+      .replace(/\u00e2\u20ac[\u0093\u0094\u201c\u201d]/g, '-')
+      .replace(/\u00e2\u20ac[\u02dc\u2122]/g, "'")
+      .replace(/[\u2010-\u2015]/g, '-')
+      .replace(/[\u2018\u2019]/g, "'")
+      .replace(/[\u201c\u201d]/g, '"')
+      .replace(/[\u2022\u00b7]/g, '-')
+      .replace(/\u00a0/g, ' ')
+      .replace(/[^\x09\x0a\x0d\x20-\x7e]/g, '')
+      .replace(/[ \t]+/g, ' ')
+      .trim();
+
+    const writePdfText = (value, x, textY, options) => doc.text(pdfText(value), x, textY, options);
+    const splitPdfText = (value, width) => doc.splitTextToSize(pdfText(value) || ' ', width);
+    const addPage = () => { doc.addPage(); y = margin; };
+    const checkY = (needed = 20) => { if (y + needed > pageH - margin - 14) addPage(); };
+    const addSectionTitle = (title) => {
+      checkY(34);
+      y += 8;
+      doc.setDrawColor(...pdfColors.line);
+      doc.setLineWidth(0.6);
+      doc.line(margin, y - 10, pageW - margin, y - 10);
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(...pdfColors.brand);
+      writePdfText(title, margin, y);
+      y += 18;
+    };
+    const addWrappedText = (value, indent = 0, textColor = pdfColors.muted, fontSize = 9, fontStyle = 'normal') => {
       doc.setFontSize(fontSize);
-      doc.setFont('helvetica', 'normal');
-      doc.setTextColor(...color);
-      String(text || '').split('\n').forEach((paragraph) => {
-        const lines = doc.splitTextToSize(paragraph || ' ', maxW - indent);
+      doc.setFont('helvetica', fontStyle);
+      doc.setTextColor(...textColor);
+      String(value || '').split('\n').forEach((paragraph) => {
+        const lines = splitPdfText(paragraph || ' ', maxW - indent);
         lines.forEach((line) => {
-          checkY(13);
-          doc.text(line, margin + indent, y);
-          y += 13;
+          checkY(fontSize + 7);
+          writePdfText(line, margin + indent, y);
+          y += fontSize + 5;
         });
       });
     };
+    const addKeyValue = (label, value) => {
+      checkY(16);
+      doc.setFontSize(9);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(...pdfColors.muted);
+      writePdfText(`${label}:`, margin, y);
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(...pdfColors.ink);
+      const lines = splitPdfText(value || 'not set', maxW - 120);
+      lines.forEach((line, index) => {
+        if (index > 0) {
+          y += 12;
+          checkY(16);
+        }
+        writePdfText(line, margin + 120, y);
+      });
+      y += 16;
+    };
 
     // Header bar
-    doc.setFillColor(7, 9, 14);
+    doc.setFillColor(...pdfColors.header);
     doc.rect(0, 0, pageW, 56, 'F');
-    doc.setTextColor(255, 184, 0);
+    doc.setTextColor(...pdfColors.white);
     doc.setFontSize(18);
     doc.setFont('helvetica', 'bold');
-    doc.text('COMPASS-ULTRA', margin, 36);
+    writePdfText('COMPASS ULTRA', margin, 32);
     doc.setFontSize(9);
-    doc.setTextColor(139, 148, 158);
+    doc.setTextColor(203, 213, 225);
     doc.setFont('helvetica', 'normal');
-    doc.text(`Release Readiness Certificate  ·  ${new Date().toLocaleString()}`, margin, 50);
-    y = 80;
+    writePdfText(`Release Readiness Certificate - ${new Date().toLocaleString()}`, margin, 48);
+    y = 84;
 
     // Title
-    doc.setTextColor(230, 237, 243);
-    doc.setFontSize(14);
+    doc.setTextColor(...pdfColors.ink);
+    doc.setFontSize(16);
     doc.setFont('helvetica', 'bold');
-    doc.setFillColor(22, 27, 34);
-    doc.rect(margin - 8, y - 14, maxW + 16, 24, 'F');
-    doc.text(workspaceName, margin, y);
-    y += 32;
+    splitPdfText(workspaceName, maxW).forEach((line) => {
+      checkY(20);
+      writePdfText(line, margin, y);
+      y += 18;
+    });
+    doc.setDrawColor(...pdfColors.line);
+    doc.setLineWidth(0.8);
+    doc.line(margin, y + 2, pageW - margin, y + 2);
+    y += 22;
 
     // Release metadata
     doc.setFontSize(9);
@@ -1077,99 +1134,77 @@ export default function App() {
       ['Window', release.window],
       ['Incident Channel', release.incidentChannel],
     ];
-    meta.forEach(([label, value]) => {
-      checkY(16);
-      doc.setTextColor(139, 148, 158);
-      doc.text(`${label}:`, margin, y);
-      doc.setTextColor(230, 237, 243);
-      doc.text(String(value), margin + 110, y);
-      y += 16;
-    });
-    y += 12;
+    meta.forEach(([label, value]) => addKeyValue(label, value));
+    y += 8;
 
     // Gate status
-    checkY(28);
+    checkY(34);
     const blocked = policyChecks.filter(c => c.status === 'block').length;
     const warnings = policyChecks.filter(c => c.status === 'warn').length;
-    const gateColor = blocked ? [248, 81, 73] : warnings ? [240, 136, 62] : [63, 185, 80];
+    const gateColor = blocked ? pdfColors.red : warnings ? pdfColors.amber : pdfColors.green;
     const gateLabel = blocked ? 'BLOCKED' : warnings ? 'NEEDS REVIEW' : 'READY TO SHIP';
     doc.setFillColor(...gateColor);
-    doc.roundedRect(margin - 8, y - 14, maxW + 16, 22, 3, 3, 'F');
-    doc.setTextColor(7, 9, 14);
+    doc.rect(margin, y - 16, maxW, 28, 'F');
+    doc.setTextColor(...pdfColors.white);
     doc.setFontSize(11);
     doc.setFont('helvetica', 'bold');
-    doc.text(`GATE STATUS: ${gateLabel}`, margin, y);
-    y += 30;
+    writePdfText(`GATE STATUS: ${gateLabel}`, margin + 12, y + 2);
+    y += 34;
 
     // Policy checks
-    doc.setFontSize(11);
-    doc.setFont('helvetica', 'bold');
-    doc.setTextColor(255, 184, 0);
-    doc.text('ENTERPRISE POLICY CHECKS', margin, y);
-    y += 16;
+    addSectionTitle('ENTERPRISE POLICY CHECKS');
     policyChecks.forEach(check => {
-      checkY(18);
-      const color = check.status === 'pass' ? [63, 185, 80] : check.status === 'warn' ? [240, 136, 62] : [248, 81, 73];
-      doc.setFillColor(...color);
+      checkY(30);
+      const dotColor = check.status === 'pass' ? pdfColors.green : check.status === 'warn' ? pdfColors.amber : pdfColors.red;
+      doc.setFillColor(...dotColor);
       doc.circle(margin + 4, y - 4, 4, 'F');
-      doc.setTextColor(230, 237, 243);
+      doc.setTextColor(...pdfColors.ink);
       doc.setFontSize(9);
       doc.setFont('helvetica', 'bold');
-      doc.text(check.title, margin + 14, y);
-      doc.setFont('helvetica', 'normal');
-      doc.setTextColor(139, 148, 158);
-      const lines = doc.splitTextToSize(check.detail, maxW - 14);
-      lines.forEach(line => { checkY(13); doc.text(line, margin + 14, y += 13); });
-      y += 6;
+      writePdfText(check.title, margin + 16, y);
+      y += 13;
+      addWrappedText(check.detail, 16, pdfColors.muted, 8);
+      y += 3;
     });
     y += 8;
 
     // Active flags
-    checkY(28);
-    doc.setFontSize(11);
-    doc.setFont('helvetica', 'bold');
-    doc.setTextColor(255, 184, 0);
-    doc.text('ACTIVE FLAG EVALUATIONS', margin, y);
-    y += 16;
+    addSectionTitle('ACTIVE FLAG EVALUATIONS');
     evaluations.filter(({ result }) => Boolean(result.value)).forEach(({ flag, result }) => {
-      checkY(36);
-      doc.setFillColor(22, 27, 34);
-      doc.rect(margin - 8, y - 14, maxW + 16, 32, 'F');
-      doc.setTextColor(230, 237, 243);
+      const detail = `${flag.key} - owner: ${flag.owner} - ticket: ${flag.jira} - criticality: ${flag.criticality} - reason: ${result.reason}`;
+      const detailLines = splitPdfText(detail, maxW - 24);
+      checkY(30 + detailLines.length * 11);
+      doc.setFillColor(...pdfColors.panel);
+      doc.setDrawColor(...pdfColors.line);
+      doc.rect(margin, y - 13, maxW, 26 + detailLines.length * 11, 'FD');
+      doc.setTextColor(...pdfColors.ink);
       doc.setFontSize(9);
       doc.setFont('helvetica', 'bold');
-      doc.text(flag.name, margin, y);
+      writePdfText(flag.name, margin + 12, y);
       doc.setFont('helvetica', 'normal');
-      doc.setTextColor(139, 148, 158);
-      doc.text(`${flag.key}  ·  owner: ${flag.owner}  ·  ticket: ${flag.jira}  ·  criticality: ${flag.criticality}  ·  reason: ${result.reason}`, margin, y + 13);
-      y += 38;
+      doc.setTextColor(...pdfColors.muted);
+      detailLines.forEach((line, index) => writePdfText(line, margin + 12, y + 13 + index * 11));
+      y += 34 + detailLines.length * 11;
     });
     y += 8;
 
     // Rollback steps
-    checkY(28);
-    doc.setFontSize(11);
-    doc.setFont('helvetica', 'bold');
-    doc.setTextColor(255, 184, 0);
-    doc.text('ROLLBACK PROCEDURES', margin, y);
-    y += 16;
+    addSectionTitle('ROLLBACK PROCEDURES');
     flags.filter(f => f.enabled).forEach(flag => {
       checkY(28);
-      doc.setTextColor(230, 237, 243);
+      doc.setTextColor(...pdfColors.ink);
       doc.setFontSize(9);
       doc.setFont('helvetica', 'bold');
-      doc.text(flag.key, margin, y);
-      doc.setFont('helvetica', 'normal');
-      doc.setTextColor(139, 148, 158);
-      const lines = doc.splitTextToSize(flag.rollback, maxW - 14);
-      lines.forEach(line => { checkY(13); doc.text(line, margin + 14, y += 13); });
-      y += 6;
+      writePdfText(flag.key, margin, y);
+      y += 13;
+      addWrappedText(flag.rollback, 14, pdfColors.muted, 8);
+      y += 4;
     });
 
     y += 8;
     addSectionTitle('AI RISK ANALYSIS');
     if (aiAnalysis) {
-      addWrappedText(aiAnalysis.replace(/^#+\s*/gm, ''), 0, [230, 237, 243], 8);
+      addWrappedText(aiAnalysis.replace(/^#+\s*/gm, ''), 0, pdfColors.ink, 8);
     } else {
       addWrappedText('No release risk analysis has been run for this workspace session. Run Risk Analysis before exporting if this PDF will be used as final release evidence.');
     }
@@ -1185,7 +1220,7 @@ export default function App() {
       `Critical active paths: ${criticalActive}`,
       `Live providers configured: ${connectedProviders}`,
       `Snapshot evidence available: ${diffSnapshots.length}`,
-    ].forEach((line) => addWrappedText(`- ${line}`, 8, [230, 237, 243]));
+    ].forEach((line) => addWrappedText(`- ${line}`, 8, pdfColors.ink));
 
     y += 8;
     addSectionTitle('PROVIDER STATUS');
@@ -1200,7 +1235,7 @@ export default function App() {
       addWrappedText('No audit events recorded in this workspace.');
     } else {
       auditRows.forEach((event) => {
-        addWrappedText(`- [${event.time}] ${event.action}${event.detail ? ` — ${event.detail}` : ''} (${event.actor})`, 8);
+        addWrappedText(`- [${event.time}] ${event.action}${event.detail ? ` - ${event.detail}` : ''} (${event.actor})`, 8);
       });
     }
 
@@ -1208,11 +1243,13 @@ export default function App() {
     const pages = doc.internal.getNumberOfPages();
     for (let i = 1; i <= pages; i++) {
       doc.setPage(i);
-      doc.setFillColor(7, 9, 14);
-      doc.rect(0, doc.internal.pageSize.getHeight() - 28, pageW, 28, 'F');
+      doc.setDrawColor(...pdfColors.line);
+      doc.setLineWidth(0.6);
+      doc.line(margin, pageH - 30, pageW - margin, pageH - 30);
       doc.setFontSize(8);
-      doc.setTextColor(61, 68, 81);
-      doc.text(`Compass-Ultra  ·  ${workspaceName}  ·  Page ${i} of ${pages}`, margin, doc.internal.pageSize.getHeight() - 10);
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(...pdfColors.quiet);
+      writePdfText(`Compass Ultra - ${workspaceName} - Page ${i} of ${pages}`, margin, pageH - 12);
     }
 
     doc.save(`${slugKey(workspaceName) || 'compass'}-readiness-certificate-${Date.now()}.pdf`);

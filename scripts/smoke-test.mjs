@@ -20,6 +20,16 @@ if (!action.includes('Compass Ultra Release Gate') || !action.includes('fail-on'
   console.error('Compass Action metadata is incomplete.');
   process.exit(1);
 }
+for (const output of ['result', 'decision', 'riskLevel', 'failed', 'summary', 'findings']) {
+  if (!action.includes(`${output}:`) || !action.includes(`steps.compass-check.outputs.${output}`)) {
+    console.error(`Compass Action output is not exposed correctly: ${output}`);
+    process.exit(1);
+  }
+}
+if (!action.includes('id: compass-check')) {
+  console.error('Compass Action run step must keep id: compass-check so composite outputs are wired.');
+  process.exit(1);
+}
 
 // Demo analyzer must use the real backend with a realistic timeout. The live
 // AI service has been observed to take ~20–30s, so any default below 30s
