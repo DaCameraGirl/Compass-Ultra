@@ -1,0 +1,26 @@
+{
+  "branch_targets": [
+    {
+      "ref": "refs/heads/release-v2.1",
+      "reflog_subject_contains": "Merge feature/urgent-fix into release-v2.1"
+    },
+    {
+      "ref": "refs/heads/main",
+      "reflog_subject_contains": "Refactor database connection pooling"
+    }
+  ],
+  "checksum_targets": [
+    {
+      "reflog_subject_contains": "Add rate-limiting config for payment gateway",
+      "path": "src/config.ts"
+    },
+    {
+      "reflog_subject_contains": "Bump version to 2.1.0-rc.1",
+      "path": "package.json"
+    },
+    {
+      "reflog_subject_contains": "Fix null-pointer in transaction handler",
+      "path": "src/transaction.ts"
+    }
+  ]
+}

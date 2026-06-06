@@ -1,0 +1,15 @@
+{
+  "partial_overlap": {
+    "status": "PASS",
+    "tool_exit_code": 0,
+    "bundle_cloneable": true,
+    "fsck_connectivity": true
+  },
+  "corrupted_bundle": {
+    "status": "PASS",
+    "tool_exit_code": 1,
+    "rejected": true,
+    "repaired_bundle_created": false,
+    "error": "after_bundle_invalid"
+  }
+}

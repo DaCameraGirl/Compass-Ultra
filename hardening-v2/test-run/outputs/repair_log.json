@@ -1,0 +1,47 @@
+{
+  "branches_restored": [
+    "refs/heads/release-v2.1",
+    "refs/heads/main"
+  ],
+  "refs_expected": {
+    "refs/heads/release-v2.1": "1b1be16d19fe4d45c0ae95fbc60dd27c9ffe9ca5",
+    "refs/heads/main": "cba43b878661c973d4cc2558f185f9cabe7e8072"
+  },
+  "refs_restored": {
+    "refs/heads/release-v2.1": "1b1be16d19fe4d45c0ae95fbc60dd27c9ffe9ca5",
+    "refs/heads/main": "cba43b878661c973d4cc2558f185f9cabe7e8072"
+  },
+  "all_refs_restored": true,
+  "orphaned_shas": [
+    "1b1be16",
+    "83b40ee",
+    "9156e76",
+    "85748bd",
+    "cba43b8",
+    "19fca0e"
+  ],
+  "bundle_created": true,
+  "checksums": {
+    "85748bd": {
+      "src/config.ts": {
+        "status": "match",
+        "expected": "337d9a3345c999c37c896bb4c4ef818729aa545c",
+        "actual": "337d9a3345c999c37c896bb4c4ef818729aa545c"
+      }
+    },
+    "9156e76": {
+      "package.json": {
+        "status": "match",
+        "expected": "4df9f4a545faf15b1ba309b4e97e03fffca031c3",
+        "actual": "4df9f4a545faf15b1ba309b4e97e03fffca031c3"
+      }
+    },
+    "83b40ee": {
+      "src/transaction.ts": {
+        "status": "match",
+        "expected": "24303c6c6c87e54103c955fb1926479362e6599e",
+        "actual": "24303c6c6c87e54103c955fb1926479362e6599e"
+      }
+    }
+  }
+}

@@ -1,0 +1,6 @@
+{
+  "solver": "recovery_tool.py",
+  "status": "failed",
+  "error": "after_bundle_invalid",
+  "details": "Cloning into 'C:\\Users\\enter\\OneDrive\\Desktop\\Compass-Ultra-Pro\\hardening-v2\\test-run\\case_runs\\corrupted_bundle_work'...\nerror: 'C:\\Users\\enter\\OneDrive\\Desktop\\Compass-Ultra-Pro\\hardening-v2\\test-run\\recovery_cases\\corrupted_bundle\\repo_after_force.bundle' does not look like a v2 or v3 bundle file\nfatal: invalid gitfile format: C:\\Users\\enter\\OneDrive\\Desktop\\Compass-Ultra-Pro\\hardening-v2\\test-run\\recovery_cases\\corrupted_bundle\\repo_after_force.bundle\nfatal: Could not read from remote repository.\n\nPlease make sure you have the correct access rights\nand the repository exists."
+}
