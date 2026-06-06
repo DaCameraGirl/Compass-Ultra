@@ -1,0 +1,30 @@
+{
+  "name": "gatekeeper",
+  "version": "1.0.0",
+  "description": "GateKeeper — Autonomous AI DevOps Release Gate Agent powered by Claude",
+  "main": "src/index.js",
+  "type": "module",
+  "scripts": {
+    "start": "node --env-file=.env server.js",
+    "chat": "node --env-file=.env server.js",
+    "gate": "node --env-file=.env src/index.js",
+    "dev": "node --env-file=.env --watch server.js"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.55.0",
+    "express": "^5.2.1",
+    "openai": "^4.67.0"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "keywords": [
+    "devops",
+    "release",
+    "gating",
+    "ai",
+    "claude",
+    "github-actions"
+  ],
+  "license": "MIT"
+}

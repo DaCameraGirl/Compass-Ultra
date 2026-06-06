@@ -1,0 +1,20 @@
+{
+  "question": "I'm enabling checkout-new-payment-flow at 25% in production tomorrow morning. It depends on stripe-api-v2 and fraud-detection-v3. I don't have a formal approval from the payments team yet, but we've been testing in staging for 2 weeks. What are the actual risks here, and what do I need to do before I flip the switch?",
+  "flags": [
+    {
+      "key": "checkout-new-payment-flow",
+      "name": "New Stripe Integration Checkout",
+      "status": "enabled",
+      "percentageRollout": 25,
+      "environment": "production",
+      "lastModified": "2026-06-02T08:00:00Z",
+      "owner": "payments-team",
+      "dependencies": ["stripe-api-v2", "fraud-detection-v3"],
+      "changeTicketId": "CHANGE-4521",
+      "approvalStatus": "pending",
+      "expiresAt": "2026-07-01T00:00:00Z",
+      "hasOverride": false,
+      "riskLevel": "high"
+    }
+  ]
+}
