@@ -555,7 +555,10 @@
   font-weight: 700;
 }
 
-.lp-section { padding: 100px 0; }
+.lp-section {
+  padding: 100px 0;
+  scroll-margin-top: 88px;
+}
 .lp-section--alt { background: rgba(255,255,255,0.013); }
 
 .lp-section-header {
@@ -616,6 +619,225 @@
   color: #8b949e;
   line-height: 1.7;
   margin: 0;
+}
+
+/* DataOps control room */
+.lp-dataops-section {
+  background:
+    linear-gradient(180deg, rgba(41,181,232,0.045), rgba(7,9,14,0)),
+    #07090e;
+}
+
+.lp-dataops-grid {
+  display: grid;
+  grid-template-columns: 0.85fr 1.15fr;
+  gap: 36px;
+  align-items: center;
+}
+
+.lp-dataops-copy h2 {
+  font-size: 38px;
+  line-height: 1.12;
+  margin: 0 0 18px;
+  max-width: 520px;
+}
+
+.lp-dataops-copy p {
+  color: #a9b4c3;
+  font-size: 16px;
+  line-height: 1.7;
+  margin: 0 0 24px;
+  max-width: 560px;
+}
+
+.lp-dataops-stack {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.lp-dataops-stack span {
+  border: 1px solid rgba(41,181,232,0.28);
+  border-radius: 999px;
+  background: rgba(41,181,232,0.08);
+  color: #9bdcff;
+  font-size: 12px;
+  font-weight: 800;
+  padding: 8px 11px;
+}
+
+.lp-dataops-panel {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 12px;
+  background: linear-gradient(145deg, rgba(13,17,23,0.98), rgba(6,12,18,0.98));
+  box-shadow: 0 24px 80px rgba(0,0,0,0.32);
+  padding: 18px;
+}
+
+.lp-dataops-panel::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px),
+    linear-gradient(180deg, rgba(255,255,255,0.025) 1px, transparent 1px);
+  background-size: 34px 34px;
+  pointer-events: none;
+}
+
+.lp-dataops-panel > * {
+  position: relative;
+}
+
+.lp-dataops-panel-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: flex-start;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+  padding-bottom: 14px;
+}
+
+.lp-dataops-panel-head span,
+.lp-dataops-score span,
+.lp-dataops-row-meta span {
+  display: block;
+  color: #697386;
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.lp-dataops-panel-head strong {
+  display: block;
+  color: #e6edf3;
+  font-size: 17px;
+  margin-top: 4px;
+}
+
+.lp-dataops-panel-head em {
+  border: 1px solid rgba(63,185,80,0.28);
+  border-radius: 999px;
+  background: rgba(63,185,80,0.1);
+  color: #7ee787;
+  font-size: 11px;
+  font-style: normal;
+  font-weight: 800;
+  padding: 5px 9px;
+  white-space: nowrap;
+}
+
+.lp-dataops-score {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  margin: 18px 0;
+}
+
+.lp-dataops-score strong {
+  color: #29b5e8;
+  font-size: 48px;
+  line-height: 1;
+}
+
+.lp-dataops-list {
+  display: grid;
+  gap: 10px;
+}
+
+.lp-dataops-flow {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin: 0 0 14px;
+}
+
+.lp-dataops-flow span {
+  border: 1px solid rgba(41,181,232,0.18);
+  border-radius: 8px;
+  background: rgba(41,181,232,0.055);
+  color: #9bdcff;
+  font-size: 11px;
+  font-weight: 800;
+  line-height: 1.35;
+  min-height: 42px;
+  padding: 8px;
+  display: grid;
+  place-items: center;
+  text-align: center;
+}
+
+.lp-dataops-row {
+  display: grid;
+  grid-template-columns: 36px 1fr auto;
+  gap: 12px;
+  align-items: center;
+  border: 1px solid rgba(255,255,255,0.07);
+  border-radius: 10px;
+  background: rgba(255,255,255,0.035);
+  padding: 13px;
+}
+
+.lp-dataops-row-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 9px;
+  display: grid;
+  place-items: center;
+  background: rgba(41,181,232,0.1);
+  color: #29b5e8;
+}
+
+.lp-dataops-row strong {
+  display: block;
+  color: #e6edf3;
+  font-size: 13px;
+  margin-bottom: 4px;
+}
+
+.lp-dataops-row p {
+  color: #8b949e;
+  font-size: 12px;
+  line-height: 1.5;
+  margin: 0;
+}
+
+.lp-dataops-row-meta {
+  min-width: 112px;
+  text-align: right;
+}
+
+.lp-dataops-row-meta em {
+  display: block;
+  color: #ffb800;
+  font-size: 11px;
+  font-style: normal;
+  font-weight: 800;
+  margin-top: 5px;
+}
+
+.lp-dataops-actions {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.lp-dataops-actions span {
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 8px;
+  color: #a9b4c3;
+  background: rgba(255,255,255,0.035);
+  font-size: 11px;
+  font-weight: 800;
+  line-height: 1.35;
+  min-height: 42px;
+  padding: 8px;
+  display: grid;
+  place-items: center;
+  text-align: center;
 }
 
 /* ─── FEATURES GRID ─────────────────────────────────────────────── */
@@ -2172,6 +2394,7 @@
   .lp-pricing-roi-actions { justify-content: flex-start; }
   .lp-pricing-proof,
   .lp-risk-report-preview,
+  .lp-dataops-grid,
   .lp-pricing-value    { grid-template-columns: 1fr; }
   .lp-certificate-wrap { grid-template-columns: 1fr; }
   .lp-certificate-grid { grid-template-columns: 1fr; }
@@ -2202,6 +2425,12 @@
   .lp-gallery-card--featured h3 { font-size: 28px; }
   .lp-pricing-grid     { grid-template-columns: 1fr; }
   .lp-section-header h2 { font-size: 28px; }
+  .lp-dataops-copy h2  { font-size: 28px; }
+  .lp-dataops-panel    { padding: 14px; }
+  .lp-dataops-flow     { grid-template-columns: 1fr 1fr; }
+  .lp-dataops-row      { grid-template-columns: 32px 1fr; align-items: flex-start; }
+  .lp-dataops-row-meta { grid-column: 2; text-align: left; min-width: 0; }
+  .lp-dataops-actions  { grid-template-columns: 1fr; }
   .lp-cta-banner h2    { font-size: 30px; }
   .lp-footer-inner     { flex-direction: column; }
   .lp-footer-bottom    { flex-direction: column; gap: 8px; text-align: center; }

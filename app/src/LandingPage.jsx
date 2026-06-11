@@ -4,6 +4,7 @@ import {
   Brain, Shield, Cloud, FileDown, GitCompare, Users,
   BarChart3, Check, ArrowRight, Menu, X, Compass, Zap,
   AlertTriangle, CheckCircle, Clock, Lock, Play,
+  Database, Workflow, Activity,
 } from 'lucide-react';
 import './LandingPage.css';
 
@@ -104,6 +105,11 @@ const FEATURES = [
       '💡 Why: When something goes wrong in production, "who changed what and when" is the first question. The audit log is the answer.',
     ],
   },
+  {
+    icon: <Database size={22} />, color: '#29b5e8',
+    title: 'Web Intel Data Pipeline',
+    description: 'Connect company discovery, Python crawling, Snowflake raw storage, dbt marts, Streamlit analysis, and optional Fivetran metadata into one evidence-backed workflow.',
+  },
 ];
 
 const STEPS = [
@@ -171,7 +177,7 @@ const PRICING = [
   },
 ];
 
-const BUILT_FOR = ['LaunchDarkly', 'Unleash', 'Flagsmith', 'OpenFeature', 'Statsig', 'Firebase', 'Any JSON'];
+const BUILT_FOR = ['LaunchDarkly', 'Unleash', 'Flagsmith', 'OpenFeature', 'Statsig', 'Firebase', 'Snowflake', 'Fivetran', 'dbt', 'Any JSON'];
 
 const TRUST_SIGNALS = [
   {
@@ -187,6 +193,32 @@ const TRUST_SIGNALS = [
     detail: 'Try the release control room without an account, then connect live providers when the team is ready.',
   },
 ];
+
+const DATA_OPS_SIGNALS = [
+  {
+    icon: <Workflow size={18} />,
+    title: 'Discovery and ingestion',
+    value: 'Tavily + Python',
+    detail: 'Company or website targets expand into crawlable sources, then flow through a Python loader.',
+    status: 'Crawler ready',
+  },
+  {
+    icon: <Database size={18} />,
+    title: 'Snowflake raw layer',
+    value: 'RAW_WEBSITE_INTEL.PAGES',
+    detail: 'Public pages land in Snowflake with repeatable bootstrap, load, and validation commands.',
+    status: 'Warehouse gated',
+  },
+  {
+    icon: <Activity size={18} />,
+    title: 'dbt marts and Web Intel app',
+    value: 'SQL + Streamlit',
+    detail: 'dbt builds staging and mart models for query, prospect, and website-signal analysis.',
+    status: 'Marts tested',
+  },
+];
+
+const WEB_INTEL_PIPELINE = ['Company / website', 'Tavily discovery', 'Python crawler', 'Snowflake raw pages', 'dbt staging + marts', 'Streamlit Web Intel'];
 
 const GALLERY_IMAGES = [
   {
@@ -715,6 +747,7 @@ export default function LandingPage({ initialAnchor }) {
             <a href="#certificate">Certificate</a>
             <a href="#demo">Demo</a>
             <a href="#features">Features</a>
+            <a href="#dataops">DataOps</a>
             <a href="#how">How It Works</a>
             <a href="#pricing">Pricing</a>
           </div>
@@ -731,6 +764,7 @@ export default function LandingPage({ initialAnchor }) {
             <a href="#certificate" onClick={() => setMenuOpen(false)}>Certificate</a>
             <a href="#demo" onClick={() => setMenuOpen(false)}>Demo</a>
             <a href="#features" onClick={() => setMenuOpen(false)}>Features</a>
+            <a href="#dataops" onClick={() => setMenuOpen(false)}>DataOps</a>
             <a href="#how" onClick={() => setMenuOpen(false)}>How It Works</a>
             <a href="#pricing" onClick={() => setMenuOpen(false)}>Pricing</a>
             <button className="lp-btn-primary" style={{ width: '100%' }} onClick={goToApp}>Get Started Free</button>
@@ -1051,6 +1085,66 @@ export default function LandingPage({ initialAnchor }) {
         </div>
       </section>
 
+      {/* Web Intel data pipeline */}
+      <section id="dataops" className="lp-section lp-dataops-section">
+        <div className="lp-container">
+          <div className="lp-dataops-grid">
+            <div className="lp-dataops-copy">
+              <div className="lp-badge lp-badge--purple">Web Intel Pipeline</div>
+              <h2>Compass Ultra already has a Snowflake and dbt data-engineering proof.</h2>
+              <p>
+                The Web Intel repo turns a company or website into a governed intelligence
+                workflow: Tavily discovery, Python crawling, Snowflake raw storage, dbt
+                staging and marts, then a Streamlit app for analysis. Fivetran metadata is
+                wired as an optional operational source.
+              </p>
+              <div className="lp-dataops-stack" aria-label="Data operations stack">
+                <span>Python Crawler</span>
+                <span>Snowflake Raw Layer</span>
+                <span>dbt Models</span>
+                <span>Fivetran-ready Metadata</span>
+              </div>
+            </div>
+            <div className="lp-dataops-panel" aria-label="DataOps control room preview">
+              <div className="lp-dataops-panel-head">
+                <div>
+                  <span>Compass Ultra Web Intel</span>
+                  <strong>Website intelligence pipeline</strong>
+                </div>
+                <em>Live repo proof</em>
+              </div>
+              <div className="lp-dataops-score">
+                <strong>95%</strong>
+                <span>Python language share</span>
+              </div>
+              <div className="lp-dataops-flow">
+                {WEB_INTEL_PIPELINE.map((step) => <span key={step}>{step}</span>)}
+              </div>
+              <div className="lp-dataops-list">
+                {DATA_OPS_SIGNALS.map((item) => (
+                  <div className="lp-dataops-row" key={item.title}>
+                    <div className="lp-dataops-row-icon">{item.icon}</div>
+                    <div>
+                      <strong>{item.title}</strong>
+                      <p>{item.detail}</p>
+                    </div>
+                    <div className="lp-dataops-row-meta">
+                      <span>{item.value}</span>
+                      <em>{item.status}</em>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <div className="lp-dataops-actions">
+                <span>Validate env</span>
+                <span>Bootstrap Snowflake</span>
+                <span>Run dbt build</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* ── FEATURES ── */}
       <section id="features" className="lp-section">
         <div className="lp-container">
@@ -1290,6 +1384,7 @@ export default function LandingPage({ initialAnchor }) {
             <div className="lp-footer-links">
               <a href="#demo">Demo</a>
               <a href="#features">Features</a>
+              <a href="#dataops">DataOps</a>
               <a href="#how">How It Works</a>
               <a href="#pricing">Pricing</a>
               <a href="https://www.compassultra.com">Website</a>

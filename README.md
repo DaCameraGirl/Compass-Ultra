@@ -35,6 +35,7 @@ Compass Ultra turns that mess into a repeatable release review workflow:
 - Supports AI DevOps web search through a backend-only search proxy.
 - Supports Auth0 login, Stripe billing, cloud snapshots, and provider proxy workflows through the backend.
 - GitHub Action CI gate blocks deploys when release risk exceeds configured threshold.
+- Links the product story to the companion `compass-ultra-web-intel` pipeline: Tavily discovery, Python crawling, Snowflake raw storage, dbt marts, Streamlit analysis, and optional Fivetran metadata.
 
 ## Live Demo
 
@@ -138,6 +139,28 @@ One-click payload copy or POST to:
 | Jira Change | CHG ticket update |
 | Slack War Room | Release blocks/rich message |
 
+### Compass Ultra Web Intel Pipeline
+
+The public site now includes a Snowflake, Fivetran-ready, and dbt proof section that points to the companion data-engineering repo:
+
+```text
+https://github.com/DaCameraGirl/compass-ultra-web-intel
+```
+
+That repo is separate from this React/Vite website, but it supports the same Compass Ultra product story.
+
+The workflow covers:
+
+- Company or website input.
+- Tavily discovery.
+- Python crawling and loading.
+- Snowflake `RAW_WEBSITE_INTEL.PAGES` storage.
+- dbt staging and mart models.
+- Streamlit Web Intel analysis.
+- Optional Fivetran connector and destination metadata ingestion.
+
+The main website is the public product surface. The Web Intel repo is the working data pipeline proof.
+
 ### Snapshot Diff
 
 Compare two release checkpoints and see exactly what changed:
@@ -214,6 +237,15 @@ Paid plans start with a 7-day free trial. No credit card required. Trials downgr
 | Database | PostgreSQL through backend |
 | AI risk analysis | Backend AI service with deterministic fallback |
 | Hosting | Vercel (frontend), Railway (backend) |
+
+Web Intel adapter targets:
+
+| Area | Target |
+| --- | --- |
+| Managed ELT | Fivetran API and connector metadata |
+| Warehouse | Snowflake |
+| Modeling | dbt Core / dbt Snowflake |
+| Evidence | GitHub, Slack, PDF runbooks |
 
 ## Repositories
 
