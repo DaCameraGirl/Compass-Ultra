@@ -302,9 +302,9 @@ No credit card required. Trials downgrade to Free automatically unless the custo
 
 ## 📦 Source Code
 
-This project is maintained in private repositories.
+This public repository contains the Compass Ultra launch page, documentation, GitHub Pages assets, and public-facing project materials.
 
-Public users can explore the live app and demo without access to the source code.
+The production application and backend are maintained separately. Public users can explore the live app and demo without needing access to private implementation repositories.
 
 ---
 
