@@ -1,6 +1,34 @@
-# 🧭 Compass Ultra 
+<p align="center">
+  <img src="docs/readme-banner.svg" alt="Compass Ultra — release intelligence platform" width="720" />
+</p>
+
+# 🧭 Compass Ultra
 
 > **Release intelligence for teams that ship behind feature flags.**
+
+<p align="center">
+  <a href="https://www.compassultra.com"><img src="https://img.shields.io/badge/Live-www.compassultra.com-0b63ce?style=for-the-badge&logo=vercel&logoColor=white" alt="Live app" /></a>
+  <a href="https://www.compassultra.com/app?demo=true"><img src="https://img.shields.io/badge/Demo-no%20login%20required-33d69f?style=for-the-badge&logo=rocket&logoColor=061713" alt="Try the demo" /></a>
+  <a href="https://www.compassultra.com/ai-devops"><img src="https://img.shields.io/badge/AI%20DevOps-checker-bc8cff?style=for-the-badge&logo=openai&logoColor=white" alt="AI DevOps checker" /></a>
+</p>
+
+<p align="center">
+  <img src="https://img.shields.io/badge/License-MIT-yellow.svg?style=flat-square" alt="MIT License" />
+  <img src="https://img.shields.io/badge/status-production%20ready-33d69f?style=flat-square" alt="Production ready" />
+  <img src="https://img.shields.io/badge/deploy-Vercel-000000?style=flat-square&logo=vercel&logoColor=white" alt="Deployed on Vercel" />
+  <img src="https://img.shields.io/badge/API-Railway-0B0D0E?style=flat-square&logo=railway&logoColor=white" alt="Backend on Railway" />
+</p>
+
+### Languages
+
+<p align="center">
+  <img src="https://img.shields.io/badge/JavaScript-59%25-F7DF1E?style=flat-square&logo=javascript&logoColor=111" alt="JavaScript 59%" />
+  <img src="https://img.shields.io/badge/Python-19.2%25-3776AB?style=flat-square&logo=python&logoColor=white" alt="Python 19.2%" />
+  <img src="https://img.shields.io/badge/CSS-14.3%25-1572B6?style=flat-square&logo=css3&logoColor=white" alt="CSS 14.3%" />
+  <img src="https://img.shields.io/badge/TypeScript-7%25-3178C6?style=flat-square&logo=typescript&logoColor=white" alt="TypeScript 7%" />
+</p>
+
+### Translations
 
 <p align="center">
   <a href="README.md"><img src="https://img.shields.io/badge/🇺🇸_English-6366f1?style=for-the-badge&labelColor=0f131a" alt="English"/></a>
@@ -17,9 +45,29 @@
 
 Compass Ultra is a release control room for feature-flagged software. Review flag state, policy gates, rollout risk, snapshot diffs, AI-assisted risk analysis, and audit-ready release proof — before production changes go live.
 
-[🚀 Live App](https://www.compassultra.com) · [🎮 Try the Demo](https://www.compassultra.com/app?demo=true) · [🤖 AI DevOps Checker](https://www.compassultra.com/ai-devops)
+[🚀 Live App](https://www.compassultra.com) · [🎮 Try the Demo](https://www.compassultra.com/app?demo=true) · [🤖 AI DevOps Checker](https://www.compassultra.com/ai-devops) · [🔒 Trust](https://www.compassultra.com/trust)
 
 ![demo](docs/demo.gif)
+
+## At a glance
+
+```mermaid
+flowchart LR
+  A[Import flags] --> B[Evaluate context]
+  B --> C[Policy gates]
+  C --> D[AI risk analysis]
+  D --> E[Snapshot diff]
+  E --> F[PDF certificate]
+  F --> G[GitHub / Jira / Slack]
+
+  style A fill:#0d1b33,stroke:#58a6ff,color:#e6edf3
+  style B fill:#0d1b33,stroke:#58a6ff,color:#e6edf3
+  style C fill:#0d1b33,stroke:#ffb800,color:#e6edf3
+  style D fill:#0d1b33,stroke:#bc8cff,color:#e6edf3
+  style E fill:#0d1b33,stroke:#33d69f,color:#e6edf3
+  style F fill:#0d1b33,stroke:#33d69f,color:#e6edf3
+  style G fill:#0d1b33,stroke:#58a6ff,color:#e6edf3
+```
 
 ---
 
@@ -313,11 +361,16 @@ No credit card required. Trials downgrade to Free automatically unless the custo
 
 ---
 
-## 📦 Source Code
+## 📦 Repositories
 
-This public repository contains the Compass Ultra launch page, documentation, GitHub Pages assets, and public-facing project materials.
+| Repo | What it is |
+| --- | --- |
+| **[Compass-Ultra](https://github.com/DaCameraGirl/Compass-Ultra)** (this repo) | Public showcase — README, docs, GitHub Pages landing, demo GIF |
+| **[Compass-Ultra-Pro](https://github.com/DaCameraGirl/Compass-Ultra-Pro)** | Production React/Vite app deployed to [www.compassultra.com](https://www.compassultra.com) |
+| **[compass-ultra-backend](https://github.com/DaCameraGirl/compass-ultra-backend)** | API, AI risk analysis, billing, cloud snapshots |
+| **[compass-ultra-web-intel](https://github.com/DaCameraGirl/compass-ultra-web-intel)** | Snowflake / dbt Web Intel pipeline proof |
 
-The production application and backend are maintained separately. Public users can explore the live app and demo without needing access to private implementation repositories.
+This public repository is the **marketing and docs surface**. The live product runs on Vercel and Railway — explore the demo without needing private repo access.
 
 ---
 
@@ -354,13 +407,11 @@ Compass Ultra is designed as a release review layer.
 
 ## ✅ Status
 
-Compass Ultra is live:
-
-**Production:** [https://www.compassultra.com](https://www.compassultra.com)
-
-**Demo:** [https://www.compassultra.com/app?demo=true](https://www.compassultra.com/app?demo=true)
-
-**AI DevOps Checker:** [https://www.compassultra.com/ai-devops](https://www.compassultra.com/ai-devops)
+<p align="center">
+  <a href="https://www.compassultra.com"><img src="https://img.shields.io/badge/Production-www.compassultra.com-0b63ce?style=for-the-badge&logo=vercel&logoColor=white" alt="Production" /></a>
+  <a href="https://www.compassultra.com/app?demo=true"><img src="https://img.shields.io/badge/Sandbox-open%20demo-33d69f?style=for-the-badge&logo=playstation&logoColor=061713" alt="Sandbox demo" /></a>
+  <a href="https://www.compassultra.com/ai-devops"><img src="https://img.shields.io/badge/Checker-AI%20DevOps-bc8cff?style=for-the-badge&logo=dependabot&logoColor=white" alt="AI DevOps checker" /></a>
+</p>
 
 ---
 

@@ -1,21 +1,185 @@
 <!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Compass Ultra</title>
-<style>
-:root{--bg:#0b1010;--panel:#111b1b;--ink:#f7f2e8;--muted:#afbbb8;--line:#283b3a;--a:#41d99a;--b:#6ba9ff;--c:#f0c45d}*{box-sizing:border-box}body{margin:0;min-height:100vh;font-family:Trebuchet MS,system-ui,sans-serif;background:radial-gradient(circle at 16% 12%,rgba(65,217,154,.22),transparent 28%),radial-gradient(circle at 82% 12%,rgba(240,196,93,.14),transparent 32%),linear-gradient(145deg,#0b1010,#111923 62%,#12130d);color:var(--ink)}main{width:min(1120px,calc(100vw - 32px));margin:auto;padding:48px 0}.kicker{color:var(--a);font-weight:800;text-transform:uppercase;font-size:12px;letter-spacing:.12em}h1{font-size:clamp(44px,8vw,92px);line-height:.9;margin:0;letter-spacing:0}.lede{font-size:21px;line-height:1.55;color:#e6eee9;max-width:820px}.actions{display:flex;flex-wrap:wrap;gap:12px;margin:28px 0}.btn{border:1px solid var(--line);border-radius:8px;padding:12px 16px;color:var(--ink);background:#182423;text-decoration:none;font-weight:800}.btn.primary{background:var(--a);color:#061713}.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}.card,.panel{border:1px solid var(--line);border-radius:8px;background:rgba(17,27,27,.88);padding:20px}.card h2,.panel h2{margin:0 0 10px;font-size:18px}.card p,.panel p{color:var(--muted);line-height:1.55}.meter{height:12px;border-radius:999px;background:linear-gradient(90deg,#41d99a 0 45%,#f0c45d 45% 72%,#ff6b55 72%);border:1px solid var(--line);margin-top:14px}@media(max-width:760px){main{padding:28px 0}.grid{grid-template-columns:1fr}.lede{font-size:17px}}
-</style>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Compass Ultra — Release Intelligence</title>
+  <meta name="description" content="Release intelligence for teams that ship behind feature flags. Policy gates, AI risk analysis, snapshot diff, and PDF release proof.">
+  <meta property="og:title" content="Compass Ultra">
+  <meta property="og:description" content="Review flag state, policy gates, and rollout risk before production changes go live.">
+  <meta property="og:url" content="https://www.compassultra.com">
+  <meta property="og:image" content="https://dacameragirl.github.io/Compass-Ultra/docs/frame1_hero.png">
+  <style>
+    :root {
+      --bg: #070b14;
+      --panel: #0e1117;
+      --ink: #e6edf3;
+      --muted: #8b949e;
+      --line: rgba(255, 255, 255, 0.1);
+      --brand: #58a6ff;
+      --green: #33d69f;
+      --amber: #ffb800;
+      --purple: #bc8cff;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: "Segoe UI", system-ui, sans-serif;
+      background:
+        radial-gradient(circle at 12% 8%, rgba(88, 166, 255, 0.16), transparent 28%),
+        radial-gradient(circle at 88% 10%, rgba(51, 214, 159, 0.12), transparent 30%),
+        linear-gradient(160deg, #070b14, #0d1b33 55%, #070b14);
+      color: var(--ink);
+    }
+    main { width: min(1080px, calc(100vw - 32px)); margin: 0 auto; padding: 40px 0 64px; }
+    .banner { width: 100%; border-radius: 16px; border: 1px solid rgba(88, 166, 255, 0.2); display: block; }
+    .kicker { color: var(--green); font-weight: 800; text-transform: uppercase; font-size: 12px; letter-spacing: 0.14em; margin: 24px 0 10px; }
+    h1 { font-size: clamp(34px, 6vw, 56px); line-height: 1.05; margin: 0 0 14px; }
+    .lede { font-size: 19px; line-height: 1.6; color: #c9d4e3; max-width: 760px; margin: 0; }
+    .badges { display: flex; flex-wrap: wrap; gap: 8px; margin: 22px 0 8px; }
+    .badge {
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 6px 12px;
+      font-size: 12px;
+      font-weight: 700;
+      background: rgba(255, 255, 255, 0.03);
+    }
+    .badge.live { border-color: rgba(11, 99, 206, 0.5); color: #9ec5ff; }
+    .badge.demo { border-color: rgba(51, 214, 159, 0.45); color: var(--green); }
+    .badge.ai { border-color: rgba(188, 140, 255, 0.45); color: var(--purple); }
+    .actions { display: flex; flex-wrap: wrap; gap: 12px; margin: 24px 0 36px; }
+    .btn {
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 12px 18px;
+      color: var(--ink);
+      background: #161b22;
+      text-decoration: none;
+      font-weight: 800;
+      font-size: 14px;
+      transition: border-color 0.15s, transform 0.15s;
+    }
+    .btn:hover { border-color: rgba(88, 166, 255, 0.45); transform: translateY(-1px); }
+    .btn.primary { background: var(--green); color: #061713; border-color: transparent; }
+    .btn.secondary { background: rgba(88, 166, 255, 0.12); border-color: rgba(88, 166, 255, 0.35); color: #9ec5ff; }
+    .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-bottom: 28px; }
+    .card, .panel {
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: rgba(14, 17, 23, 0.92);
+      padding: 20px;
+    }
+    .card h2, .panel h2 { margin: 0 0 10px; font-size: 17px; }
+    .card p, .panel p { color: var(--muted); line-height: 1.55; margin: 0; font-size: 14px; }
+    .shots { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 14px; }
+    .shots img {
+      width: 100%;
+      border-radius: 10px;
+      border: 1px solid var(--line);
+      display: block;
+      background: #0a0f18;
+    }
+    .demo-gif { width: 100%; border-radius: 12px; border: 1px solid var(--line); margin-top: 14px; }
+    .flow { display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px; margin-top: 16px; }
+    .step {
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 10px;
+      text-align: center;
+      font-size: 11px;
+      color: var(--muted);
+      background: #0a1020;
+    }
+    .step strong { display: block; color: var(--ink); font-size: 12px; margin-bottom: 4px; }
+    .meter {
+      height: 12px;
+      border-radius: 999px;
+      background: linear-gradient(90deg, var(--green) 0 45%, var(--amber) 45% 72%, #f85149 72%);
+      border: 1px solid var(--line);
+      margin-top: 14px;
+    }
+    footer { margin-top: 28px; color: #6e7681; font-size: 12px; line-height: 1.6; }
+    footer a { color: #9ec5ff; }
+    @media (max-width: 820px) {
+      .grid, .shots { grid-template-columns: 1fr; }
+      .flow { grid-template-columns: repeat(2, 1fr); }
+      .lede { font-size: 16px; }
+    }
+  </style>
 </head>
 <body>
-<main>
-<p class="kicker">DaCameraGirl / Compass-Ultra</p>
-<h1>Compass Ultra</h1>
-<p class="lede">Release intelligence for teams that ship behind feature flags. Review flag state, policy gates, rollout risk, snapshot diffs, AI-assisted analysis, and audit-ready release proof before production changes go live.</p>
-<div class="actions"><a class="btn primary" href="https://www.compassultra.com">Open live app</a><a class="btn" href="https://www.compassultra.com/app?demo=true">Try demo</a><a class="btn" href="https://dacameragirl.github.io/Compass-Ultra-AI-Dev-Ops/">AI DevOps checker</a><a class="btn" href="https://github.com/DaCameraGirl/Compass-Ultra">Source</a></div>
-<section class="grid"><article class="card"><h2>Feature Flag Review</h2><p>Make risky rollout percentages, stale flags, missing owners, and production overrides visible before ship time.</p></article><article class="card"><h2>Policy Gates</h2><p>Turn release readiness into a repeatable workflow with owners, approvals, rollback notes, and proof.</p></article><article class="card"><h2>Snapshot Diff</h2><p>Compare what changed since the last approved state so teams can make a clear ship, caution, or hold decision.</p></article></section>
-<section class="panel"><h2>Release Signal</h2><p>Compass Ultra turns scattered Slack threads and feature flag chaos into a control room for launch decisions.</p><div class="meter"></div></section>
-</main>
+  <main>
+    <img class="banner" src="docs/readme-banner.svg" alt="Compass Ultra release intelligence platform">
+    <p class="kicker">Public showcase repo · production at compassultra.com</p>
+    <h1>Ship with proof, not guesswork.</h1>
+    <p class="lede">Compass Ultra is the release control room around feature flags — policy gates, AI risk analysis, snapshot diff, and PDF certificates before peak-traffic deploys.</p>
+
+    <div class="badges">
+      <span class="badge live">Live on Vercel</span>
+      <span class="badge demo">Sandbox demo · no login</span>
+      <span class="badge ai">AI risk + deterministic fallback</span>
+      <span class="badge">React · Vite · Auth0 · Stripe</span>
+    </div>
+
+    <div class="actions">
+      <a class="btn primary" href="https://www.compassultra.com">Open live app</a>
+      <a class="btn secondary" href="https://www.compassultra.com/app?demo=true">Try peak-sale demo</a>
+      <a class="btn" href="https://www.compassultra.com/ai-devops">AI DevOps checker</a>
+      <a class="btn" href="https://github.com/DaCameraGirl/Compass-Ultra">Showcase README</a>
+      <a class="btn" href="https://github.com/DaCameraGirl/Compass-Ultra-Pro">Production source</a>
+    </div>
+
+    <section class="grid">
+      <article class="card">
+        <h2>Policy gates</h2>
+        <p>Nine automated checks for canary limits, dependencies, approvers, overrides, and change-ticket traceability.</p>
+      </article>
+      <article class="card">
+        <h2>AI risk analysis</h2>
+        <p>Live AI release review with financial impact estimates and a local fallback when the service is unavailable.</p>
+      </article>
+      <article class="card">
+        <h2>Release proof</h2>
+        <p>Snapshot diff, PDF readiness certificates, and GitHub / Jira / Slack payloads from one workspace.</p>
+      </article>
+    </section>
+
+    <section class="panel">
+      <h2>Release review loop</h2>
+      <p>Load flags → evaluate context → run gates → analyze risk → diff snapshots → export certificate → notify DevOps.</p>
+      <div class="flow">
+        <div class="step"><strong>Import</strong>flags</div>
+        <div class="step"><strong>Context</strong>evaluate</div>
+        <div class="step"><strong>Gates</strong>policy</div>
+        <div class="step"><strong>AI</strong>risk</div>
+        <div class="step"><strong>Diff</strong>snapshots</div>
+        <div class="step"><strong>PDF</strong>proof</div>
+      </div>
+      <div class="meter" aria-hidden="true"></div>
+    </section>
+
+    <section class="panel" style="margin-top:16px">
+      <h2>Product screenshots</h2>
+      <p>Peek at the workspace, demo flow, and AI analysis panel. Full interactive demo runs on the live site.</p>
+      <div class="shots">
+        <img src="docs/frame1_hero.png" alt="Compass Ultra landing and hero">
+        <img src="docs/frame2_demo.png" alt="Peak sale demo workspace">
+        <img src="docs/frame3_ai.png" alt="AI risk analysis panel">
+      </div>
+      <img class="demo-gif" src="docs/demo.gif" alt="Animated demo of Compass Ultra release workflow">
+    </section>
+
+    <footer>
+      <p>
+        <strong>This repository</strong> is the public showcase (docs + GitHub Pages).
+        The production app is at <a href="https://www.compassultra.com">www.compassultra.com</a>
+        (<a href="https://github.com/DaCameraGirl/Compass-Ultra-Pro">Compass-Ultra-Pro</a>).
+        API and AI run on Railway via
+        <a href="https://github.com/DaCameraGirl/compass-ultra-backend">compass-ultra-backend</a>.
+      </p>
+    </footer>
+  </main>
 </body>
 </html>
