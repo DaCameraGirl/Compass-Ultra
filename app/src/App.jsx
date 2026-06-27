@@ -1536,14 +1536,7 @@ export default function App() {
         record('Live demo AI risk analysis complete');
         return;
       } catch (e) {
-        const isTimeout = e.name === 'AbortError' || e.status === 408 || /aborted|timed out/i.test(e.message || '');
-        const base = isTimeout
-                    ? '⚡ Instant local analysis active — upgrade to Pro for live AI-powered analysis.'
-          : e.status === 429
-                      ? '⚡ Instant local analysis active — upgrade to Pro for live AI-powered analysis.'
-            : e.status === 503
-                        ? '⚡ Instant local analysis active — upgrade to Pro for live AI-powered analysis.'
-                        : '⚡ Instant local analysis active — upgrade to Pro for live AI-powered analysis.'
+        const base = demoAiFallbackMessage(e);
         setAiLiveError(e.hint ? `${base} ${e.hint}` : base);
         record('Live AI unavailable; using deterministic fallback', e.message || '', 'warn');
         const analysis = makeDemoAiAnalysis(workspaceName, release, context, flags, policyChecks);
@@ -2990,6 +2983,23 @@ function makeDemoSnapshots(flags, context, release) {
       },
     },
   ];
+}
+
+function demoAiFallbackMessage(error) {
+  const message = String(error?.message || '');
+  if (/credit balance|quota|billing/i.test(message)) {
+    return 'Live AI is temporarily unavailable because the server AI provider is out of credits. Showing instant local analysis instead.';
+  }
+  if (error?.status === 429 || /rate limit/i.test(message)) {
+    return 'Demo AI rate limit reached. Showing instant local analysis — try again in a minute.';
+  }
+  if (error?.status === 408 || error?.name === 'AbortError' || /timed out|aborted/i.test(message)) {
+    return 'Live AI timed out. Showing instant local analysis from your current workspace.';
+  }
+  if (error?.status === 503 || /not configured|no ai provider/i.test(message)) {
+    return 'Live AI is not configured on the server yet. Showing instant local analysis instead.';
+  }
+  return 'Live AI unavailable. Showing instant local analysis from your current workspace.';
 }
 
 function makeDemoAiAnalysis(workspaceName, release, context, flags, policyChecks) {
