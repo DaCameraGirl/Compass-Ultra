@@ -20,7 +20,7 @@
 </p>
 
 <p align="center"><img src="docs/readme-divider.svg" width="720" alt="" /></p>
-<p align="center"><img src="https://capsule-render.vercel.app/api?type=rect&color=070b14&height=50&section=header&text=Languages&fontSize=22&fontColor=e6edf3" width="520" alt="Languages" /></p>
+<p align="center"><img src="https://capsule-render.vercel.app/api?type=waving&color=0:070b14,100:12102a&height=50&section=header&text=Languages&fontSize=22&fontColor=e6edf3&animation=twinkling" width="520" alt="Languages" /></p>
 
 <p align="center">
   <img src="https://img.shields.io/badge/JavaScript-59%25-F7DF1E?style=flat-square&logo=javascript&logoColor=111" alt="JavaScript 59%" />
@@ -51,7 +51,7 @@ Compass Ultra is a release control room for feature-flagged software. Review fla
 ![demo](docs/demo.gif)
 
 <p align="center"><img src="docs/readme-divider.svg" width="720" alt="" /></p>
-<p align="center"><img src="https://capsule-render.vercel.app/api?type=rect&color=070b14&height=50&section=header&text=At%20a%20glance&fontSize=22&fontColor=e6edf3" width="720" alt="At a glance" /></p>
+<p align="center"><img src="https://capsule-render.vercel.app/api?type=waving&color=0:070b14,100:12102a&height=50&section=header&text=At%20a%20glance&fontSize=22&fontColor=e6edf3&animation=twinkling" width="720" alt="At a glance" /></p>
 
 
 ```mermaid
@@ -76,7 +76,7 @@ flowchart LR
 ---
 
 <p align="center"><img src="docs/readme-divider.svg" width="720" alt="" /></p>
-<p align="center"><img src="https://capsule-render.vercel.app/api?type=rect&color=070b14&height=50&section=header&text=%E2%9C%A8%20Why%20Compass%20Ultra%3F&fontSize=22&fontColor=e6edf3" width="720" alt="✨ Why Compass Ultra?" /></p>
+<p align="center"><img src="https://capsule-render.vercel.app/api?type=waving&color=0:070b14,100:12102a&height=50&section=header&text=%E2%9C%A8%20Why%20Compass%20Ultra%3F&fontSize=22&fontColor=e6edf3&animation=twinkling" width="720" alt="✨ Why Compass Ultra?" /></p>
 
 
 Feature flags are supposed to make releases safer.
@@ -110,7 +110,7 @@ Your team can answer:
 ---
 
 <p align="center"><img src="docs/readme-divider.svg" width="720" alt="" /></p>
-<p align="center"><img src="https://capsule-render.vercel.app/api?type=rect&color=070b14&height=50&section=header&text=%E2%9A%A1%20The%20Short%20Version&fontSize=22&fontColor=e6edf3" width="720" alt="⚡ The Short Version" /></p>
+<p align="center"><img src="https://capsule-render.vercel.app/api?type=waving&color=0:070b14,100:12102a&height=50&section=header&text=%E2%9A%A1%20The%20Short%20Version&fontSize=22&fontColor=e6edf3&animation=twinkling" width="720" alt="⚡ The Short Version" /></p>
 
 
 Compass Ultra helps teams review and prove release readiness before shipping.
@@ -127,7 +127,7 @@ A typical release review looks like this:
 ---
 
 <p align="center"><img src="docs/readme-divider.svg" width="720" alt="" /></p>
-<p align="center"><img src="https://capsule-render.vercel.app/api?type=rect&color=070b14&height=50&section=header&text=%F0%9F%8E%AE%20Live%20Demo&fontSize=22&fontColor=e6edf3" width="720" alt="🎮 Live Demo" /></p>
+<p align="center"><img src="https://capsule-render.vercel.app/api?type=waving&color=0:070b14,100:12102a&height=50&section=header&text=%F0%9F%8E%AE%20Live%20Demo&fontSize=22&fontColor=e6edf3&animation=twinkling" width="720" alt="🎮 Live Demo" /></p>
 
 
 The demo works without an account:
@@ -149,7 +149,7 @@ The demo simulates a risky retail release (Black Friday eve, `peak-sale-2026.11`
 ---
 
 <p align="center"><img src="docs/readme-divider.svg" width="720" alt="" /></p>
-<p align="center"><img src="https://capsule-render.vercel.app/api?type=rect&color=070b14&height=50&section=header&text=%F0%9F%A7%A0%20Core%20Features&fontSize=22&fontColor=e6edf3" width="720" alt="🧠 Core Features" /></p>
+<p align="center"><img src="https://capsule-render.vercel.app/api?type=waving&color=0:070b14,100:12102a&height=50&section=header&text=%F0%9F%A7%A0%20Core%20Features&fontSize=22&fontColor=e6edf3&animation=twinkling" width="720" alt="🧠 Core Features" /></p>
 
 
 ### 🚦 Release Risk Analyzer
@@ -326,7 +326,7 @@ All blocked actions are logged with actor, role, gate triggered, and exact times
 ---
 
 <p align="center"><img src="docs/readme-divider.svg" width="720" alt="" /></p>
-<p align="center"><img src="https://capsule-render.vercel.app/api?type=rect&color=070b14&height=50&section=header&text=%F0%9F%A7%AD%20Product%20Positioning&fontSize=22&fontColor=e6edf3" width="720" alt="🧭 Product Positioning" /></p>
+<p align="center"><img src="https://capsule-render.vercel.app/api?type=waving&color=0:070b14,100:12102a&height=50&section=header&text=%F0%9F%A7%AD%20Product%20Positioning&fontSize=22&fontColor=e6edf3&animation=twinkling" width="720" alt="🧭 Product Positioning" /></p>
 
 
 Compass Ultra is **not** a feature flag provider.
@@ -340,7 +340,7 @@ Use it when you need a clear answer to:
 ---
 
 <p align="center"><img src="docs/readme-divider.svg" width="720" alt="" /></p>
-<p align="center"><img src="https://capsule-render.vercel.app/api?type=rect&color=070b14&height=50&section=header&text=%F0%9F%92%B8%20Pricing&fontSize=22&fontColor=e6edf3" width="720" alt="💸 Pricing" /></p>
+<p align="center"><img src="https://capsule-render.vercel.app/api?type=waving&color=0:070b14,100:12102a&height=50&section=header&text=%F0%9F%92%B8%20Pricing&fontSize=22&fontColor=e6edf3&animation=twinkling" width="720" alt="💸 Pricing" /></p>
 
 
 | Plan | Price | Seats | Best for |
@@ -358,7 +358,7 @@ No credit card required. Trials downgrade to Free automatically unless the custo
 ---
 
 <p align="center"><img src="docs/readme-divider.svg" width="720" alt="" /></p>
-<p align="center"><img src="https://capsule-render.vercel.app/api?type=rect&color=070b14&height=50&section=header&text=%F0%9F%9B%A0%EF%B8%8F%20Tech%20Stack&fontSize=22&fontColor=e6edf3" width="720" alt="🛠️ Tech Stack" /></p>
+<p align="center"><img src="https://capsule-render.vercel.app/api?type=waving&color=0:070b14,100:12102a&height=50&section=header&text=%F0%9F%9B%A0%EF%B8%8F%20Tech%20Stack&fontSize=22&fontColor=e6edf3&animation=twinkling" width="720" alt="🛠️ Tech Stack" /></p>
 
 
 | Layer | Technology |
@@ -380,7 +380,7 @@ No credit card required. Trials downgrade to Free automatically unless the custo
 ---
 
 <p align="center"><img src="docs/readme-divider.svg" width="720" alt="" /></p>
-<p align="center"><img src="https://capsule-render.vercel.app/api?type=rect&color=070b14&height=50&section=header&text=%F0%9F%93%A6%20Repositories&fontSize=22&fontColor=e6edf3" width="720" alt="📦 Repositories" /></p>
+<p align="center"><img src="https://capsule-render.vercel.app/api?type=waving&color=0:070b14,100:12102a&height=50&section=header&text=%F0%9F%93%A6%20Repositories&fontSize=22&fontColor=e6edf3&animation=twinkling" width="720" alt="📦 Repositories" /></p>
 
 
 | Repo | What it is |
@@ -395,7 +395,7 @@ This public repository is the **marketing and docs surface**. The live product r
 ---
 
 <p align="center"><img src="docs/readme-divider.svg" width="720" alt="" /></p>
-<p align="center"><img src="https://capsule-render.vercel.app/api?type=rect&color=070b14&height=50&section=header&text=%F0%9F%94%92%20Security%20Model&fontSize=22&fontColor=e6edf3" width="720" alt="🔒 Security Model" /></p>
+<p align="center"><img src="https://capsule-render.vercel.app/api?type=waving&color=0:070b14,100:12102a&height=50&section=header&text=%F0%9F%94%92%20Security%20Model&fontSize=22&fontColor=e6edf3&animation=twinkling" width="720" alt="🔒 Security Model" /></p>
 
 
 Compass Ultra is designed as a release review layer.
@@ -412,7 +412,7 @@ Compass Ultra is designed as a release review layer.
 ---
 
 <p align="center"><img src="docs/readme-divider.svg" width="720" alt="" /></p>
-<p align="center"><img src="https://capsule-render.vercel.app/api?type=rect&color=070b14&height=50&section=header&text=%F0%9F%97%BA%EF%B8%8F%20Roadmap&fontSize=22&fontColor=e6edf3" width="720" alt="🗺️ Roadmap" /></p>
+<p align="center"><img src="https://capsule-render.vercel.app/api?type=waving&color=0:070b14,100:12102a&height=50&section=header&text=%F0%9F%97%BA%EF%B8%8F%20Roadmap&fontSize=22&fontColor=e6edf3&animation=twinkling" width="720" alt="🗺️ Roadmap" /></p>
 
 
 * 🧾 Full backend-enforced seat limits
@@ -430,7 +430,7 @@ Compass Ultra is designed as a release review layer.
 ---
 
 <p align="center"><img src="docs/readme-divider.svg" width="720" alt="" /></p>
-<p align="center"><img src="https://capsule-render.vercel.app/api?type=rect&color=070b14&height=50&section=header&text=%E2%9C%85%20Status&fontSize=22&fontColor=e6edf3" width="720" alt="✅ Status" /></p>
+<p align="center"><img src="https://capsule-render.vercel.app/api?type=waving&color=0:070b14,100:12102a&height=50&section=header&text=%E2%9C%85%20Status&fontSize=22&fontColor=e6edf3&animation=twinkling" width="720" alt="✅ Status" /></p>
 
 
 <p align="center">
@@ -442,7 +442,7 @@ Compass Ultra is designed as a release review layer.
 ---
 
 <p align="center"><img src="docs/readme-divider.svg" width="720" alt="" /></p>
-<p align="center"><img src="https://capsule-render.vercel.app/api?type=rect&color=070b14&height=50&section=header&text=%F0%9F%9A%80%20Built%20For&fontSize=22&fontColor=e6edf3" width="720" alt="🚀 Built For" /></p>
+<p align="center"><img src="https://capsule-render.vercel.app/api?type=waving&color=0:070b14,100:12102a&height=50&section=header&text=%F0%9F%9A%80%20Built%20For&fontSize=22&fontColor=e6edf3&animation=twinkling" width="720" alt="🚀 Built For" /></p>
 
 
 Teams that ship fast and still need proof before production.

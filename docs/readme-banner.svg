@@ -2,34 +2,44 @@
   <defs>
     <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
       <stop offset="0%" stop-color="#070b14"/>
-      <stop offset="55%" stop-color="#0d1b33"/>
-      <stop offset="100%" stop-color="#0b2d5c"/>
+      <stop offset="50%" stop-color="#12102a"/>
+      <stop offset="100%" stop-color="#0d1b33"/>
     </linearGradient>
     <linearGradient id="accent" x1="0%" y1="0%" x2="100%" y2="0%">
-      <stop offset="0%" stop-color="#58a6ff"/>
+      <stop offset="0%" stop-color="#bc8cff"/>
       <stop offset="100%" stop-color="#33d69f"/>
     </linearGradient>
-    <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
-      <feGaussianBlur stdDeviation="6" result="blur"/>
-      <feMerge>
-        <feMergeNode in="blur"/>
-        <feMergeNode in="SourceGraphic"/>
-      </feMerge>
-    </filter>
+    <linearGradient id="shimmer" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#bc8cff" stop-opacity="0"/>
+      <stop offset="50%" stop-color="#bc8cff" stop-opacity="0.15"/>
+      <stop offset="100%" stop-color="#33d69f" stop-opacity="0"/>
+    </linearGradient>
   </defs>
   <rect width="920" height="220" rx="18" fill="url(#bg)"/>
-  <rect x="1" y="1" width="918" height="218" rx="17" fill="none" stroke="rgba(88,166,255,0.22)" stroke-width="2"/>
-  <circle cx="96" cy="110" r="52" fill="rgba(88,166,255,0.08)" stroke="rgba(88,166,255,0.35)" stroke-width="2"/>
-  <circle cx="96" cy="110" r="34" fill="none" stroke="url(#accent)" stroke-width="3" filter="url(#glow)"/>
-  <path d="M96 78 L96 110 L118 124" fill="none" stroke="#e6edf3" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
-  <circle cx="96" cy="110" r="5" fill="#33d69f"/>
-  <text x="170" y="92" fill="#f8fbff" font-family="Segoe UI, system-ui, sans-serif" font-size="42" font-weight="800">Compass Ultra</text>
-  <text x="170" y="126" fill="#9db4d1" font-family="Segoe UI, system-ui, sans-serif" font-size="18" font-weight="500">Release intelligence for feature-flagged software</text>
-  <rect x="170" y="148" width="132" height="28" rx="14" fill="rgba(51,214,159,0.14)" stroke="rgba(51,214,159,0.45)"/>
-  <text x="236" y="167" fill="#33d69f" font-family="Segoe UI, system-ui, sans-serif" font-size="13" font-weight="700" text-anchor="middle">LIVE ON VERCEL</text>
-  <rect x="314" y="148" width="156" height="28" rx="14" fill="rgba(88,166,255,0.12)" stroke="rgba(88,166,255,0.4)"/>
-  <text x="392" y="167" fill="#58a6ff" font-family="Segoe UI, system-ui, sans-serif" font-size="13" font-weight="700" text-anchor="middle">AI RISK + POLICY GATES</text>
-  <rect x="482" y="148" width="150" height="28" rx="14" fill="rgba(255,184,0,0.12)" stroke="rgba(255,184,0,0.4)"/>
-  <text x="557" y="167" fill="#ffb800" font-family="Segoe UI, system-ui, sans-serif" font-size="13" font-weight="700" text-anchor="middle">PDF RELEASE PROOF</text>
-  <text x="170" y="198" fill="#6f8199" font-family="Segoe UI, system-ui, sans-serif" font-size="12">www.compassultra.com</text>
+  <rect x="-200" y="0" width="240" height="220" rx="18" fill="url(#shimmer)" opacity="0.9">
+    <animate attributeName="x" values="-240;920" dur="7s" repeatCount="indefinite"/>
+  </rect>
+  <rect x="1" y="1" width="918" height="218" rx="17" fill="none" stroke="#bc8cff" stroke-width="2" opacity="0.35">
+    <animate attributeName="opacity" values="0.35;0.65;0.35" dur="3s" repeatCount="indefinite"/>
+  </rect>
+  
+  <circle cx="96" cy="110" r="48" fill="rgba(188,140,255,0.06)" stroke="#bc8cff" stroke-width="2" opacity="0.6">
+    <animate attributeName="r" values="48;52;48" dur="3s" repeatCount="indefinite"/>
+  </circle>
+  <polygon points="96,68 104,110 96,102 88,110" fill="#33d69f">
+    <animateTransform attributeName="transform" type="rotate" values="0 96 110;12 96 110;-12 96 110;0 96 110" dur="4s" repeatCount="indefinite"/>
+  </polygon>
+  <circle cx="96" cy="110" r="6" fill="#bc8cff">
+    <animate attributeName="opacity" values="1;0.4;1" dur="1.5s" repeatCount="indefinite"/>
+  </circle>
+  <text x="170" y="92" fill="#f8fbff" font-family="Segoe UI, system-ui, sans-serif" font-size="38" font-weight="800">Compass Ultra</text>
+  <text x="170" y="126" fill="#9db4d1" font-family="Segoe UI, system-ui, sans-serif" font-size="17" font-weight="500">Release intelligence for teams that ship behind feature flags.</text>
+  <rect x="170" y="148" width="128" height="28" rx="14" fill="rgba(188,140,255,0.14)" stroke="#bc8cff66" stroke-width="1">
+    <animate attributeName="opacity" values="1;0.75;1" dur="2.5s" begin="0s" repeatCount="indefinite"/>
+  </rect>
+  <text x="234" y="167" fill="#bc8cff" font-family="Segoe UI, system-ui, sans-serif" font-size="12" font-weight="700" text-anchor="middle">RELEASE INTEL</text>
+  <rect x="310" y="148" width="128" height="28" rx="14" fill="rgba(188,140,255,0.14)" stroke="#33d69f66" stroke-width="1">
+    <animate attributeName="opacity" values="1;0.75;1" dur="2.5s" begin="0.3s" repeatCount="indefinite"/>
+  </rect>
+  <text x="374" y="167" fill="#33d69f" font-family="Segoe UI, system-ui, sans-serif" font-size="12" font-weight="700" text-anchor="middle">FEATURE FLAGS</text>
 </svg>
